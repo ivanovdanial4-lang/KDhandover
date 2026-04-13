@@ -103,7 +103,7 @@
     <div id="modal" class="modal">
         <div class="modal-content">
             <h3 id="m-title">Shift Note</h3>
-            <input type="text" id="m-r" placeholder="Room or Name">
+            <input type="text" id="m-room" placeholder="Room or Name">
             <textarea id="m-text" placeholder="Details..." rows="5"></textarea>
             <select id="m-tag">
                 <option value="info">Info</option>
@@ -193,7 +193,7 @@
                         card.innerHTML = `
                             <div class="note-time">${n.time}</div>
                             <span class="tag tag-${n.tag}">${n.tag}</span>
-                            ${n.room ? `<div class="note-room">Room ${n.room}</div>` : ''}
+                            ${n.room ? `<div class="note-room">R ${n.room}</div>` : ''}
                             <div class="note-text ${isImportant ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${n.text}</div>
                             <div class="card-actions">
                                 <button class="action-link" onclick="window.toggleDone('${nDoc.id}', ${n.done})">Done</button>
