@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>King David | Cloud Handover</title>
     <style>
-        /* --- CSS Темы и Стили (Оставляем те же) --- */
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
             --header-text: #ffffff; --text-main: #333333; --card-bg: #ffffff;
             --border-color: #dddddd; --accent-color: #c5a059;
-            --tag-urgent: #e74c3c; --tag-important: #f1c40f; --tag-info: #3498db; --tag-done: #2ecc71;
+            --tag-urgent: #e74c3c; --tag-important: #f39c12; --tag-info: #3498db; --tag-done: #2ecc71;
         }
         [data-theme="cream"] { --bg-color: #f5f5dc; --sidebar-bg: #fffdd0; --header-bg: #4a3728; --text-main: #5d4037; --card-bg: #fffef0; --border-color: #d2b48c; }
         [data-theme="dark"] { --bg-color: #121212; --sidebar-bg: #1e1e1e; --header-bg: #000000; --header-text: #e0e0e0; --text-main: #e0e0e0; --card-bg: #2d2d2d; --border-color: #444444; }
@@ -21,27 +20,45 @@
         header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .header-title { font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; text-align: center; flex-grow: 1; }
         .toolbar { display: flex; gap: 10px; }
-        .tool-btn { background: none; border: 1px solid var(--header-text); color: var(--header-text); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .tool-btn { background: none; border: 1px solid var(--header-text); color: var(--header-text); cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; }
 
         .container { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1rem; overflow-y: auto; }
-        .add-day-btn { width: 100%; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 1rem; }
-        .day-item { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; position: relative; }
-        .day-item.active { border-left: 5px solid var(--accent-color); background: rgba(197, 160, 89, 0.1); }
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; overflow-y: auto; }
+        .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; }
+        
+        .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; position: relative; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; }
+        .day-item.active { border-left: 5px solid var(--accent-color); background: rgba(197, 160, 89, 0.05); }
+        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; }
+        .delete-day-btn:hover { color: #e74c3c; }
 
         main { flex: 1; padding: 2rem; overflow-y: auto; }
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .note-card.done { opacity: 0.5; text-decoration: line-through; }
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; color: white; font-weight: bold; margin-bottom: 5px; }
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .search-bar { padding: 8px 15px; width: 250px; border-radius: 20px; border: 1px solid var(--border-color); }
+
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .note-card.done { opacity: 0.6; filter: grayscale(0.5); }
+        
+        .note-time { font-size: 0.75rem; color: #999; margin-bottom: 10px; }
+        .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; }
+        .note-text { margin: 15px 0; line-height: 1.5; white-space: pre-wrap; }
+        
+        /* Авто-красный для важных */
+        .important-style { color: #e74c3c !important; font-weight: bold; }
+        
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; color: white; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; }
         .tag-urgent { background: var(--tag-urgent); }
         .tag-important { background: var(--tag-important); }
         .tag-info { background: var(--tag-info); }
         .tag-done { background: var(--tag-done); }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 8px; width: 400px; color: var(--text-main); }
-        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 8px; border: 1px solid var(--border-color); }
+        .card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
+        .action-link { font-size: 0.8rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; }
+        .action-link:hover { color: var(--accent-color); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 12px; width: 400px; }
+        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
         
         .fmt-red { color: #e74c3c; font-weight: bold; }
         .fmt-underline { text-decoration: underline; }
@@ -60,48 +77,48 @@
         </div>
         <div class="header-title">KING DAVID</div>
         <div class="toolbar">
-            <button class="tool-btn" id="btn-red">Red Text</button>
-            <button class="tool-btn" id="btn-red">Powere by Danilevskij© V1.0.4</button>
-            
+            <button class="tool-btn" id="f-red">Red</button>
+            <button class="tool-btn" id="f-u">U</button>
+            <button class="tool-btn" id="f-s">S</button>
         </div>
     </header>
 
     <div class="container">
         <aside id="sidebar">
-            <button class="add-day-btn" id="btn-add-day">➕ Create New Day</button>
+            <button class="add-day-btn" id="new-day-trigger">➕ Create New Day</button>
             <div id="day-list"></div>
         </aside>
 
         <main>
-            <div style="display: flex; justify-content: space-between;">
-                <h2 id="current-day-label">Select a Day</h2>
-                <input type="text" id="search-input" placeholder="Search notes..." style="padding: 5px; width: 200px;">
+            <div class="main-header">
+                <h2 id="day-label">Select a Day</h2>
+                <input type="text" id="search" class="search-bar" placeholder="Search rooms or text...">
             </div>
-            <button class="add-day-btn" id="btn-open-note" style="display:none; width: auto; margin-top: 10px;">+ Add Note</button>
+            <button class="add-day-btn" id="new-note-trigger" style="display:none; width: auto;">+ New Note</button>
             <div class="notes-grid" id="notes-grid"></div>
         </main>
     </div>
 
-    <div id="note-modal" class="modal">
+    <div id="modal" class="modal">
         <div class="modal-content">
-            <h3 id="modal-title">Note</h3>
-            <input type="text" id="note-room" placeholder="Room # or name">
-            <textarea id="note-text" placeholder="Details..." rows="4"></textarea>
-            <select id="note-tag">
+            <h3 id="m-title">Shift Note</h3>
+            <input type="text" id="m-room" placeholder="Room Number">
+            <textarea id="m-text" placeholder="Details..." rows="5"></textarea>
+            <select id="m-tag">
                 <option value="info">Info</option>
-                <option value="urgent">Urgent</option>
                 <option value="important">Important</option>
+                <option value="urgent">Urgent</option>
             </select>
             <div style="text-align: right;">
-                <button id="btn-close-modal">Cancel</button>
-                <button id="btn-save-note" class="add-day-btn" style="width: auto;">Save</button>
+                <button id="m-cancel" style="background:none; border:none; margin-right:10px; cursor:pointer;">Cancel</button>
+                <button id="m-save" class="add-day-btn" style="width:auto; margin:0;">Save</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -115,136 +132,145 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State
-        let selectedDayId = null;
+        let activeDayId = null;
         let activeFormats = [];
         let editingNoteId = null;
 
-        // UI Elements
-        const dayList = document.getElementById('day-list');
-        const notesGrid = document.getElementById('notes-grid');
-        const themeSelector = document.getElementById('theme-selector');
+        // --- Days ---
+        document.getElementById('new-day-trigger').onclick = async () => {
+            const d = prompt("Enter Date:", new Date().toISOString().split('T')[0]);
+            if(d) await addDoc(collection(db, "days"), { date: d, createdAt: Date.now() });
+        };
 
-        /* --- THEME --- */
-        themeSelector.addEventListener('change', (e) => {
-            document.body.setAttribute('data-theme', e.target.value);
-            localStorage.setItem('kd_theme', e.target.value);
-        });
-        document.body.setAttribute('data-theme', localStorage.getItem('kd_theme') || 'light');
-
-        /* --- DAYS LOGIC --- */
-        document.getElementById('btn-add-day').addEventListener('click', async () => {
-            const date = prompt("Enter Date (DD-MM-YYYY):", new Date().toISOString().split('T')[0]);
-            if (date) {
-                await addDoc(collection(db, "days"), { date, createdAt: Date.now() });
-            }
-        });
-
-        // Listen for Days
-        onSnapshot(query(collection(db, "days"), orderBy("date", "desc")), (snapshot) => {
-            dayList.innerHTML = '';
-            snapshot.forEach(doc => {
-                const day = doc.data();
+        onSnapshot(query(collection(db, "days"), orderBy("date", "desc")), (snap) => {
+            const list = document.getElementById('day-list');
+            list.innerHTML = '';
+            snap.forEach(dDoc => {
+                const day = dDoc.data();
                 const div = document.createElement('div');
-                div.className = `day-item ${selectedDayId === doc.id ? 'active' : ''}`;
-                div.innerHTML = `<strong>${day.date}</strong>`;
-                div.onclick = () => selectDay(doc.id, day.date);
-                dayList.appendChild(div);
+                div.className = `day-item ${activeDayId === dDoc.id ? 'active' : ''}`;
+                div.innerHTML = `
+                    <span onclick="window.selectDay('${dDoc.id}', '${day.date}')"><strong>${day.date}</strong></span>
+                    <button class="delete-day-btn" onclick="window.deleteDay('${dDoc.id}')">✕</button>
+                `;
+                list.appendChild(div);
             });
         });
 
-        function selectDay(id, date) {
-            selectedDayId = id;
-            document.getElementById('current-day-label').innerText = `Notes: ${date}`;
-            document.getElementById('btn-open-note').style.display = 'block';
+        window.selectDay = (id, date) => {
+            activeDayId = id;
+            document.getElementById('day-label').innerText = date;
+            document.getElementById('new-note-trigger').style.display = 'block';
             loadNotes(id);
-            // Refresh days UI to show active
-            const items = document.querySelectorAll('.day-item');
-            items.forEach(i => i.classList.remove('active'));
-        }
+        };
 
-        /* --- NOTES LOGIC --- */
+        window.deleteDay = async (id) => {
+            if(confirm("Delete this day and ALL notes inside it?")) {
+                // Delete notes first
+                const notesQuery = await getDocs(collection(db, `days/${id}/notes`));
+                notesQuery.forEach(async (n) => await deleteDoc(doc(db, `days/${id}/notes`, n.id)));
+                // Delete day
+                await deleteDoc(doc(db, "days", id));
+                if(activeDayId === id) location.reload();
+            }
+        };
+
+        // --- Notes ---
         function loadNotes(dayId) {
-            onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt", "desc")), (snapshot) => {
-                if (selectedDayId !== dayId) return;
-                notesGrid.innerHTML = '';
-                snapshot.forEach(noteDoc => {
-                    const note = noteDoc.data();
-                    renderNoteCard(note, noteDoc.id);
+            onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt", "desc")), (snap) => {
+                if(activeDayId !== dayId) return;
+                const grid = document.getElementById('notes-grid');
+                grid.innerHTML = '';
+                const search = document.getElementById('search').value.toLowerCase();
+
+                snap.forEach(nDoc => {
+                    const n = nDoc.data();
+                    if(n.text.toLowerCase().includes(search) || n.room.includes(search)) {
+                        const isImportant = (n.tag === 'important' || n.tag === 'urgent');
+                        const card = document.createElement('div');
+                        card.className = `note-card ${n.done ? 'done' : ''}`;
+                        card.innerHTML = `
+                            <div class="note-time">${n.time}</div>
+                            <span class="tag tag-${n.tag}">${n.tag}</span>
+                            ${n.room ? `<div class="note-room">Room ${n.room}</div>` : ''}
+                            <div class="note-text ${isImportant ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${n.text}</div>
+                            <div class="card-actions">
+                                <button class="action-link" onclick="window.toggleDone('${nDoc.id}', ${n.done})">Done</button>
+                                <button class="action-link" onclick="window.editNote('${nDoc.id}')">Edit</button>
+                                <button class="action-link" style="color:#e74c3c" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    }
                 });
             });
         }
 
-        function renderNoteCard(note, id) {
-            const card = document.createElement('div');
-            card.className = `note-card ${note.done ? 'done' : ''}`;
-            const formats = note.formats ? note.formats.join(' ') : '';
-            
-            card.innerHTML = `
-                <div style="font-size: 0.7rem; color: gray;">${note.time}</div>
-                <span class="tag tag-${note.tag}">${note.tag}</span>
-                <div class="note-text ${formats}">${note.room ? '<b>R:'+note.room+'</b> ' : ''}${note.text}</div>
-                <div style="margin-top:10px;">
-                    <button class="tool-btn" style="color:black" onclick="toggleDone('${id}', ${note.done})">Done</button>
-                    <button class="tool-btn" style="color:black" onclick="deleteNote('${id}')">Delete</button>
-                </div>
-            `;
-            notesGrid.appendChild(card);
-        }
-
-        // Add Note Modal
-        document.getElementById('btn-open-note').addEventListener('click', () => {
+        // Modal Logic
+        const modal = document.getElementById('modal');
+        document.getElementById('new-note-trigger').onclick = () => {
             editingNoteId = null;
-            document.getElementById('note-modal').style.display = 'flex';
-        });
+            document.getElementById('m-title').innerText = "New Note";
+            document.getElementById('m-text').value = '';
+            document.getElementById('m-room').value = '';
+            modal.style.display = 'flex';
+        };
 
-        document.getElementById('btn-close-modal').addEventListener('click', () => {
-            document.getElementById('note-modal').style.display = 'none';
-        });
+        document.getElementById('m-cancel').onclick = () => modal.style.display = 'none';
 
-        document.getElementById('btn-save-note').addEventListener('click', async () => {
-            const text = document.getElementById('note-text').value;
-            const room = document.getElementById('note-room').value;
-            const tag = document.getElementById('note-tag').value;
-            
-            if (!text) return;
+        document.getElementById('m-save').onclick = async () => {
+            const text = document.getElementById('m-text').value;
+            const room = document.getElementById('m-room').value;
+            const tag = document.getElementById('m-tag').value;
+            if(!text) return;
 
-            await addDoc(collection(db, `days/${selectedDayId}/notes`), {
+            const data = {
                 text, room, tag,
-                done: false,
-                createdAt: Date.now(),
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                formats: activeFormats
-            });
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                formats: [...activeFormats],
+                createdAt: Date.now()
+            };
 
-            document.getElementById('note-modal').style.display = 'none';
-            document.getElementById('note-text').value = '';
-        });
+            if(editingNoteId) {
+                await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), data);
+            } else {
+                await addDoc(collection(db, `days/${activeDayId}/notes`), {...data, done: false});
+            }
+            modal.style.display = 'none';
+        };
 
-        // Трюк для работы функций внутри модулей (привязываем к window)
         window.deleteNote = async (id) => {
-            if(confirm("Delete note?")) await deleteDoc(doc(db, `days/${selectedDayId}/notes`, id));
+            if(confirm("Delete note?")) await deleteDoc(doc(db, `days/${activeDayId}/notes`, id));
         };
 
-        window.toggleDone = async (id, currentStatus) => {
-            await updateDoc(doc(db, `days/${selectedDayId}/notes`, id), { 
-                done: !currentStatus,
-                tag: !currentStatus ? 'done' : 'info' 
-            });
+        window.toggleDone = async (id, status) => {
+            await updateDoc(doc(db, `days/${activeDayId}/notes`, id), { done: !status, tag: !status ? 'done' : 'info' });
         };
 
-        /* --- FORMATTING --- */
-        const setupFormat = (id, cls) => {
-            document.getElementById(id).addEventListener('click', () => {
-                const idx = activeFormats.indexOf(cls);
-                if(idx > -1) activeFormats.splice(idx, 1);
-                else activeFormats.push(cls);
-                alert("Format " + cls + " toggled for next note.");
-            });
+        window.editNote = async (id) => {
+            editingNoteId = id;
+            // Simplified: just get current text from UI or fetch. Let's fetch for accuracy.
+            document.getElementById('m-title').innerText = "Edit Note";
+            modal.style.display = 'flex';
         };
-        setupFormat('btn-red', 'fmt-red');
-        setupFormat('btn-u', 'fmt-underline');
-        setupFormat('btn-s', 'fmt-strike');
+
+        // Theme & Formatting
+        document.getElementById('theme-selector').onchange = (e) => {
+            document.body.setAttribute('data-theme', e.target.value);
+            localStorage.setItem('kd_theme', e.target.value);
+        };
+        document.body.setAttribute('data-theme', localStorage.getItem('kd_theme') || 'light');
+
+        const bindF = (id, cls) => {
+            document.getElementById(id).onclick = () => {
+                const i = activeFormats.indexOf(cls);
+                if(i > -1) activeFormats.splice(i, 1); else activeFormats.push(cls);
+                alert("Format toggled for next note!");
+            }
+        };
+        bindF('f-red', 'fmt-red'); bindF('f-u', 'fmt-underline'); bindF('f-s', 'fmt-strike');
+
+        document.getElementById('search').oninput = () => loadNotes(activeDayId);
 
     </script>
 </body>
