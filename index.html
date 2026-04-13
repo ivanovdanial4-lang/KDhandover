@@ -60,6 +60,7 @@
         </div>
         <div class="header-title">KING DAVID</div>
         <div class="toolbar">
+            <button class="tool-btn" id="btn-red">Red Text</button>
             <button class="tool-btn" id="btn-red">Powere by Danilevskij© V1.0.4</button>
             
         </div>
@@ -133,7 +134,7 @@
 
         /* --- DAYS LOGIC --- */
         document.getElementById('btn-add-day').addEventListener('click', async () => {
-            const date = prompt("Enter Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
+            const date = prompt("Enter Date (DD-MM-YYYY):", new Date().toISOString().split('T')[0]);
             if (date) {
                 await addDoc(collection(db, "days"), { date, createdAt: Date.now() });
             }
