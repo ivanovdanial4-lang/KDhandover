@@ -233,12 +233,22 @@
             });
         });
 
-        window.selectDay = (id, date) => {
-            activeDayId = id;
-            document.getElementById('day-label').innerText = date;
-            document.getElementById('new-note-trigger').style.display = 'block';
-            loadNotes(id);
-        };
+       window.selectDay = (id, date) => {
+    activeDayId = id;
+    document.getElementById('day-label').innerText = date;
+    document.getElementById('new-note-trigger').style.display = 'block';
+    
+    // ИСПРАВЛЕНИЕ: Убираем активный класс у всех и даем только выбранному
+    document.querySelectorAll('.day-item').forEach(item => {
+        if(item.dataset.id === id) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+    
+    loadNotes(id);
+};
 
         window.deleteDay = async (id) => {
             if(confirm("Delete day?")) {
