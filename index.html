@@ -30,9 +30,8 @@
 
         .container { display: flex; flex: 1; overflow: hidden; }
         
-        /* Sidebar и его скрытие */
         #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; }
-        .sidebar-hidden { margin-left: -280px; } /* Прячем за край экрана */
+        .sidebar-hidden { margin-left: -280px; }
 
         .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; transition: 0.2s; }
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
@@ -61,12 +60,12 @@
         .search-bar { padding: 8px 15px; width: 250px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
 
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column;}
         .note-card.done { opacity: 0.6; filter: grayscale(0.5); }
         
         .note-time { font-size: 0.75rem; color: #999; margin-bottom: 10px; font-weight: bold; }
         .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; margin-bottom: 5px; }
-        .note-text { margin: 15px 0; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
+        .note-text { margin: 15px 0; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; flex-grow: 1;}
         
         .important-style { color: #e74c3c !important; font-weight: bold; }
         
@@ -76,7 +75,7 @@
         .tag-info { background: var(--tag-info); }
         .tag-done { background: var(--tag-done); }
 
-        .card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
+        .card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 15px; }
         .action-link { font-size: 0.8rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s;}
         .action-link:hover { color: var(--accent-color); }
 
@@ -88,8 +87,8 @@
         .modal-toolbar .tool-btn { border-color: var(--border-color); color: var(--text-main); }
         .modal-toolbar .tool-btn:hover { background: var(--border-color); }
 
-        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
-        .file-link { display: inline-block; margin-top: 10px; padding: 6px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; text-decoration: none; color: var(--text-main); font-size: 0.85rem; font-weight: bold; }
+        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; border: 1px solid var(--border-color); cursor: zoom-in; transition: opacity 0.2s; }
+        .note-img:hover { opacity: 0.9; }
 
         .fmt-red { color: #e74c3c; font-weight: bold; }
         .fmt-underline { text-decoration: underline; }
@@ -101,13 +100,13 @@
     <header>
         <div class="header-left">
             <button class="tool-btn" id="sidebar-toggle" style="font-size: 1.2rem; padding: 2px 10px;" title="Toggle Sidebar">☰</button>
-            <div class="dannote-title"> Dannote</div>
+            <div class="dannote-title">⚛️ Dannote</div>
         </div>
         
         <div class="header-center">KING DAVID</div>
         
         <div class="header-right">
-            <select id="theme-selector" style="padding: 5px; border-radius: 5px; border: none; background: #333; color: white;">
+            <select id="theme-selector" style="padding: 5px; border-radius: 5px; border: none; background: #333; color: white; cursor: pointer;">
                 <option value="light">Light</option>
                 <option value="cream">Cream</option>
                 <option value="dark">Dark</option>
@@ -117,7 +116,7 @@
 
     <div class="container">
         <aside id="sidebar">
-            <button class="add-day-btn" id="new-day-trigger"> Create New Day</button>
+            <button class="add-day-btn" id="new-day-trigger">➕ Create New Day</button>
             
             <div id="day-list"></div>
 
@@ -149,13 +148,15 @@
             <input type="text" id="m-room" placeholder="Room Number (e.g. 101)">
             <textarea id="m-text" placeholder="Details of the note..." rows="5"></textarea>
             
-            <input type="file" id="m-file" accept="image/*,.pdf,.doc,.docx" style="font-size: 0.9rem; padding: 5px;">
+            <label style="font-size:0.8rem; display:block; margin-bottom:5px; font-weight:bold;">Attach Photo:</label>
+            <input type="file" id="m-file" accept="image/*" style="font-size: 0.9rem; padding: 5px;">
 
             <select id="m-tag">
                 <option value="info">Info (Blue)</option>
                 <option value="important">Important (Orange)</option>
                 <option value="urgent">Urgent (Red)</option>
             </select>
+            
             <div style="text-align: right; margin-top: 10px;">
                 <button id="m-cancel" style="background:none; border:none; margin-right:15px; cursor:pointer; color: var(--text-main); font-weight: bold;">Cancel</button>
                 <button id="m-save" class="add-day-btn" style="width:auto; margin:0; padding: 10px 30px;">Save Data</button>
@@ -166,13 +167,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
+        // Твой Firebase конфиг (Только для базы данных)
         const firebaseConfig = {
             apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
             authDomain: "kd-handover.firebaseapp.com",
             projectId: "kd-handover",
-            storageBucket: "kd-handover.firebasestorage.app",
             messagingSenderId: "964942218152",
             appId: "1:964942218152:web:af7e358b48b7ab11ad939d"
         };
@@ -180,13 +180,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Безопасная инициализация Storage. Если не работает в консоли Firebase - текст все равно сохранится
-        let storage;
-        try {
-            storage = getStorage(app);
-        } catch(err) {
-            console.warn("Firebase Storage is not enabled or configured properly.", err);
-        }
+        // Твой ключ ImgBB
+        const imgbbKey = "950a472c300568e459d64bd2118298af";
 
         let activeDayId = null;
         let activeFormats = [];
@@ -286,16 +281,16 @@
 
                         let attachmentHtml = '';
                         if(n.fileUrl) {
-                            if(n.fileType && n.fileType.startsWith('image/')) {
-                                attachmentHtml = `<img src="${n.fileUrl}" class="note-img" alt="Attachment">`;
-                            } else {
-                                attachmentHtml = `<a href="${n.fileUrl}" target="_blank" class="file-link">📎 ${escapeHTML(n.fileName || 'Attachment')}</a>`;
-                            }
+                            attachmentHtml = `<img src="${n.fileUrl}" class="note-img" alt="Attachment" onclick="window.open('${n.fileUrl}')" title="Click to enlarge">`;
                         }
 
                         card.innerHTML = `
-                            <div class="note-time">${n.time}</div>
-                            <span class="tag tag-${n.tag}">${n.tag}</span>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <div class="note-time">${n.time}</div>
+                                    <span class="tag tag-${n.tag}">${n.tag}</span>
+                                </div>
+                            </div>
                             ${n.room ? `<div class="note-room">R: ${safeRoom}</div>` : ''}
                             <div class="note-text ${isImportant ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${safeText}</div>
                             ${attachmentHtml}
@@ -316,7 +311,7 @@
             });
         }
 
-        // --- МОДАЛЬНОЕ ОКНО ---
+        // --- МОДАЛЬНОЕ ОКНО И СОХРАНЕНИЕ ---
         const modal = document.getElementById('modal');
         document.getElementById('new-note-trigger').onclick = () => {
             editingNoteId = null;
@@ -341,29 +336,31 @@
             const file = fileInput.files[0];
 
             if(!text && !file) {
-                alert("Please enter some text or attach a file.");
+                alert("Please enter some text or attach a photo.");
                 return;
             }
 
             const saveBtn = document.getElementById('m-save');
-            saveBtn.innerText = "Saving...";
+            saveBtn.innerText = "Uploading & Saving...";
             saveBtn.disabled = true;
 
             try {
                 let fileUrl = currentEditingData?.fileUrl || null;
-                let fileType = currentEditingData?.fileType || null;
-                let fileName = currentEditingData?.fileName || null;
 
-                if (file && storage) {
-                    try {
-                        const fileRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-                        await uploadBytes(fileRef, file);
-                        fileUrl = await getDownloadURL(fileRef);
-                        fileType = file.type;
-                        fileName = file.name;
-                    } catch(uploadErr) {
-                        alert("File upload failed (Please check if Firebase Storage is enabled). The text will still be saved.");
-                        console.error(uploadErr);
+                // Загрузка фото на ImgBB
+                if (file) {
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, { 
+                        method: "POST", 
+                        body: formData 
+                    });
+                    const resData = await res.json();
+                    
+                    if(resData.success) {
+                        fileUrl = resData.data.url;
+                    } else {
+                        throw new Error(resData.error?.message || "ImgBB upload failed");
                     }
                 }
 
@@ -376,8 +373,6 @@
 
                 if (fileUrl) {
                     payload.fileUrl = fileUrl;
-                    payload.fileType = fileType;
-                    payload.fileName = fileName;
                 }
 
                 if(editingNoteId) {
@@ -385,6 +380,7 @@
                 } else {
                     await addDoc(collection(db, `days/${activeDayId}/notes`), {...payload, done: false});
                 }
+                
                 modal.style.display = 'none';
                 fileInput.value = '';
             } catch(e) {
