@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>King David | Cloud Handover</title>
+    <title>Dannote | Cloud Handover</title>
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -17,17 +17,23 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
 
-        header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        .header-title { font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; text-align: center; flex-grow: 1; }
-        .toolbar { display: flex; gap: 10px; }
+        header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; position: relative;}
+        
+        .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .header-center { flex: 1; text-align: center; font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; }
+        .header-right { flex: 1; display: flex; justify-content: flex-end; }
+        
+        .dannote-title { font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; color: var(--accent-color); }
         .tool-btn { background: none; border: 1px solid var(--header-text); color: var(--header-text); cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; transition: 0.2s; }
         .tool-btn:hover { background: rgba(255,255,255,0.1); }
-        .tool-btn.active { background: var(--accent-color); border-color: var(--accent-color); }
+        .tool-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; }
 
         .container { display: flex; flex: 1; overflow: hidden; }
         
-        /* Улучшенный Sidebar */
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; }
+        /* Sidebar и его скрытие */
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; }
+        .sidebar-hidden { margin-left: -280px; } /* Прячем за край экрана */
+
         .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; transition: 0.2s; }
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         
@@ -36,12 +42,11 @@
         .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; position: relative; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
         .day-item:hover { border-color: var(--accent-color); }
         
-        /* НОВЫЙ ЭФФЕКТ АКТИВНОГО ДНЯ */
         .day-item.active { 
             border-left: 6px solid var(--accent-color); 
             background: rgba(197, 160, 89, 0.15); 
-            transform: translateX(5px); /* Сдвиг вправо */
-            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25); /* Свечение */
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);
             border-color: var(--accent-color);
         }
         
@@ -49,16 +54,7 @@
         .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; margin-left: 10px; z-index: 5; transition: 0.2s; }
         .delete-day-btn:hover { color: #e74c3c; transform: scale(1.1); }
 
-        /* ПОДВАЛ (АВТОР) */
-        .sidebar-footer {
-            text-align: center;
-            font-size: 0.75rem;
-            color: #888;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
+        .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; }
 
         main { flex: 1; padding: 2rem; overflow-y: auto; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -88,6 +84,13 @@
         .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 12px; width: 400px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
         .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
         
+        .modal-toolbar { display: flex; gap: 10px; margin-bottom: 10px; }
+        .modal-toolbar .tool-btn { border-color: var(--border-color); color: var(--text-main); }
+        .modal-toolbar .tool-btn:hover { background: var(--border-color); }
+
+        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
+        .file-link { display: inline-block; margin-top: 10px; padding: 6px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; text-decoration: none; color: var(--text-main); font-size: 0.85rem; font-weight: bold; }
+
         .fmt-red { color: #e74c3c; font-weight: bold; }
         .fmt-underline { text-decoration: underline; }
         .fmt-strike { text-decoration: line-through; }
@@ -96,29 +99,30 @@
 <body>
 
     <header>
-        <div class="toolbar">
+        <div class="header-left">
+            <button class="tool-btn" id="sidebar-toggle" style="font-size: 1.2rem; padding: 2px 10px;" title="Toggle Sidebar">☰</button>
+            <div class="dannote-title"> Dannote</div>
+        </div>
+        
+        <div class="header-center">KING DAVID</div>
+        
+        <div class="header-right">
             <select id="theme-selector" style="padding: 5px; border-radius: 5px; border: none; background: #333; color: white;">
                 <option value="light">Light</option>
                 <option value="cream">Cream</option>
                 <option value="dark">Dark</option>
             </select>
         </div>
-        <div class="header-title">KING DAVID</div>
-        <div class="toolbar">
-            <button class="tool-btn" id="f-red">Red</button>
-            <button class="tool-btn" id="f-u">U</button>
-            <button class="tool-btn" id="f-s">S</button>
-        </div>
     </header>
 
     <div class="container">
         <aside id="sidebar">
-            <button class="add-day-btn" id="new-day-trigger">➕ Create New Day</button>
+            <button class="add-day-btn" id="new-day-trigger"> Create New Day</button>
             
             <div id="day-list"></div>
 
             <div class="sidebar-footer">
-                Powered by Danylevskij v1.0.9
+                Powered by Danylevskij v1.1.0
             </div>
         </aside>
 
@@ -135,8 +139,18 @@
     <div id="modal" class="modal">
         <div class="modal-content">
             <h3 id="m-title" style="margin-bottom: 1rem; color: var(--accent-color);">Shift Note</h3>
+            
+            <div class="modal-toolbar">
+                <button class="tool-btn" id="f-red">Red Text</button>
+                <button class="tool-btn" id="f-u">Underline</button>
+                <button class="tool-btn" id="f-s">Strike</button>
+            </div>
+
             <input type="text" id="m-room" placeholder="Room Number (e.g. 101)">
             <textarea id="m-text" placeholder="Details of the note..." rows="5"></textarea>
+            
+            <input type="file" id="m-file" accept="image/*,.pdf,.doc,.docx" style="font-size: 0.9rem; padding: 5px;">
+
             <select id="m-tag">
                 <option value="info">Info (Blue)</option>
                 <option value="important">Important (Orange)</option>
@@ -152,6 +166,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -164,16 +179,30 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        // Безопасная инициализация Storage. Если не работает в консоли Firebase - текст все равно сохранится
+        let storage;
+        try {
+            storage = getStorage(app);
+        } catch(err) {
+            console.warn("Firebase Storage is not enabled or configured properly.", err);
+        }
 
         let activeDayId = null;
         let activeFormats = [];
         let editingNoteId = null;
+        let currentEditingData = null;
 
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, 
                 tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
             );
         }
+
+        // --- ТОГГЛ БОКОВОЙ ПАНЕЛИ ---
+        document.getElementById('sidebar-toggle').onclick = () => {
+            document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+        };
 
         // --- ДНИ (SIDEBAR) ---
         document.getElementById('new-day-trigger').onclick = async () => {
@@ -188,7 +217,7 @@
                 const day = dDoc.data();
                 const div = document.createElement('div');
                 div.className = `day-item ${activeDayId === dDoc.id ? 'active' : ''}`;
-                div.dataset.id = dDoc.id; // Надежное хранение ID для подсветки
+                div.dataset.id = dDoc.id; 
                 
                 div.innerHTML = `
                     <span class="day-text">${escapeHTML(day.date)}</span>
@@ -210,13 +239,9 @@
             document.getElementById('day-label').innerText = date;
             document.getElementById('new-note-trigger').style.display = 'block';
             
-            // Надежное переключение класса подсветки
             document.querySelectorAll('.day-item').forEach(item => {
-                if(item.dataset.id === id) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
+                if(item.dataset.id === id) item.classList.add('active');
+                else item.classList.remove('active');
             });
             
             loadNotes(id);
@@ -259,11 +284,21 @@
                         const safeText = escapeHTML(n.text || '');
                         const safeRoom = escapeHTML(n.room || '');
 
+                        let attachmentHtml = '';
+                        if(n.fileUrl) {
+                            if(n.fileType && n.fileType.startsWith('image/')) {
+                                attachmentHtml = `<img src="${n.fileUrl}" class="note-img" alt="Attachment">`;
+                            } else {
+                                attachmentHtml = `<a href="${n.fileUrl}" target="_blank" class="file-link">📎 ${escapeHTML(n.fileName || 'Attachment')}</a>`;
+                            }
+                        }
+
                         card.innerHTML = `
                             <div class="note-time">${n.time}</div>
                             <span class="tag tag-${n.tag}">${n.tag}</span>
                             ${n.room ? `<div class="note-room">R: ${safeRoom}</div>` : ''}
                             <div class="note-text ${isImportant ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${safeText}</div>
+                            ${attachmentHtml}
                             <div class="card-actions">
                                 <button class="action-link link-done">${n.done ? 'Undo' : 'Done'}</button>
                                 <button class="action-link link-edit">Edit</button>
@@ -285,10 +320,14 @@
         const modal = document.getElementById('modal');
         document.getElementById('new-note-trigger').onclick = () => {
             editingNoteId = null;
+            currentEditingData = null;
             document.getElementById('m-title').innerText = "Add Shift Note";
             document.getElementById('m-text').value = '';
             document.getElementById('m-room').value = '';
+            document.getElementById('m-file').value = '';
             document.getElementById('m-tag').value = 'info';
+            activeFormats = [];
+            document.querySelectorAll('.modal-toolbar .tool-btn').forEach(b => b.classList.remove('active'));
             modal.style.display = 'flex';
         };
 
@@ -298,34 +337,82 @@
             const text = document.getElementById('m-text').value;
             const room = document.getElementById('m-room').value;
             const tag = document.getElementById('m-tag').value;
-            if(!text) {
-                alert("Please enter some text for the note.");
+            const fileInput = document.getElementById('m-file');
+            const file = fileInput.files[0];
+
+            if(!text && !file) {
+                alert("Please enter some text or attach a file.");
                 return;
             }
 
-            const payload = {
-                text, room, tag,
-                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                formats: [...activeFormats],
-                createdAt: Date.now()
-            };
+            const saveBtn = document.getElementById('m-save');
+            saveBtn.innerText = "Saving...";
+            saveBtn.disabled = true;
 
-            if(editingNoteId) {
-                await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
-            } else {
-                await addDoc(collection(db, `days/${activeDayId}/notes`), {...payload, done: false});
+            try {
+                let fileUrl = currentEditingData?.fileUrl || null;
+                let fileType = currentEditingData?.fileType || null;
+                let fileName = currentEditingData?.fileName || null;
+
+                if (file && storage) {
+                    try {
+                        const fileRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+                        await uploadBytes(fileRef, file);
+                        fileUrl = await getDownloadURL(fileRef);
+                        fileType = file.type;
+                        fileName = file.name;
+                    } catch(uploadErr) {
+                        alert("File upload failed (Please check if Firebase Storage is enabled). The text will still be saved.");
+                        console.error(uploadErr);
+                    }
+                }
+
+                const payload = {
+                    text, room, tag,
+                    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                    formats: [...activeFormats],
+                    createdAt: (editingNoteId && currentEditingData) ? currentEditingData.createdAt : Date.now(),
+                };
+
+                if (fileUrl) {
+                    payload.fileUrl = fileUrl;
+                    payload.fileType = fileType;
+                    payload.fileName = fileName;
+                }
+
+                if(editingNoteId) {
+                    await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
+                } else {
+                    await addDoc(collection(db, `days/${activeDayId}/notes`), {...payload, done: false});
+                }
+                modal.style.display = 'none';
+                fileInput.value = '';
+            } catch(e) {
+                console.error(e);
+                alert("Error saving note: " + e.message);
+            } finally {
+                saveBtn.innerText = "Save Data";
+                saveBtn.disabled = false;
             }
-            modal.style.display = 'none';
-            activeFormats = [];
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         };
 
         window.editNote = (id, data) => {
             editingNoteId = id;
+            currentEditingData = data;
             document.getElementById('m-title').innerText = "Edit Note";
-            document.getElementById('m-text').value = data.text;
+            document.getElementById('m-text').value = data.text || '';
             document.getElementById('m-room').value = data.room || '';
             document.getElementById('m-tag').value = data.tag;
+            document.getElementById('m-file').value = '';
+            
+            activeFormats = data.formats || [];
+            document.querySelectorAll('.modal-toolbar .tool-btn').forEach(btn => {
+                if (btn.id === 'f-red' && activeFormats.includes('fmt-red')) btn.classList.add('active');
+                else if (btn.id === 'f-u' && activeFormats.includes('fmt-underline')) btn.classList.add('active');
+                else if (btn.id === 'f-s' && activeFormats.includes('fmt-strike')) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
             modal.style.display = 'flex';
         };
 
