@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dannote | Secure Cloud</title>
+    <title>Dannote | Cloud Handover</title>
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -17,36 +17,57 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
 
-        header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        .header-left { display: flex; align-items: center; gap: 15px; }
+        header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; position: relative;}
+        
+        .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .header-center { flex: 1; text-align: center; font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; }
+        .header-right { flex: 1; display: flex; justify-content: flex-end; }
+        
         .dannote-title { font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; color: var(--accent-color); }
-        .header-center { font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; }
+        .tool-btn { background: none; border: 1px solid var(--header-text); color: var(--header-text); cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; transition: 0.2s; }
+        .tool-btn:hover { background: rgba(255,255,255,0.1); }
+        .tool-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; }
 
         .container { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: 0.3s; }
-        .sidebar-hidden { margin-left: -280px; }
+        
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; }
+        .sidebar-hidden { margin-left: -280px; } 
 
         .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; transition: 0.2s; }
-        .add-day-btn:hover { filter: brightness(1.1); }
-        .add-day-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        
+        #day-list { flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
+        
+        .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; position: relative; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
+        .day-item:hover { border-color: var(--accent-color); }
+        
+        .day-item.active { 
+            border-left: 6px solid var(--accent-color); 
+            background: rgba(197, 160, 89, 0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);
+            border-color: var(--accent-color);
+        }
+        
+        .day-text { font-weight: bold; flex-grow: 1; }
+        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; margin-left: 10px; z-index: 5; transition: 0.2s; }
+        .delete-day-btn:hover { color: #e74c3c; transform: scale(1.1); }
 
-        #day-list { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .day-item.active { border-left: 6px solid var(--accent-color); background: rgba(197, 160, 89, 0.1); border-color: var(--accent-color); }
-        .delete-btn { border: none; background: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
-        .delete-btn:hover { color: #e74c3c; }
+        .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; }
 
         main { flex: 1; padding: 2rem; overflow-y: auto; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .search-bar { padding: 8px 15px; width: 250px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
 
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
-        .note-card.done { opacity: 0.5; filter: grayscale(0.5); }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .note-card.done { opacity: 0.6; filter: grayscale(0.5); }
         
-        .note-time { font-size: 0.75rem; color: #999; margin-bottom: 5px; font-weight: bold; }
-        .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; }
-        .note-text { margin: 15px 0; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; }
+        .note-time { font-size: 0.75rem; color: #999; margin-bottom: 10px; font-weight: bold; }
+        .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; margin-bottom: 5px; }
+        .note-text { margin: 15px 0; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
+        
+        .important-style { color: #e74c3c !important; font-weight: bold; }
         
         .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; color: white; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; }
         .tag-urgent { background: var(--tag-urgent); }
@@ -54,12 +75,19 @@
         .tag-info { background: var(--tag-info); }
         .tag-done { background: var(--tag-done); }
 
-        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border-color); cursor: pointer; }
+        .card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
+        .action-link { font-size: 0.8rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s;}
+        .action-link:hover { color: var(--accent-color); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
         .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 12px; width: 400px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); }
+        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
+        
+        .modal-toolbar { display: flex; gap: 10px; margin-bottom: 10px; }
+        .modal-toolbar .tool-btn { border-color: var(--border-color); color: var(--text-main); }
+        .modal-toolbar .tool-btn:hover { background: var(--border-color); }
 
+        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
         .fmt-red { color: #e74c3c; font-weight: bold; }
         .fmt-underline { text-decoration: underline; }
         .fmt-strike { text-decoration: line-through; }
@@ -69,12 +97,14 @@
 
     <header>
         <div class="header-left">
-            <button id="sidebar-toggle" style="background:none; border:1px solid white; color:white; padding:5px 12px; border-radius:4px; cursor:pointer;">☰</button>
+            <button class="tool-btn" id="sidebar-toggle" style="font-size: 1.2rem; padding: 2px 10px;" title="Toggle Sidebar">☰</button>
             <div class="dannote-title"> Dannote</div>
         </div>
+        
         <div class="header-center">KING DAVID</div>
+        
         <div class="header-right">
-            <select id="theme-selector" style="background:#333; color:white; border:none; padding:5px; border-radius:4px;">
+            <select id="theme-selector" style="padding: 5px; border-radius: 5px; border: none; background: #333; color: white;">
                 <option value="light">Light</option>
                 <option value="cream">Cream</option>
                 <option value="dark">Dark</option>
@@ -85,57 +115,79 @@
     <div class="container">
         <aside id="sidebar">
             <button class="add-day-btn" id="new-day-trigger"> Create New Day</button>
+            
             <div id="day-list"></div>
-            <div style="text-align:center; font-size:0.7rem; color:gray; margin-top:10px; border-top:1px solid var(--border-color); padding-top:10px;">
-                Powered by Danylevskij v1.2.7 (Secure)
+
+            <div class="sidebar-footer">
+                Powered by Danylevskij v1.2.0 (Secure)
             </div>
         </aside>
 
         <main>
             <div class="main-header">
                 <h2 id="day-label">Select a Day</h2>
-                <input type="text" id="search" class="search-bar" placeholder="Search notes...">
+                <input type="text" id="search" class="search-bar" placeholder="Search R: or text...">
             </div>
-            <button class="add-day-btn" id="new-note-trigger" style="display:none; width:auto; padding:10px 25px;">+ Add Shift Note</button>
+            <button class="add-day-btn" id="new-note-trigger" style="display:none; width: auto; padding: 10px 25px; margin-bottom: 1.5rem;">+ Add Shift Note</button>
             <div class="notes-grid" id="notes-grid"></div>
         </main>
     </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-bottom:1rem; color:var(--accent-color);">Private Shift Note</h3>
-            <input type="text" id="m-room" placeholder="Room Number">
-            <textarea id="m-text" placeholder="Note details..." rows="5"></textarea>
+            <h3 id="m-title" style="margin-bottom: 1rem; color: var(--accent-color);">Shift Note</h3>
             
-            <label style="font-size:0.8rem; font-weight:bold; display:block; margin-bottom:5px;">Private Photo:</label>
-            <input type="file" id="m-file" accept="image/*">
+            <div class="modal-toolbar">
+                <button class="tool-btn" id="f-red">Red Text</button>
+                <button class="tool-btn" id="f-u">Underline</button>
+                <button class="tool-btn" id="f-s">Strike</button>
+            </div>
+
+            <input type="text" id="m-room" placeholder="Room Number (e.g. 101)">
+            <textarea id="m-text" placeholder="Details of the note..." rows="5"></textarea>
+            
+            <input type="file" id="m-file" accept="image/*" style="font-size: 0.9rem; padding: 5px;">
 
             <select id="m-tag">
                 <option value="info">Info (Blue)</option>
                 <option value="important">Important (Orange)</option>
                 <option value="urgent">Urgent (Red)</option>
             </select>
-            
-            <button id="m-save" class="add-day-btn">Save to Firestore</button>
-            <button id="m-cancel" style="width:100%; background:none; border:none; color:gray; cursor:pointer; font-weight:bold;">Cancel</button>
+            <div style="text-align: right; margin-top: 10px;">
+                <button id="m-cancel" style="background:none; border:none; margin-right:15px; cursor:pointer; color: var(--text-main); font-weight: bold;">Cancel</button>
+                <button id="m-save" class="add-day-btn" style="width:auto; margin:0; padding: 10px 30px;">Save Data</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
             authDomain: "kd-handover.firebaseapp.com",
             projectId: "kd-handover",
+            storageBucket: "kd-handover.firebasestorage.app",
+            messagingSenderId: "964942218152",
+            appId: "1:964942218152:web:af7e358b48b7ab11ad939d"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let activeDayId = null;
 
-        // --- УТИЛИТЫ ---
+        let activeDayId = null;
+        let activeFormats = [];
+        let editingNoteId = null;
+        let currentEditingData = null;
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
+            );
+        }
+
+        // --- ФУНКЦИЯ СЖАТИЯ КАРТИНКИ ---
         const compressImg = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -151,17 +203,18 @@
                         if (w > maxW) { h *= maxW / w; w = maxW; }
                         canvas.width = w; canvas.height = h;
                         ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6)); // Качество 60% для экономии места
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
                     };
                 };
             });
         };
 
-        // --- ДНИ ---
-        document.getElementById('sidebar-toggle').onclick = () => document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+        document.getElementById('sidebar-toggle').onclick = () => {
+            document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+        };
 
         document.getElementById('new-day-trigger').onclick = async () => {
-            const d = prompt("Enter Date (e.g. 14 April):", new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long'}));
+            const d = prompt("Enter Date:", new Date().toLocaleDateString('en-GB'));
             if(d) await addDoc(collection(db, "days"), { date: d, createdAt: Date.now() });
         };
 
@@ -169,51 +222,54 @@
             const list = document.getElementById('day-list');
             list.innerHTML = '';
             snap.forEach(dDoc => {
+                const day = dDoc.data();
                 const div = document.createElement('div');
                 div.className = `day-item ${activeDayId === dDoc.id ? 'active' : ''}`;
-                div.innerHTML = `<span>${dDoc.data().date}</span><button class="delete-btn">✕</button>`;
-                div.onclick = () => {
-                    activeDayId = dDoc.id;
-                    document.getElementById('day-label').innerText = dDoc.data().date;
-                    document.getElementById('new-note-trigger').style.display = 'block';
-                    loadNotes(dDoc.id);
-                    document.querySelectorAll('.day-item').forEach(i => i.classList.remove('active'));
-                    div.classList.add('active');
-                };
-                div.querySelector('.delete-btn').onclick = async (e) => {
-                    e.stopPropagation();
-                    if(confirm("Delete this day and ALL its notes?")) {
-                        const notes = await getDocs(collection(db, `days/${dDoc.id}/notes`));
-                        notes.forEach(async n => await deleteDoc(doc(db, `days/${dDoc.id}/notes`, n.id)));
-                        await deleteDoc(doc(db, "days", dDoc.id));
-                    }
-                };
+                div.dataset.id = dDoc.id; 
+                div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
+                div.querySelector('.day-text').onclick = () => window.selectDay(dDoc.id, day.date);
+                div.querySelector('.delete-day-btn').onclick = (e) => { e.stopPropagation(); window.deleteDay(dDoc.id); };
                 list.appendChild(div);
             });
         });
 
-        // --- ЗАМЕТКИ ---
+        window.selectDay = (id, date) => {
+            activeDayId = id;
+            document.getElementById('day-label').innerText = date;
+            document.getElementById('new-note-trigger').style.display = 'block';
+            loadNotes(id);
+        };
+
+        window.deleteDay = async (id) => {
+            if(confirm("Delete day?")) {
+                const notes = await getDocs(collection(db, `days/${id}/notes`));
+                for (const n of notes.docs) { await deleteDoc(doc(db, `days/${id}/notes`, n.id)); }
+                await deleteDoc(doc(db, "days", id));
+            }
+        };
+
         function loadNotes(dayId) {
             onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt", "desc")), (snap) => {
                 if(activeDayId !== dayId) return;
                 const grid = document.getElementById('notes-grid');
-                const search = document.getElementById('search').value.toLowerCase();
                 grid.innerHTML = '';
+                const search = document.getElementById('search').value.toLowerCase();
 
                 snap.forEach(nDoc => {
                     const n = nDoc.data();
-                    if(n.text.toLowerCase().includes(search) || (n.room && n.room.toLowerCase().includes(search))) {
+                    if((n.text || "").toLowerCase().includes(search) || (n.room || "").toLowerCase().includes(search)) {
                         const card = document.createElement('div');
                         card.className = `note-card ${n.done ? 'done' : ''}`;
                         card.innerHTML = `
                             <div class="note-time">${n.time}</div>
                             <span class="tag tag-${n.tag}">${n.tag}</span>
-                            ${n.room ? `<div class="note-room">Room: ${n.room}</div>` : ''}
-                            <div class="note-text">${n.text}</div>
-                            ${n.photo ? `<img src="${n.photo}" class="note-img" onclick="window.open(this.src)">` : ''}
-                            <div style="margin-top:15px; display:flex; gap:10px; border-top:1px solid #eee; padding-top:10px;">
-                                <button onclick="window.tglDone('${nDoc.id}', ${n.done})" style="border:none; background:none; color:var(--tag-done); cursor:pointer; font-weight:bold;">${n.done ? 'UNDO' : 'DONE'}</button>
-                                <button onclick="window.delNote('${nDoc.id}')" style="border:none; background:none; color:var(--tag-urgent); cursor:pointer; font-weight:bold;">DELETE</button>
+                            ${n.room ? `<div class="note-room">R: ${escapeHTML(n.room)}</div>` : ''}
+                            <div class="note-text ${n.tag === 'urgent' ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${escapeHTML(n.text || '')}</div>
+                            ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
+                            <div class="card-actions">
+                                <button class="action-link" onclick="window.toggleDone('${nDoc.id}', ${n.done})">${n.done ? 'Undo' : 'Done'}</button>
+                                <button class="action-link" onclick="window.editNote('${nDoc.id}', ${JSON.stringify(n).replace(/"/g, '&quot;')})">Edit</button>
+                                <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
                             </div>
                         `;
                         grid.appendChild(card);
@@ -222,13 +278,16 @@
             });
         }
 
-        window.delNote = async (id) => { if(confirm("Delete note?")) await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); };
-        window.tglDone = async (id, s) => await updateDoc(doc(db, `days/${activeDayId}/notes`, id), { done: !s, tag: !s ? 'done' : 'info' });
+        document.getElementById('new-note-trigger').onclick = () => {
+            editingNoteId = null; currentEditingData = null;
+            document.getElementById('m-title').innerText = "Add Shift Note";
+            document.getElementById('m-text').value = ''; document.getElementById('m-room').value = '';
+            document.getElementById('m-file').value = ''; document.getElementById('m-tag').value = 'info';
+            activeFormats = []; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            modal.style.display = 'flex';
+        };
 
-        // --- МОДАЛКА ---
-        const modal = document.getElementById('modal');
-        document.getElementById('new-note-trigger').onclick = () => modal.style.display = 'flex';
-        document.getElementById('m-cancel').onclick = () => { modal.style.display = 'none'; document.getElementById('m-file').value = ''; };
+        document.getElementById('m-cancel').onclick = () => modal.style.display = 'none';
 
         document.getElementById('m-save').onclick = async () => {
             const text = document.getElementById('m-text').value;
@@ -237,36 +296,50 @@
             const file = document.getElementById('m-file').files[0];
             const btn = document.getElementById('m-save');
 
-            if(!text) return alert("Write something!");
+            btn.innerText = "Saving..."; btn.disabled = true;
 
-            btn.innerText = "Securing & Saving...";
-            btn.disabled = true;
+            let photoData = currentEditingData?.photoData || null;
+            if (file) photoData = await compressImg(file);
 
-            try {
-                let base64Photo = null;
-                if(file) base64Photo = await compressImg(file);
+            const payload = {
+                text, room, tag, photoData,
+                formats: [...activeFormats],
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                createdAt: editingNoteId ? currentEditingData.createdAt : Date.now()
+            };
 
-                await addDoc(collection(db, `days/${activeDayId}/notes`), {
-                    text, room, tag,
-                    photo: base64Photo,
-                    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                    createdAt: Date.now(),
-                    done: false
-                });
-
-                modal.style.display = 'none';
-                document.getElementById('m-text').value = '';
-                document.getElementById('m-room').value = '';
-                document.getElementById('m-file').value = '';
-            } catch (e) {
-                alert("Error: Photo might be too large even after compression.");
-            } finally {
-                btn.innerText = "Save to Firestore";
-                btn.disabled = false;
+            if(editingNoteId) {
+                await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
+            } else {
+                await addDoc(collection(db, `days/${activeDayId}/notes`), {...payload, done: false});
             }
+            modal.style.display = 'none';
+            btn.innerText = "Save Data"; btn.disabled = false;
         };
 
+        window.editNote = (id, data) => {
+            editingNoteId = id; currentEditingData = data;
+            document.getElementById('m-title').innerText = "Edit Note";
+            document.getElementById('m-text').value = data.text || '';
+            document.getElementById('m-room').value = data.room || '';
+            document.getElementById('m-tag').value = data.tag;
+            activeFormats = data.formats || [];
+            modal.style.display = 'flex';
+        };
+
+        window.deleteNote = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); };
+        window.toggleDone = async (id, s) => await updateDoc(doc(db, `days/${activeDayId}/notes`, id), { done: !s, tag: !s ? 'done' : 'info' });
+
         document.getElementById('theme-selector').onchange = (e) => document.body.setAttribute('data-theme', e.target.value);
+        
+        const bindF = (id, cls) => {
+            document.getElementById(id).onclick = () => {
+                const i = activeFormats.indexOf(cls);
+                if(i > -1) { activeFormats.splice(i, 1); document.getElementById(id).classList.remove('active'); }
+                else { activeFormats.push(cls); document.getElementById(id).classList.add('active'); }
+            };
+        };
+        bindF('f-red', 'fmt-red'); bindF('f-u', 'fmt-underline'); bindF('f-s', 'fmt-strike');
         document.getElementById('search').oninput = () => loadNotes(activeDayId);
     </script>
 </body>
