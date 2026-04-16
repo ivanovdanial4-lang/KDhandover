@@ -71,6 +71,14 @@
         .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; margin-left: 10px; z-index: 5; transition: 0.2s; }
         .delete-day-btn:hover { color: #e74c3c; transform: scale(1.1); }
 
+        /* --- DRAG AND DROP STYLES --- */
+        .draggable { cursor: grab; }
+        .draggable:active { cursor: grabbing; }
+        .dragging { opacity: 0.4; }
+        .drag-over { border: 2px dashed var(--accent-color) !important; transform: scale(1.02); }
+        .drag-over-folder { background: rgba(197, 160, 89, 0.15); border: 2px dashed var(--accent-color); border-radius: 6px;}
+        /* ---------------------------- */
+
         .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
         main { flex: 1; padding: 2rem; overflow-y: auto; }
@@ -285,14 +293,12 @@
 
         document.getElementById('sidebar-search').oninput = () => renderSidebar();
 
-        // Слушаем папки
         onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), (snap) => {
             foldersMap.clear();
             snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
             renderSidebar();
         });
 
-        // Слушаем дни
         onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), (snap) => {
             daysMap.clear();
             snap.forEach(d => daysMap.set(d.id, { id: d.id, ...d.data() }));
@@ -307,7 +313,15 @@
             const term = searchInput ? searchInput.value.toLowerCase() : '';
 
             const grouped = { unsorted: [] };
-            foldersMap.forEach((_, id) => grouped[id] = []);
+            
+            // Сортируем папки: сначала по новому полю order, если его нет - по дате создания
+            const sortedFolders = Array.from(foldersMap.values()).sort((a, b) => {
+                const valA = a.order !== undefined ? a.order : -a.createdAt;
+                const valB = b.order !== undefined ? b.order : -b.createdAt;
+                return valA - valB;
+            });
+
+            sortedFolders.forEach(f => grouped[f.id] = []);
 
             daysMap.forEach(day => {
                 const fId = day.folderId || 'unsorted';
@@ -316,21 +330,35 @@
             });
 
             const renderFolder = (folderId, folderName) => {
-                const daysInFolder = grouped[folderId] || [];
+                let daysInFolder = grouped[folderId] || [];
+                
+                // Сортируем дни внутри папки
+                daysInFolder.sort((a, b) => {
+                    const valA = a.order !== undefined ? a.order : -a.createdAt;
+                    const valB = b.order !== undefined ? b.order : -b.createdAt;
+                    return valA - valB;
+                });
                 
                 const filteredDays = daysInFolder.filter(d => d.date.toLowerCase().includes(term));
                 const folderMatches = folderName.toLowerCase().includes(term);
 
-                // Если активен поиск и нет совпадений ни по папке, ни по дням внутри - скрываем
                 if (term && !folderMatches && filteredDays.length === 0) return; 
 
                 const displayDays = term ? filteredDays : daysInFolder;
 
                 if (folderId === 'unsorted' && displayDays.length === 0) return; 
 
-                const isOpen = term ? true : expandedFolders.has(folderId); // Авто-открытие при поиске
+                const isOpen = term ? true : expandedFolders.has(folderId); 
                 const fDiv = document.createElement('div');
                 fDiv.className = 'folder-container';
+                
+                // Настройки перетаскивания папок (кроме Unsorted)
+                if(folderId !== 'unsorted') {
+                    fDiv.classList.add('draggable');
+                    fDiv.draggable = true;
+                }
+                fDiv.dataset.type = 'folder';
+                fDiv.dataset.id = folderId;
                 
                 let actionBtns = '';
                 if (folderId !== 'unsorted') {
@@ -354,8 +382,11 @@
 
                 displayDays.forEach(day => {
                     const div = document.createElement('div');
-                    div.className = `day-item ${activeDayId === day.id ? 'active' : ''}`;
+                    div.className = `day-item draggable ${activeDayId === day.id ? 'active' : ''}`;
                     div.dataset.id = day.id; 
+                    div.dataset.type = 'day';
+                    div.dataset.folder = folderId;
+                    div.draggable = true; // Разрешаем перетаскивать дни
                     div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
                     div.querySelector('.day-text').onclick = () => window.selectDay(day.id, day.date);
                     div.querySelector('.delete-day-btn').onclick = (e) => { e.stopPropagation(); window.deleteDay(day.id); };
@@ -365,11 +396,106 @@
                 list.appendChild(fDiv);
             };
 
-            foldersMap.forEach(f => renderFolder(f.id, f.name));
+            sortedFolders.forEach(f => renderFolder(f.id, f.name));
             renderFolder('unsorted', 'Unsorted');
         }
 
-        // --- ЛОГИКА ДНЕЙ И ЗАМЕТОК ---
+        // --- ЛОГИКА DRAG AND DROP ---
+        let draggedItem = null;
+
+        document.addEventListener('dragstart', (e) => {
+            if(e.target.classList.contains('folder-container') || e.target.classList.contains('day-item')) {
+                draggedItem = e.target;
+                setTimeout(() => e.target.classList.add('dragging'), 0);
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        });
+
+        document.addEventListener('dragend', (e) => {
+            if(draggedItem) {
+                draggedItem.classList.remove('dragging');
+                document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => {
+                    el.classList.remove('drag-over', 'drag-over-folder');
+                });
+                draggedItem = null;
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if(!draggedItem) return;
+            
+            const targetDay = e.target.closest('.day-item');
+            const targetFolderHeader = e.target.closest('.folder-header');
+            
+            document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => {
+                if(el !== targetDay && el !== targetFolderHeader && el !== e.target.closest('.folder-container')) {
+                    el.classList.remove('drag-over', 'drag-over-folder');
+                }
+            });
+
+            if(draggedItem.dataset.type === 'day') {
+                if(targetDay && targetDay !== draggedItem) {
+                    targetDay.classList.add('drag-over');
+                } else if(targetFolderHeader) {
+                    targetFolderHeader.classList.add('drag-over-folder');
+                }
+            } else if (draggedItem.dataset.type === 'folder') {
+                const targetFolder = e.target.closest('.folder-container');
+                if(targetFolder && targetFolder !== draggedItem && targetFolder.dataset.id !== 'unsorted') {
+                    targetFolder.classList.add('drag-over');
+                }
+            }
+        });
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            if(!draggedItem) return;
+            
+            const type = draggedItem.dataset.type;
+            const id = draggedItem.dataset.id;
+            
+            document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => el.classList.remove('drag-over', 'drag-over-folder'));
+
+            if (type === 'day') {
+                const targetDay = e.target.closest('.day-item');
+                const targetFolderHeader = e.target.closest('.folder-header');
+                
+                if (targetDay && targetDay !== draggedItem) {
+                    // Перестановка дней внутри папки
+                    const container = targetDay.parentNode;
+                    const rect = targetDay.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    container.insertBefore(draggedItem, next ? targetDay.nextSibling : targetDay);
+                    updateOrderInDB('days', container.querySelectorAll('.day-item'));
+                } else if (targetFolderHeader) {
+                    // Перенос дня в другую папку
+                    const targetFolderContainer = targetFolderHeader.closest('.folder-container');
+                    const newFolderId = targetFolderContainer.dataset.id;
+                    if(draggedItem.dataset.folder !== newFolderId) {
+                        await updateDoc(doc(db, "days", id), { folderId: newFolderId === 'unsorted' ? null : newFolderId });
+                    }
+                }
+            } else if (type === 'folder') {
+                const targetFolder = e.target.closest('.folder-container');
+                // Перестановка папок
+                if(targetFolder && targetFolder !== draggedItem && targetFolder.dataset.id !== 'unsorted' && id !== 'unsorted') {
+                    const container = targetFolder.parentNode;
+                    const rect = targetFolder.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    container.insertBefore(draggedItem, next ? targetFolder.nextSibling : targetFolder);
+                    updateOrderInDB('folders', container.querySelectorAll('.folder-container:not([data-id="unsorted"])'));
+                }
+            }
+        });
+
+        async function updateOrderInDB(collectionName, elements) {
+            Array.from(elements).forEach(async (el, index) => {
+                const docId = el.dataset.id;
+                await updateDoc(doc(db, collectionName, docId), { order: index });
+            });
+        }
+        // -----------------------------
 
         window.selectDay = (id, date) => {
             activeDayId = id;
