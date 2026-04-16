@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dannote | Cloud Handover</title>
+    <title>KD Handove | Cloud Handover</title>
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -30,14 +30,32 @@
 
         .container { display: flex; flex: 1; overflow: hidden; }
         
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; }
+        /* Исправлена прокрутка: добавлен overflow-y: auto */
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; overflow-y: auto; }
         .sidebar-hidden { margin-left: -280px; } 
+
+        /* Поле поиска в сайдбаре */
+        .sidebar-search { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem;}
 
         .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; transition: 0.2s; }
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         
-        #day-list { flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
+        #day-list { flex: 1; margin-bottom: 15px; padding-right: 5px; }
         
+        /* СТИЛИ ДЛЯ ПАПОК */
+        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; margin-bottom: 5px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.95rem; }
+        .folder-header:hover { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .folder-content { display: none; padding-left: 10px; margin-bottom: 15px; margin-top: 10px; }
+        .folder-content.open { display: block; }
+        
+        .folder-actions { display: flex; gap: 5px; align-items: center; }
+        .folder-action-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1rem; opacity: 0.6; transition: 0.2s; padding: 0 3px; }
+        .folder-action-btn:hover { opacity: 1; transform: scale(1.1); color: var(--accent-color); }
+        
+        .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s; margin-left: 5px; }
+        .add-to-folder-btn:hover { filter: brightness(1.2); transform: scale(1.1); }
+        /* -------------------------------------------------------- */
+
         .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; position: relative; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
         .day-item:hover { border-color: var(--accent-color); }
         
@@ -53,7 +71,7 @@
         .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; margin-left: 10px; z-index: 5; transition: 0.2s; }
         .delete-day-btn:hover { color: #e74c3c; transform: scale(1.1); }
 
-        .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; }
+        .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
         main { flex: 1; padding: 2rem; overflow-y: auto; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -114,12 +132,13 @@
 
     <div class="container">
         <aside id="sidebar">
-            <button class="add-day-btn" id="new-day-trigger"> Create New Day</button>
+            <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
+            <button class="add-day-btn" id="new-folder-trigger"> + Add Folder</button>
             
             <div id="day-list"></div>
 
             <div class="sidebar-footer">
-                Powered by Danylevskij v1.2.8 (Secure)
+                Powered by Danylevskij v1.3.1 
             </div>
         </aside>
 
@@ -180,6 +199,10 @@
         let activeFormats = [];
         let editingNoteId = null;
         let currentEditingData = null;
+        
+        let foldersMap = new Map();
+        let daysMap = new Map();
+        let expandedFolders = new Set(['unsorted']);
 
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, 
@@ -187,7 +210,6 @@
             );
         }
 
-        // --- ФУНКЦИЯ СЖАТИЯ КАРТИНКИ ---
         const compressImg = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -213,45 +235,160 @@
             document.getElementById('sidebar').classList.toggle('sidebar-hidden');
         };
 
-        document.getElementById('new-day-trigger').onclick = async () => {
-            const d = prompt("Enter Date:", new Date().toLocaleDateString('en-GB'));
-            if(d) await addDoc(collection(db, "days"), { date: d, createdAt: Date.now() });
+        // --- ЛОГИКА ПАПОК И РЕНДЕРИНГА SIDEBAR ---
+        
+        document.getElementById('new-folder-trigger').onclick = async () => {
+            const name = prompt("Enter Folder Name (e.g. April 2026):");
+            if(name) {
+                const docRef = await addDoc(collection(db, "folders"), { name: name, createdAt: Date.now() });
+                expandedFolders.add(docRef.id);
+            }
         };
 
-        onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), (snap) => {
-            const list = document.getElementById('day-list');
-            list.innerHTML = '';
-            snap.forEach(dDoc => {
-                const day = dDoc.data();
-                const div = document.createElement('div');
-                div.className = `day-item ${activeDayId === dDoc.id ? 'active' : ''}`;
-                div.dataset.id = dDoc.id; 
-                div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
-                div.querySelector('.day-text').onclick = () => window.selectDay(dDoc.id, day.date);
-                div.querySelector('.delete-day-btn').onclick = (e) => { e.stopPropagation(); window.deleteDay(dDoc.id); };
-                list.appendChild(div);
-            });
+        window.toggleFolder = (id) => {
+            if (expandedFolders.has(id)) expandedFolders.delete(id);
+            else expandedFolders.add(id);
+            renderSidebar();
+        };
+
+        window.addDayToFolder = async (folderId) => {
+            const d = prompt("Enter Date:", new Date().toLocaleDateString('en-GB'));
+            if(d) {
+                await addDoc(collection(db, "days"), { 
+                    date: d, 
+                    createdAt: Date.now(),
+                    folderId: folderId === 'unsorted' ? null : folderId
+                });
+                if (!expandedFolders.has(folderId)) {
+                    expandedFolders.add(folderId);
+                    renderSidebar();
+                }
+            }
+        };
+
+        window.renameFolder = async (id, oldName) => {
+            const newName = prompt("Enter new folder name:", oldName);
+            if (newName && newName.trim() !== "" && newName !== oldName) {
+                await updateDoc(doc(db, "folders", id), { name: newName.trim() });
+            }
+        };
+
+        window.deleteFolder = async (id) => {
+            if (confirm("Delete this folder? (Days inside will be moved to 'Unsorted' so you won't lose them)")) {
+                const daysInFolder = Array.from(daysMap.values()).filter(d => d.folderId === id);
+                for (const day of daysInFolder) {
+                    await updateDoc(doc(db, "days", day.id), { folderId: null });
+                }
+                await deleteDoc(doc(db, "folders", id));
+            }
+        };
+
+        document.getElementById('sidebar-search').oninput = () => renderSidebar();
+
+        // Слушаем папки
+        onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), (snap) => {
+            foldersMap.clear();
+            snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
+            renderSidebar();
         });
 
-       window.selectDay = (id, date) => {
-    activeDayId = id;
-    document.getElementById('day-label').innerText = date;
-    document.getElementById('new-note-trigger').style.display = 'block';
-    
-    // ИСПРАВЛЕНИЕ: Убираем активный класс у всех и даем только выбранному
-    document.querySelectorAll('.day-item').forEach(item => {
-        if(item.dataset.id === id) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
+        // Слушаем дни
+        onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), (snap) => {
+            daysMap.clear();
+            snap.forEach(d => daysMap.set(d.id, { id: d.id, ...d.data() }));
+            renderSidebar();
+        });
+
+        function renderSidebar() {
+            const list = document.getElementById('day-list');
+            list.innerHTML = '';
+
+            const searchInput = document.getElementById('sidebar-search');
+            const term = searchInput ? searchInput.value.toLowerCase() : '';
+
+            const grouped = { unsorted: [] };
+            foldersMap.forEach((_, id) => grouped[id] = []);
+
+            daysMap.forEach(day => {
+                const fId = day.folderId || 'unsorted';
+                if (!grouped[fId]) grouped[fId] = []; 
+                grouped[fId].push(day);
+            });
+
+            const renderFolder = (folderId, folderName) => {
+                const daysInFolder = grouped[folderId] || [];
+                
+                const filteredDays = daysInFolder.filter(d => d.date.toLowerCase().includes(term));
+                const folderMatches = folderName.toLowerCase().includes(term);
+
+                // Если активен поиск и нет совпадений ни по папке, ни по дням внутри - скрываем
+                if (term && !folderMatches && filteredDays.length === 0) return; 
+
+                const displayDays = term ? filteredDays : daysInFolder;
+
+                if (folderId === 'unsorted' && displayDays.length === 0) return; 
+
+                const isOpen = term ? true : expandedFolders.has(folderId); // Авто-открытие при поиске
+                const fDiv = document.createElement('div');
+                fDiv.className = 'folder-container';
+                
+                let actionBtns = '';
+                if (folderId !== 'unsorted') {
+                    actionBtns = `
+                        <button class="folder-action-btn" title="Rename Folder" onclick="event.stopPropagation(); window.renameFolder('${folderId}', '${escapeHTML(folderName)}')">✎</button>
+                        <button class="folder-action-btn" title="Delete Folder" style="color:#e74c3c;" onclick="event.stopPropagation(); window.deleteFolder('${folderId}')">🗑</button>
+                    `;
+                }
+
+                fDiv.innerHTML = `
+                    <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
+                        <span>${isOpen ? '📂' : '📁'} ${escapeHTML(folderName)}</span>
+                        <div class="folder-actions">
+                            ${actionBtns}
+                            <button class="add-to-folder-btn" title="Add Day" onclick="event.stopPropagation(); window.addDayToFolder('${folderId}')">+</button>
+                        </div>
+                    </div>
+                    <div class="folder-content ${isOpen ? 'open' : ''}" id="folder-${folderId}"></div>
+                `;
+                const contentDiv = fDiv.querySelector('.folder-content');
+
+                displayDays.forEach(day => {
+                    const div = document.createElement('div');
+                    div.className = `day-item ${activeDayId === day.id ? 'active' : ''}`;
+                    div.dataset.id = day.id; 
+                    div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
+                    div.querySelector('.day-text').onclick = () => window.selectDay(day.id, day.date);
+                    div.querySelector('.delete-day-btn').onclick = (e) => { e.stopPropagation(); window.deleteDay(day.id); };
+                    contentDiv.appendChild(div);
+                });
+
+                list.appendChild(fDiv);
+            };
+
+            foldersMap.forEach(f => renderFolder(f.id, f.name));
+            renderFolder('unsorted', 'Unsorted');
         }
-    });
-    
-    loadNotes(id);
-};
+
+        // --- ЛОГИКА ДНЕЙ И ЗАМЕТОК ---
+
+        window.selectDay = (id, date) => {
+            activeDayId = id;
+            document.getElementById('day-label').innerText = date;
+            document.getElementById('new-note-trigger').style.display = 'block';
+            
+            document.querySelectorAll('.day-item').forEach(item => {
+                if(item.dataset.id === id) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            loadNotes(id);
+        };
 
         window.deleteDay = async (id) => {
-            if(confirm("Delete day?")) {
+            if(confirm("Delete day and ALL its notes?")) {
                 const notes = await getDocs(collection(db, `days/${id}/notes`));
                 for (const n of notes.docs) { await deleteDoc(doc(db, `days/${id}/notes`, n.id)); }
                 await deleteDoc(doc(db, "days", id));
