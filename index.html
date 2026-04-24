@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KD Handove | Cloud Handover</title>
+    <title>KD Handover | Cloud Handover</title>
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -15,605 +15,1166 @@
         [data-theme="dark"] { --bg-color: #121212; --sidebar-bg: #1e1e1e; --header-bg: #000000; --header-text: #e0e0e0; --text-main: #e0e0e0; --card-bg: #2d2d2d; --border-color: #444444; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
+        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s, color 0.3s; }
 
-        header { background-color: var(--header-bg); color: var(--header-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; position: relative;}
-        
-        .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
-        .header-center { flex: 1; text-align: center; font-weight: bold; letter-spacing: 3px; font-size: 1.5rem; }
-        .header-right { flex: 1; display: flex; justify-content: flex-end; }
-        
-        .dannote-title { font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; color: var(--accent-color); }
-        .tool-btn { background: none; border: 1px solid var(--header-text); color: var(--header-text); cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; transition: 0.2s; }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); }
+        /* HEADER */
+        header { background-color: var(--header-bg); color: var(--header-text); padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .header-center { flex: 1; text-align: center; font-weight: bold; letter-spacing: 3px; font-size: 1.4rem; }
+        .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+        .dannote-title { font-weight: bold; font-size: 1.1rem; letter-spacing: 1px; color: var(--accent-color); }
+        .tool-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: var(--header-text); cursor: pointer; padding: 5px 11px; border-radius: 5px; font-size: 0.8rem; transition: 0.2s; white-space: nowrap; }
+        .tool-btn:hover { background: rgba(255,255,255,0.15); }
         .tool-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; }
+        .notif-bell { position: relative; cursor: pointer; background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; padding: 5px 10px; color: var(--header-text); font-size: 1rem; transition: 0.2s; }
+        .notif-bell:hover { background: rgba(255,255,255,0.15); }
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: bold; display: none; }
 
+        /* LAYOUT */
         .container { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Исправлена прокрутка: добавлен overflow-y: auto */
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; overflow-y: auto; }
-        .sidebar-hidden { margin-left: -280px; } 
-
-        /* Поле поиска в сайдбаре */
-        .sidebar-search { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem;}
-
-        .add-day-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.5rem; transition: 0.2s; }
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.2rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; overflow-y: auto; }
+        .sidebar-hidden { margin-left: -280px !important; }
+        .sidebar-search { width: 100%; padding: 9px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
+        .add-day-btn { width: 100%; padding: 11px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.2rem; transition: 0.2s; }
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        
-        #day-list { flex: 1; margin-bottom: 15px; padding-right: 5px; }
-        
-        /* СТИЛИ ДЛЯ ПАПОК */
-        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; margin-bottom: 5px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.95rem; }
+        #day-list { flex: 1; margin-bottom: 12px; }
+
+        /* USER BADGE in sidebar */
+        .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); }
+        .user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; }
+        .user-name-badge { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+        .user-change-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: #999; font-size: 0.75rem; }
+        .user-change-btn:hover { color: var(--accent-color); }
+
+        /* FOLDERS */
+        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 5px; margin-bottom: 4px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.92rem; }
         .folder-header:hover { color: var(--accent-color); border-bottom-color: var(--accent-color); }
-        .folder-content { display: none; padding-left: 10px; margin-bottom: 15px; margin-top: 10px; }
+        .folder-content { display: none; padding-left: 10px; margin-bottom: 12px; margin-top: 8px; }
         .folder-content.open { display: block; }
-        
-        .folder-actions { display: flex; gap: 5px; align-items: center; }
-        .folder-action-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1rem; opacity: 0.6; transition: 0.2s; padding: 0 3px; }
-        .folder-action-btn:hover { opacity: 1; transform: scale(1.1); color: var(--accent-color); }
-        
-        .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s; margin-left: 5px; }
-        .add-to-folder-btn:hover { filter: brightness(1.2); transform: scale(1.1); }
-        /* -------------------------------------------------------- */
-
-        .day-item { padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; position: relative; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
+        .folder-actions { display: flex; gap: 4px; align-items: center; }
+        .folder-action-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 0.95rem; opacity: 0.6; transition: 0.2s; padding: 0 3px; }
+        .folder-action-btn:hover { opacity: 1; color: var(--accent-color); }
+        .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 20px; height: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s; }
+        .add-to-folder-btn:hover { filter: brightness(1.2); }
+        .day-item { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.25s ease; }
         .day-item:hover { border-color: var(--accent-color); }
-        
-        .day-item.active { 
-            border-left: 6px solid var(--accent-color); 
-            background: rgba(197, 160, 89, 0.15); 
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);
-            border-color: var(--accent-color);
-        }
-        
-        .day-text { font-weight: bold; flex-grow: 1; }
-        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; margin-left: 10px; z-index: 5; transition: 0.2s; }
-        .delete-day-btn:hover { color: #e74c3c; transform: scale(1.1); }
+        .day-item.active { border-left: 5px solid var(--accent-color); background: rgba(197,160,89,0.12); transform: translateX(4px); box-shadow: 0 3px 10px rgba(197,160,89,0.2); border-color: var(--accent-color); }
+        .day-text { font-weight: bold; flex-grow: 1; font-size: 0.9rem; }
+        .day-item-meta { font-size: 0.65rem; color: #999; display: block; }
+        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1rem; padding: 4px; transition: 0.2s; }
+        .delete-day-btn:hover { color: #e74c3c; }
+        .draggable { cursor: grab; } .draggable:active { cursor: grabbing; }
+        .dragging { opacity: 0.4; } .drag-over { border: 2px dashed var(--accent-color) !important; }
+        .drag-over-folder { background: rgba(197,160,89,0.1); border: 2px dashed var(--accent-color); border-radius: 6px; }
+        .sidebar-footer { text-align: center; font-size: 0.7rem; color: #888; padding-top: 12px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
-        /* --- DRAG AND DROP STYLES --- */
-        .draggable { cursor: grab; }
-        .draggable:active { cursor: grabbing; }
-        .dragging { opacity: 0.4; }
-        .drag-over { border: 2px dashed var(--accent-color) !important; transform: scale(1.02); }
-        .drag-over-folder { background: rgba(197, 160, 89, 0.15); border: 2px dashed var(--accent-color); border-radius: 6px;}
-        /* ---------------------------- */
+        /* MAIN */
+        main { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 10px; }
+        .search-bar { padding: 8px 15px; width: 220px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
+        .main-actions { display: flex; gap: 8px; align-items: center; }
+        .main-act-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+        .main-act-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
 
-        .sidebar-footer { text-align: center; font-size: 0.75rem; color: #888; padding-top: 15px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
-
-        main { flex: 1; padding: 2rem; overflow-y: auto; }
-        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .search-bar { padding: 8px 15px; width: 250px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
-
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .note-card.done { opacity: 0.6; filter: grayscale(0.5); }
-        
-        .note-time { font-size: 0.75rem; color: #999; margin-bottom: 10px; font-weight: bold; }
-        .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; margin-bottom: 5px; }
-        .note-text { margin: 15px 0; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
-        
+        /* NOTES GRID */
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.3rem; }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.3rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
+        .note-card.done { opacity: 0.55; filter: grayscale(0.5); }
+        .note-card.urgent-card { border-left: 4px solid var(--tag-urgent); }
+        .note-time { font-size: 0.72rem; color: #999; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .note-author { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; color: white; font-weight: bold; }
+        .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 4px; }
+        .note-text { margin: 12px 0; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; overflow-wrap: break-word; }
         .important-style { color: #e74c3c !important; font-weight: bold; }
-        
-        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; color: white; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; }
-        .tag-urgent { background: var(--tag-urgent); }
-        .tag-important { background: var(--tag-important); }
-        .tag-info { background: var(--tag-info); }
-        .tag-done { background: var(--tag-done); }
-
-        .card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
-        .action-link { font-size: 0.8rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s;}
+        .tag { display: inline-block; padding: 3px 7px; border-radius: 4px; font-size: 0.62rem; color: white; text-transform: uppercase; font-weight: bold; margin-bottom: 8px; }
+        .tag-urgent { background: var(--tag-urgent); } .tag-important { background: var(--tag-important); }
+        .tag-info { background: var(--tag-info); } .tag-done { background: var(--tag-done); }
+        .card-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 8px; }
+        .action-link { font-size: 0.78rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s; }
         .action-link:hover { color: var(--accent-color); }
+        .note-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 12px; width: 400px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; margin-bottom: 1rem; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
-        
-        .modal-toolbar { display: flex; gap: 10px; margin-bottom: 10px; }
-        .modal-toolbar .tool-btn { border-color: var(--border-color); color: var(--text-main); }
-        .modal-toolbar .tool-btn:hover { background: var(--border-color); }
+        /* MODALS BASE */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
+        .modal-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 520px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 92vh; overflow-y: auto; }
+        .modal-content input[type="text"], .modal-content select { width: 100%; margin-bottom: 0.9rem; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.95rem; }
+        .modal-title { margin-bottom: 1rem; color: var(--accent-color); font-size: 1.1rem; font-weight: bold; }
 
-        .note-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
-        .fmt-red { color: #e74c3c; font-weight: bold; }
-        .fmt-underline { text-decoration: underline; }
-        .fmt-strike { text-decoration: line-through; }
+        /* RICH TEXT EDITOR */
+        .editor-toolbar { display: flex; flex-wrap: wrap; gap: 3px; padding: 7px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px 6px 0 0; }
+        .ed-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; transition: 0.15s; min-width: 28px; display: inline-flex; align-items: center; justify-content: center; }
+        .ed-btn:hover, .ed-btn.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .ed-sep { width: 1px; background: var(--border-color); margin: 0 2px; }
+        .ed-select { padding: 3px 5px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.78rem; cursor: pointer; }
+        #m-editor { width: 100%; min-height: 110px; padding: 10px; border-radius: 0 0 6px 6px; border: 1px solid var(--border-color); border-top: none; background: var(--bg-color); color: var(--text-main); font-size: 0.95rem; outline: none; line-height: 1.6; margin-bottom: 0.9rem; }
+        .color-strip { padding: 5px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-top: none; border-bottom: none; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 0.72rem; color: #999; }
+        .color-dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.15s; flex-shrink: 0; }
+        .color-dot:hover { border-color: var(--text-main); transform: scale(1.2); }
+
+        /* CALENDAR MODAL */
+        .cal-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .cal-content { background: var(--card-bg); border-radius: 14px; padding: 1.5rem; width: 310px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .cal-nav { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+        .cal-nav:hover { background: var(--accent-color); color: white; }
+        .cal-title { font-weight: bold; font-size: 0.95rem; color: var(--text-main); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .cal-day-name { text-align: center; font-size: 0.65rem; font-weight: bold; color: #999; padding: 3px 0; }
+        .cal-cell { text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: 0.15s; }
+        .cal-cell:hover { background: rgba(197,160,89,0.2); }
+        .cal-cell.today { background: rgba(197,160,89,0.2); font-weight: bold; color: var(--accent-color); }
+        .cal-cell.selected { background: var(--accent-color); color: white; font-weight: bold; }
+        .cal-cell.other-month { color: #bbb; }
+        .cal-cell.has-notes::after { content:''; display:block; width:4px; height:4px; border-radius:50%; background:var(--accent-color); margin: 1px auto 0; }
+        .cal-actions { display: flex; gap: 8px; margin-top: 1rem; }
+        .cal-btn { flex: 1; padding: 9px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
+        .cal-btn-confirm { background: var(--accent-color); color: white; }
+        .cal-btn-cancel { background: var(--border-color); color: var(--text-main); }
+        .cal-btn-cancel:hover { filter: brightness(0.9); }
+        .cal-btn-confirm:hover { filter: brightness(1.1); }
+
+        /* STATS MODAL */
+        .stats-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 150; backdrop-filter: blur(3px); }
+        .stats-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 1rem 0; }
+        .stat-box { background: var(--bg-color); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid var(--border-color); }
+        .stat-num { font-size: 2rem; font-weight: bold; color: var(--accent-color); }
+        .stat-lbl { font-size: 0.72rem; color: #888; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-bar-wrap { margin: 1.2rem 0; }
+        .stat-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+        .stat-bar { height: 10px; border-radius: 5px; background: var(--border-color); overflow: hidden; }
+        .stat-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
+        .stats-section-title { font-weight: bold; font-size: 0.85rem; color: var(--accent-color); margin: 1.2rem 0 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .stats-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .stats-table th { text-align: left; padding: 7px 10px; background: var(--bg-color); border-bottom: 2px solid var(--border-color); font-weight: 700; color: #888; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }
+        .stats-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); }
+        .stats-table tr:last-child td { border-bottom: none; }
+
+        /* GLOBAL SEARCH MODAL */
+        .gsearch-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: flex-start; align-items: flex-start; z-index: 300; backdrop-filter: blur(4px); padding-top: 80px; }
+        .gsearch-content { background: var(--card-bg); border-radius: 14px; width: 640px; max-width: 95vw; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden; }
+        .gsearch-input-wrap { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border-color); gap: 10px; }
+        .gsearch-input-wrap span { font-size: 1.2rem; color: #999; }
+        #gsearch-input { flex: 1; background: none; border: none; outline: none; font-size: 1rem; color: var(--text-main); }
+        .gsearch-results { max-height: 440px; overflow-y: auto; }
+        .gsearch-item { padding: 12px 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.15s; }
+        .gsearch-item:hover { background: rgba(197,160,89,0.1); }
+        .gsearch-item:last-child { border-bottom: none; }
+        .gsearch-item-date { font-size: 0.7rem; color: var(--accent-color); font-weight: bold; margin-bottom: 3px; }
+        .gsearch-item-room { font-weight: bold; font-size: 0.85rem; color: var(--text-main); }
+        .gsearch-item-text { font-size: 0.8rem; color: #888; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gsearch-empty { padding: 2rem; text-align: center; color: #999; font-size: 0.9rem; }
+        .gsearch-footer { padding: 10px 16px; background: var(--bg-color); border-top: 1px solid var(--border-color); font-size: 0.72rem; color: #999; display: flex; justify-content: space-between; }
+        mark { background: rgba(197,160,89,0.35); border-radius: 2px; padding: 0 2px; color: inherit; }
+
+        /* NOTIFICATIONS PANEL */
+        .notif-panel { display: none; position: fixed; top: 60px; right: 15px; width: 340px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500; border: 1px solid var(--border-color); overflow: hidden; }
+        .notif-panel-header { padding: 12px 16px; background: var(--header-bg); color: var(--header-text); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; }
+        .notif-close { background: none; border: none; color: var(--header-text); cursor: pointer; font-size: 1.1rem; }
+        .notif-list { max-height: 380px; overflow-y: auto; }
+        .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 10px; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+        .notif-item-text { font-size: 0.82rem; line-height: 1.4; color: var(--text-main); }
+        .notif-item-sub { font-size: 0.72rem; color: #999; margin-top: 2px; }
+        .notif-empty { padding: 2rem; text-align: center; color: #999; font-size: 0.85rem; }
+        .notif-actions { padding: 10px 16px; background: var(--bg-color); display: flex; gap: 8px; }
+        .notif-act-btn { flex: 1; padding: 7px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: 0.2s; }
+        .notif-act-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        /* TEMPLATES MODAL */
+        .tmpl-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .tmpl-content { background: var(--card-bg); padding: 1.8rem; border-radius: 14px; width: 520px; max-width: 95vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .tmpl-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+        .tmpl-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; position: relative; }
+        .tmpl-card:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.08); }
+        .tmpl-card-name { font-weight: bold; font-size: 0.88rem; margin-bottom: 4px; }
+        .tmpl-card-preview { font-size: 0.75rem; color: #888; line-height: 1.4; overflow: hidden; max-height: 45px; }
+        .tmpl-del { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.85rem; transition: 0.2s; }
+        .tmpl-del:hover { color: #e74c3c; }
+        .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
+        .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
+
+        /* LOGIN MODAL */
+        .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
+        .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; }
+        .login-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 0.5rem; letter-spacing: 2px; }
+        .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1.5rem; }
+        .user-option { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; background: var(--bg-color); }
+        .user-option:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.1); }
+        .user-option-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.9rem; }
+        .user-option-name { font-weight: 600; font-size: 0.95rem; color: var(--text-main); text-align: left; }
+        .user-option-role { font-size: 0.72rem; color: #999; }
+        .login-custom { margin-top: 12px; display: flex; gap: 8px; }
+        .login-custom input { flex: 1; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
+        .login-custom button { padding: 9px 14px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .login-custom button:hover { filter: brightness(1.1); }
+
+        /* PRINT STYLES */
+        @media print {
+            header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input { display: none !important; }
+            body { overflow: visible; height: auto; }
+            .container { display: block; }
+            main { padding: 0; overflow: visible; }
+            .notes-grid { display: block; }
+            .note-card { break-inside: avoid; margin-bottom: 12px; box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            .modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .login-modal { display: none !important; }
+            #print-header { display: block !important; }
+        }
+        #print-header { display: none; padding: 10px 0 20px; border-bottom: 2px solid #333; margin-bottom: 20px; }
+        #print-header h1 { font-size: 1.4rem; letter-spacing: 2px; }
+        #print-header p { font-size: 0.85rem; color: #666; margin-top: 4px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-left">
-            <button class="tool-btn" id="sidebar-toggle" style="font-size: 1.2rem; padding: 2px 10px;" title="Toggle Sidebar">☰</button>
-            <div class="dannote-title"> Dannote</div>
-        </div>
-        
-        <div class="header-center">KING DAVID</div>
-        
-        <div class="header-right">
-            <select id="theme-selector" style="padding: 5px; border-radius: 5px; border: none; background: #333; color: white;">
-                <option value="light">Light</option>
-                <option value="cream">Cream</option>
-                <option value="dark">Dark</option>
-            </select>
-        </div>
-    </header>
-
-    <div class="container">
-        <aside id="sidebar">
-            <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
-            <button class="add-day-btn" id="new-folder-trigger"> + Add Folder</button>
-            
-            <div id="day-list"></div>
-
-            <div class="sidebar-footer">
-                Powered by Danylevskij v1.3.1 
-            </div>
-        </aside>
-
-        <main>
-            <div class="main-header">
-                <h2 id="day-label">Select a Day</h2>
-                <input type="text" id="search" class="search-bar" placeholder="Search R: or text...">
-            </div>
-            <button class="add-day-btn" id="new-note-trigger" style="display:none; width: auto; padding: 10px 25px; margin-bottom: 1.5rem;">+ Add Shift Note</button>
-            <div class="notes-grid" id="notes-grid"></div>
-        </main>
+<header>
+    <div class="header-left">
+        <button class="tool-btn" id="sidebar-toggle" style="font-size: 1.1rem; padding: 4px 9px;">☰</button>
+        <div class="dannote-title">Dannote</div>
+        <button class="tool-btn" id="gsearch-btn" title="Global Search (Ctrl+K)">🔍 Search</button>
     </div>
+    <div class="header-center">KING DAVID</div>
+    <div class="header-right">
+        <button class="notif-bell" id="notif-btn" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
+        <button class="tool-btn" id="stats-btn">📊 Stats</button>
+        <select id="theme-selector" style="padding:5px; border-radius:5px; border:none; background:#333; color:white; font-size:0.8rem;">
+            <option value="light">Light</option>
+            <option value="cream">Cream</option>
+            <option value="dark">Dark</option>
+        </select>
+    </div>
+</header>
 
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h3 id="m-title" style="margin-bottom: 1rem; color: var(--accent-color);">Shift Note</h3>
-            
-            <div class="modal-toolbar">
-                <button class="tool-btn" id="f-red">Red Text</button>
-                <button class="tool-btn" id="f-u">Underline</button>
-                <button class="tool-btn" id="f-s">Strike</button>
-            </div>
+<div class="container">
+    <aside id="sidebar">
+        <div class="user-badge" id="user-badge">
+            <div class="user-avatar" id="user-avatar-badge" style="background:#3498db;">?</div>
+            <span class="user-name-badge" id="user-name-badge">Not logged in</span>
+            <button class="user-change-btn" id="change-user-btn" title="Change User">✎</button>
+        </div>
+        <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
+        <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
+        <div id="day-list"></div>
+        <div class="sidebar-footer">Powered by Danylevskij v3.0.0</div>
+    </aside>
 
-            <input type="text" id="m-room" placeholder="Room Number or name (101, BOB)">
-            <textarea id="m-text" placeholder="Details of the note..." rows="5"></textarea>
-            
-            <input type="file" id="m-file" accept="image/*" style="font-size: 0.9rem; padding: 5px;">
-
-            <select id="m-tag">
-                <option value="info">Info (Blue)</option>
-                <option value="important">Important (Orange)</option>
-                <option value="urgent">Urgent (Red)</option>
-            </select>
-            <div style="text-align: right; margin-top: 10px;">
-                <button id="m-cancel" style="background:none; border:none; margin-right:15px; cursor:pointer; color: var(--text-main); font-weight: bold;">Cancel</button>
-                <button id="m-save" class="add-day-btn" style="width:auto; margin:0; padding: 10px 30px;">Save Data</button>
+    <main>
+        <div id="print-header">
+            <h1>KING DAVID — Shift Handover</h1>
+            <p id="print-date-label"></p>
+        </div>
+        <div class="main-header">
+            <h2 id="day-label">Select a Day</h2>
+            <div class="main-actions">
+                <button class="main-act-btn" id="tmpl-open-btn" style="display:none;">📋 Templates</button>
+                <button class="main-act-btn" id="print-btn" style="display:none;">🖨 Print / PDF</button>
+                <input type="text" id="search" class="search-bar" placeholder="Search notes...">
             </div>
         </div>
+        <button class="add-day-btn" id="new-note-trigger" style="display:none; width:auto; padding:9px 22px; margin-bottom:1.3rem;">+ Add Shift Note</button>
+        <div class="notes-grid" id="notes-grid"></div>
+    </main>
+</div>
+
+<!-- NOTE MODAL -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="m-title">Shift Note</h3>
+        <div class="editor-toolbar">
+            <select class="ed-select" id="ed-font">
+                <option value="">Font</option>
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Times New Roman">Times NR</option>
+                <option value="Verdana">Verdana</option>
+            </select>
+            <select class="ed-select" id="ed-size" style="max-width:58px;">
+                <option value="">Sz</option>
+                <option value="1">8</option><option value="2">10</option><option value="3">12</option>
+                <option value="4">14</option><option value="5">18</option><option value="6">24</option><option value="7">36</option>
+            </select>
+            <div class="ed-sep"></div>
+            <button class="ed-btn" id="ed-bold" onclick="execFmt('bold')"><b>B</b></button>
+            <button class="ed-btn" id="ed-italic" onclick="execFmt('italic')"><i>I</i></button>
+            <button class="ed-btn" id="ed-underline" onclick="execFmt('underline')"><u>U</u></button>
+            <button class="ed-btn" id="ed-strike" onclick="execFmt('strikeThrough')"><s>S</s></button>
+            <div class="ed-sep"></div>
+            <button class="ed-btn" onclick="execFmt('justifyLeft')">⬅</button>
+            <button class="ed-btn" onclick="execFmt('justifyCenter')">⬌</button>
+            <button class="ed-btn" onclick="execFmt('justifyRight')">➡</button>
+            <div class="ed-sep"></div>
+            <button class="ed-btn" onclick="execFmt('insertUnorderedList')">•</button>
+            <button class="ed-btn" onclick="execFmt('insertOrderedList')">1.</button>
+            <button class="ed-btn" onclick="execFmt('removeFormat')" style="color:#e74c3c; font-size:0.7rem;">✕CLR</button>
+        </div>
+        <div class="color-strip">
+            Text:
+            <div class="color-dot" style="background:#333" data-color="#333333"></div>
+            <div class="color-dot" style="background:#e74c3c" data-color="#e74c3c"></div>
+            <div class="color-dot" style="background:#e67e22" data-color="#e67e22"></div>
+            <div class="color-dot" style="background:#f1c40f" data-color="#f1c40f"></div>
+            <div class="color-dot" style="background:#2ecc71" data-color="#2ecc71"></div>
+            <div class="color-dot" style="background:#3498db" data-color="#3498db"></div>
+            <div class="color-dot" style="background:#9b59b6" data-color="#9b59b6"></div>
+            <div class="color-dot" style="background:#c5a059" data-color="#c5a059"></div>
+            &nbsp;HL:
+            <div class="color-dot" style="background:transparent;border:1px solid #ccc" data-hl="transparent"></div>
+            <div class="color-dot" style="background:#fff176" data-hl="#fff176"></div>
+            <div class="color-dot" style="background:#a5d6a7" data-hl="#a5d6a7"></div>
+            <div class="color-dot" style="background:#f48fb1" data-hl="#f48fb1"></div>
+            <div class="color-dot" style="background:#90caf9" data-hl="#90caf9"></div>
+        </div>
+        <div id="m-editor" contenteditable="true" spellcheck="true"></div>
+        <input type="text" id="m-room" placeholder="Room / Name (101, BOB)">
+        <input type="file" id="m-file" accept="image/*" style="width:100%;margin-bottom:0.9rem;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-main);font-size:0.85rem;">
+        <select id="m-tag">
+            <option value="info">Info (Blue)</option>
+            <option value="important">Important (Orange)</option>
+            <option value="urgent">Urgent (Red)</option>
+        </select>
+        <div style="text-align:right; margin-top:10px; display:flex; justify-content:flex-end; gap:10px; align-items:center;">
+            <button id="m-cancel" style="background:none;border:none;cursor:pointer;color:var(--text-main);font-weight:bold;">Cancel</button>
+            <button id="m-save" class="add-day-btn" style="width:auto;margin:0;padding:9px 28px;">Save Data</button>
+        </div>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!-- CALENDAR MODAL -->
+<div id="cal-modal" class="cal-modal">
+    <div class="cal-content">
+        <div class="cal-header">
+            <button class="cal-nav" id="cal-prev">‹</button>
+            <div class="cal-title" id="cal-title"></div>
+            <button class="cal-nav" id="cal-next">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-actions">
+            <button class="cal-btn cal-btn-cancel" id="cal-cancel">Cancel</button>
+            <button class="cal-btn cal-btn-confirm" id="cal-confirm">Add Day</button>
+        </div>
+    </div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
-            authDomain: "kd-handover.firebaseapp.com",
-            projectId: "kd-handover",
-            storageBucket: "kd-handover.firebasestorage.app",
-            messagingSenderId: "964942218152",
-            appId: "1:964942218152:web:af7e358b48b7ab11ad939d"
+<!-- STATS MODAL -->
+<div id="stats-modal" class="stats-modal">
+    <div class="stats-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="color:var(--accent-color);letter-spacing:1px;">📊 Shift Statistics</h3>
+            <button onclick="document.getElementById('stats-modal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:1.3rem;color:#999;">✕</button>
+        </div>
+        <div id="stats-body"></div>
+    </div>
+</div>
+
+<!-- GLOBAL SEARCH MODAL -->
+<div id="gsearch-modal" class="gsearch-modal">
+    <div class="gsearch-content">
+        <div class="gsearch-input-wrap">
+            <span>🔍</span>
+            <input type="text" id="gsearch-input" placeholder="Search across all days and notes...">
+            <button onclick="closeGSearch()" style="background:none;border:none;cursor:pointer;color:#999;font-size:1.1rem;">✕</button>
+        </div>
+        <div class="gsearch-results" id="gsearch-results">
+            <div class="gsearch-empty">Start typing to search...</div>
+        </div>
+        <div class="gsearch-footer">
+            <span>↑↓ to navigate · Enter to open · Esc to close</span>
+            <span id="gsearch-count"></span>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATIONS PANEL -->
+<div id="notif-panel" class="notif-panel">
+    <div class="notif-panel-header">
+        🔔 Notifications
+        <button class="notif-close" onclick="document.getElementById('notif-panel').style.display='none'">✕</button>
+    </div>
+    <div class="notif-list" id="notif-list"></div>
+    <div class="notif-actions">
+        <button class="notif-act-btn" id="notif-check-btn">Check Urgent Notes</button>
+        <button class="notif-act-btn" id="notif-clear-btn">Clear All</button>
+    </div>
+</div>
+
+<!-- TEMPLATES MODAL -->
+<div id="tmpl-modal" class="tmpl-modal">
+    <div class="tmpl-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <h3 style="color:var(--accent-color);">📋 Note Templates</h3>
+            <button onclick="document.getElementById('tmpl-modal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#999;">✕</button>
+        </div>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:1rem;">Click a template to use it in the current note.</p>
+        <div class="tmpl-list" id="tmpl-list"></div>
+        <div class="tmpl-new-form">
+            <div style="font-weight:bold;font-size:0.82rem;margin-bottom:8px;color:var(--accent-color);">+ Create New Template</div>
+            <input type="text" id="tmpl-name" placeholder="Template name (e.g. Room Complaint)">
+            <textarea id="tmpl-text" rows="3" placeholder="Template text..."></textarea>
+            <button onclick="saveTemplate()" style="width:100%;padding:8px;background:var(--accent-color);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Save Template</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal" class="login-modal">
+    <div class="login-content">
+        <div class="login-title">KING DAVID</div>
+        <div class="login-sub">Select your profile to continue</div>
+        <div id="preset-users"></div>
+        <div class="login-custom">
+            <input type="text" id="custom-name-input" placeholder="Or enter your name...">
+            <button id="custom-login-btn">Go</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
+    authDomain: "kd-handover.firebaseapp.com",
+    projectId: "kd-handover",
+    storageBucket: "kd-handover.firebasestorage.app",
+    messagingSenderId: "964942218152",
+    appId: "1:964942218152:web:af7e358b48b7ab11ad939d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ===================== STATE =====================
+let activeDayId = null;
+let activeDayDate = '';
+let editingNoteId = null;
+let currentEditingData = null;
+let foldersMap = new Map();
+let daysMap = new Map();
+let allNotesCache = []; // for global search & stats
+let expandedFolders = new Set(['unsorted']);
+let currentUser = null;
+let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
+let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
+
+// Calendar state
+let calTarget = null;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelected = null;
+const existingDatesSet = new Set();
+
+// ===================== PRESET USERS =====================
+const PRESET_USERS = [
+    { name: 'Martin', color: '#3498db', icon: 'MU' },
+    { name: 'Stepan', color: '#9b59b6', icon: 'SL' },
+    { name: 'Danylo', color: '#c5a059', icon: 'DI' },
+    { name: 'Kuba', color: '#2ecc71', icon: 'KH' },
+    { name: 'Sumeet', color: '#e67e23', icon: 'SG' },
+    { name: 'Jana', color: '#e67e24', icon: 'JS' },
+    { name: 'Kirill', color: '#e67e33', icon: 'DK' },
+     { name: 'Basem', color: '#e67e40', icon: 'BH' },
+];
+
+function initUserUI() {
+    const container = document.getElementById('preset-users');
+    container.innerHTML = '';
+    PRESET_USERS.forEach(u => {
+        const el = document.createElement('div');
+        el.className = 'user-option';
+        el.innerHTML = `<div class="user-option-avatar" style="background:${u.color}">${u.icon}</div><div><div class="user-option-name">${u.name}</div><div class="user-option-role">Tap to select</div></div>`;
+        el.onclick = () => loginAs(u.name, u.color);
+        container.appendChild(el);
+    });
+}
+
+function loginAs(name, color) {
+    const colors = ['#3498db','#9b59b6','#c5a059','#2ecc71','#e67e22','#e74c3c','#1abc9c'];
+    const c = color || colors[Math.abs(name.split('').reduce((a,b) => a + b.charCodeAt(0), 0)) % colors.length];
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    currentUser = { name, color: c, initials };
+    localStorage.setItem('kd_user', JSON.stringify(currentUser));
+    document.getElementById('login-modal').style.display = 'none';
+    updateUserBadge();
+    addNotification('👋 Welcome back, ' + name + '!', 'Logged in successfully', 'info');
+}
+
+function updateUserBadge() {
+    if (!currentUser) return;
+    document.getElementById('user-avatar-badge').textContent = currentUser.initials;
+    document.getElementById('user-avatar-badge').style.background = currentUser.color;
+    document.getElementById('user-name-badge').textContent = currentUser.name;
+}
+
+document.getElementById('change-user-btn').onclick = () => {
+    initUserUI();
+    document.getElementById('login-modal').style.display = 'flex';
+};
+document.getElementById('custom-login-btn').onclick = () => {
+    const n = document.getElementById('custom-name-input').value.trim();
+    if (n) loginAs(n);
+};
+
+// Load saved user
+const savedUser = localStorage.getItem('kd_user');
+if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    updateUserBadge();
+} else {
+    initUserUI();
+    document.getElementById('login-modal').style.display = 'flex';
+}
+
+// ===================== HELPERS =====================
+function escapeHTML(str) {
+    return String(str || '').replace(/[&<>'"]/g,
+        t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
+}
+
+function parseDateToTs(str) {
+    const p = str.split('.');
+    if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]).getTime();
+    return 0;
+}
+
+const compressImg = (file) => new Promise(resolve => {
+    const r = new FileReader();
+    r.readAsDataURL(file);
+    r.onload = e => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+            const c = document.createElement('canvas');
+            const ctx = c.getContext('2d');
+            let w = img.width, h = img.height;
+            if (w > 800) { h *= 800/w; w = 800; }
+            c.width = w; c.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', 0.6));
         };
+    };
+});
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+function stripHTML(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || '';
+}
 
-        let activeDayId = null;
-        let activeFormats = [];
-        let editingNoteId = null;
-        let currentEditingData = null;
-        
-        let foldersMap = new Map();
-        let daysMap = new Map();
-        let expandedFolders = new Set(['unsorted']);
+// ===================== NOTIFICATIONS =====================
+function addNotification(title, sub, type = 'info') {
+    notifications.unshift({ title, sub, type, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), id: Date.now() });
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    renderNotifBadge();
+}
 
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
-            );
+function renderNotifBadge() {
+    const badge = document.getElementById('notif-badge');
+    const count = notifications.filter(n => !n.read).length;
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = count > 0 ? 'flex' : 'none';
+}
+
+function renderNotifPanel() {
+    const list = document.getElementById('notif-list');
+    if (!notifications.length) {
+        list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+        return;
+    }
+    list.innerHTML = '';
+    notifications.slice(0, 20).forEach(n => {
+        const colors = { urgent: '#e74c3c', important: '#f39c12', info: '#3498db', done: '#2ecc71' };
+        const div = document.createElement('div');
+        div.className = 'notif-item';
+        div.innerHTML = `
+            <div class="notif-dot" style="background:${colors[n.type]||'#3498db'}"></div>
+            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>
+        `;
+        list.appendChild(div);
+    });
+    notifications.forEach(n => n.read = true);
+    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    renderNotifBadge();
+}
+
+document.getElementById('notif-btn').onclick = () => {
+    const panel = document.getElementById('notif-panel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    renderNotifPanel();
+};
+
+document.getElementById('notif-clear-btn').onclick = () => {
+    notifications = [];
+    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    renderNotifPanel();
+    renderNotifBadge();
+};
+
+document.getElementById('notif-check-btn').onclick = () => {
+    checkUrgentNotes();
+};
+
+function checkUrgentNotes() {
+    const urgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done);
+    if (urgent.length === 0) {
+        addNotification('✅ All clear!', 'No open urgent notes found', 'done');
+    } else {
+        urgent.forEach(n => {
+            addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent');
+        });
+    }
+    renderNotifPanel();
+}
+
+renderNotifBadge();
+
+// ===================== STATS =====================
+document.getElementById('stats-btn').onclick = () => {
+    buildStats();
+    document.getElementById('stats-modal').style.display = 'flex';
+};
+
+function buildStats() {
+    const body = document.getElementById('stats-body');
+    const total = allNotesCache.length;
+    const urgent = allNotesCache.filter(n => n.tag === 'urgent').length;
+    const important = allNotesCache.filter(n => n.tag === 'important').length;
+    const info = allNotesCache.filter(n => n.tag === 'info').length;
+    const done = allNotesCache.filter(n => n.done).length;
+    const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
+
+    // Notes by user
+    const byUser = {};
+    allNotesCache.forEach(n => {
+        const u = n.author || 'Unknown';
+        byUser[u] = (byUser[u] || 0) + 1;
+    });
+
+    // Notes by day (last 7 days)
+    const byDay = {};
+    daysMap.forEach(d => { byDay[d.date] = 0; });
+    allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
+
+    const sortedDays = Object.entries(byDay).sort((a,b) => parseDateToTs(a[0]) - parseDateToTs(b[0])).slice(-7);
+    const maxDayCount = Math.max(...sortedDays.map(d => d[1]), 1);
+
+    body.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total Notes</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:#e74c3c">${openUrgent}</div><div class="stat-lbl">Open Urgent</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:#2ecc71">${done}</div><div class="stat-lbl">Resolved</div></div>
+            <div class="stat-box"><div class="stat-num">${daysMap.size}</div><div class="stat-lbl">Days Logged</div></div>
+        </div>
+
+        <div class="stats-section-title">Note Breakdown</div>
+        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl, col, val]) => `
+        <div class="stat-bar-wrap">
+            <div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total ? Math.round(val/total*100) : 0}%)</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" style="width:${total ? val/total*100 : 0}%;background:${col}"></div></div>
+        </div>`).join('')}
+
+        <div class="stats-section-title">Activity — Last ${sortedDays.length} Days</div>
+        ${sortedDays.map(([date, cnt]) => `
+        <div class="stat-bar-wrap">
+            <div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div>
+        </div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
+
+        <div class="stats-section-title">Notes by Staff</div>
+        <table class="stats-table">
+            <thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead>
+            <tbody>
+                ${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c]) => `
+                <tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total ? Math.round(c/total*100) : 0}%</td></tr>`).join('') || '<tr><td colspan="3" style="color:#888">No data</td></tr>'}
+            </tbody>
+        </table>
+    `;
+}
+
+// ===================== GLOBAL SEARCH =====================
+document.getElementById('gsearch-btn').onclick = openGSearch;
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGSearch(); }
+    if (e.key === 'Escape') closeGSearch();
+});
+
+function openGSearch() {
+    document.getElementById('gsearch-modal').style.display = 'flex';
+    document.getElementById('gsearch-input').value = '';
+    document.getElementById('gsearch-results').innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
+    document.getElementById('gsearch-count').textContent = '';
+    setTimeout(() => document.getElementById('gsearch-input').focus(), 50);
+}
+window.closeGSearch = () => { document.getElementById('gsearch-modal').style.display = 'none'; };
+document.getElementById('gsearch-modal').onclick = (e) => { if (e.target === document.getElementById('gsearch-modal')) closeGSearch(); };
+
+document.getElementById('gsearch-input').oninput = function() {
+    const term = this.value.trim().toLowerCase();
+    const results = document.getElementById('gsearch-results');
+    const countEl = document.getElementById('gsearch-count');
+    if (!term) {
+        results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
+        countEl.textContent = '';
+        return;
+    }
+    const matched = allNotesCache.filter(n =>
+        (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term)
+    );
+    countEl.textContent = matched.length + ' results';
+    if (!matched.length) { results.innerHTML = '<div class="gsearch-empty">Nothing found</div>'; return; }
+
+    function hl(str) {
+        const s = escapeHTML(str);
+        const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+        return s.replace(re, '<mark>$1</mark>');
+    }
+
+    results.innerHTML = '';
+    matched.slice(0, 40).forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'gsearch-item';
+        const plain = stripHTML(n.htmlContent || '').slice(0, 100);
+        div.innerHTML = `
+            <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
+            ${n.room ? `<div class="gsearch-item-room">R: ${hl(n.room)}</div>` : ''}
+            <div class="gsearch-item-text">${hl(plain)}</div>
+        `;
+        div.onclick = () => {
+            closeGSearch();
+            if (n._dayId) window.selectDay(n._dayId, n._dayDate || n._dayId);
+        };
+        results.appendChild(div);
+    });
+};
+
+// ===================== SIDEBAR =====================
+document.getElementById('sidebar-toggle').onclick = () =>
+    document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+
+document.getElementById('new-folder-trigger').onclick = async () => {
+    const name = prompt("Enter Folder Name (e.g. April 2026):");
+    if (name) {
+        const ref = await addDoc(collection(db, "folders"), { name, createdAt: Date.now() });
+        expandedFolders.add(ref.id);
+        addNotification('📁 Folder created: ' + name, '', 'info');
+    }
+};
+
+window.toggleFolder = id => {
+    if (expandedFolders.has(id)) expandedFolders.delete(id);
+    else expandedFolders.add(id);
+    renderSidebar();
+};
+
+window.addDayToFolder = folderId => openCalendar(folderId);
+
+window.renameFolder = async (id, oldName) => {
+    const n = prompt("New folder name:", oldName);
+    if (n && n.trim() && n !== oldName) await updateDoc(doc(db, "folders", id), { name: n.trim() });
+};
+
+window.deleteFolder = async id => {
+    if (!confirm("Delete folder? Days will move to Unsorted.")) return;
+    const days = Array.from(daysMap.values()).filter(d => d.folderId === id);
+    for (const d of days) await updateDoc(doc(db, "days", d.id), { folderId: null });
+    await deleteDoc(doc(db, "folders", id));
+};
+
+document.getElementById('sidebar-search').oninput = () => renderSidebar();
+
+onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap => {
+    foldersMap.clear();
+    snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
+    renderSidebar();
+});
+
+onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
+    daysMap.clear();
+    existingDatesSet.clear();
+    snap.forEach(d => {
+        const data = { id: d.id, ...d.data() };
+        daysMap.set(d.id, data);
+        existingDatesSet.add(data.date);
+    });
+    renderSidebar();
+    loadAllNotesForCache();
+});
+
+async function loadAllNotesForCache() {
+    allNotesCache = [];
+    for (const [dayId, dayData] of daysMap) {
+        const snap = await getDocs(collection(db, `days/${dayId}/notes`));
+        snap.forEach(n => {
+            allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date });
+        });
+    }
+}
+
+function renderSidebar() {
+    const list = document.getElementById('day-list');
+    list.innerHTML = '';
+    const term = (document.getElementById('sidebar-search')?.value || '').toLowerCase();
+    const grouped = { unsorted: [] };
+    const sortedFolders = Array.from(foldersMap.values()).sort((a,b) => {
+        return (a.order !== undefined ? a.order : -a.createdAt) - (b.order !== undefined ? b.order : -b.createdAt);
+    });
+    sortedFolders.forEach(f => grouped[f.id] = []);
+    daysMap.forEach(day => {
+        const fId = day.folderId || 'unsorted';
+        if (!grouped[fId]) grouped[fId] = [];
+        grouped[fId].push(day);
+    });
+
+    const renderFolder = (folderId, folderName) => {
+        let days = (grouped[folderId] || []).sort((a,b) => {
+            if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+            return parseDateToTs(a.date) - parseDateToTs(b.date);
+        });
+        const filtered = days.filter(d => d.date.toLowerCase().includes(term));
+        if (term && !folderName.toLowerCase().includes(term) && !filtered.length) return;
+        const display = term ? filtered : days;
+        if (folderId === 'unsorted' && !display.length) return;
+        const isOpen = term ? true : expandedFolders.has(folderId);
+        const fDiv = document.createElement('div');
+        fDiv.className = 'folder-container' + (folderId !== 'unsorted' ? ' draggable' : '');
+        if (folderId !== 'unsorted') fDiv.draggable = true;
+        fDiv.dataset.type = 'folder'; fDiv.dataset.id = folderId;
+
+        const actions = folderId !== 'unsorted' ? `
+            <button class="folder-action-btn" onclick="event.stopPropagation();window.renameFolder('${folderId}','${escapeHTML(folderName)}')">✎</button>
+            <button class="folder-action-btn" style="color:#e74c3c" onclick="event.stopPropagation();window.deleteFolder('${folderId}')">🗑</button>` : '';
+
+        fDiv.innerHTML = `
+            <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
+                <span>${isOpen?'📂':'📁'} ${escapeHTML(folderName)}</span>
+                <div class="folder-actions">${actions}<button class="add-to-folder-btn" onclick="event.stopPropagation();window.addDayToFolder('${folderId}')">+</button></div>
+            </div>
+            <div class="folder-content ${isOpen?'open':''}" id="folder-${folderId}"></div>`;
+
+        const content = fDiv.querySelector('.folder-content');
+        display.forEach(day => {
+            const div = document.createElement('div');
+            div.className = `day-item draggable${activeDayId===day.id?' active':''}`;
+            div.dataset.id = day.id; div.dataset.type = 'day'; div.dataset.folder = folderId;
+            div.draggable = true;
+            div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
+            div.querySelector('.day-text').onclick = () => window.selectDay(day.id, day.date);
+            div.querySelector('.delete-day-btn').onclick = e => { e.stopPropagation(); window.deleteDay(day.id); };
+            content.appendChild(div);
+        });
+        list.appendChild(fDiv);
+    };
+
+    sortedFolders.forEach(f => renderFolder(f.id, f.name));
+    renderFolder('unsorted', 'Unsorted');
+}
+
+// ===================== DRAG & DROP =====================
+let draggedItem = null;
+document.addEventListener('dragstart', e => {
+    const el = e.target.closest('.folder-container, .day-item');
+    if (el) { draggedItem = el; setTimeout(() => el.classList.add('dragging'), 0); }
+});
+document.addEventListener('dragend', () => {
+    if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; }
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
+});
+document.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    const td = e.target.closest('.day-item'), th = e.target.closest('.folder-header');
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
+    if (draggedItem.dataset.type === 'day') {
+        if (td && td !== draggedItem) td.classList.add('drag-over');
+        else if (th) th.classList.add('drag-over-folder');
+    } else {
+        const tf = e.target.closest('.folder-container');
+        if (tf && tf !== draggedItem && tf.dataset.id !== 'unsorted') tf.classList.add('drag-over');
+    }
+});
+document.addEventListener('drop', async e => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    const { type, id } = draggedItem.dataset;
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
+    if (type === 'day') {
+        const td = e.target.closest('.day-item'), th = e.target.closest('.folder-header');
+        if (td && td !== draggedItem) {
+            const c = td.parentNode, rect = td.getBoundingClientRect();
+            c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? td.nextSibling : td);
+            Array.from(c.querySelectorAll('.day-item')).forEach(async(el,i) => await updateDoc(doc(db,'days',el.dataset.id),{order:i}));
+        } else if (th) {
+            const fc = th.closest('.folder-container'), newFId = fc.dataset.id;
+            if (draggedItem.dataset.folder !== newFId)
+                await updateDoc(doc(db,'days',id),{folderId: newFId==='unsorted'?null:newFId});
         }
-
-        const compressImg = (file) => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const maxW = 800;
-                        let w = img.width, h = img.height;
-                        if (w > maxW) { h *= maxW / w; w = maxW; }
-                        canvas.width = w; canvas.height = h;
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    };
-                };
-            });
-        };
-
-        document.getElementById('sidebar-toggle').onclick = () => {
-            document.getElementById('sidebar').classList.toggle('sidebar-hidden');
-        };
-
-        // --- ЛОГИКА ПАПОК И РЕНДЕРИНГА SIDEBAR ---
-        
-        document.getElementById('new-folder-trigger').onclick = async () => {
-            const name = prompt("Enter Folder Name (e.g. April 2026):");
-            if(name) {
-                const docRef = await addDoc(collection(db, "folders"), { name: name, createdAt: Date.now() });
-                expandedFolders.add(docRef.id);
-            }
-        };
-
-        window.toggleFolder = (id) => {
-            if (expandedFolders.has(id)) expandedFolders.delete(id);
-            else expandedFolders.add(id);
-            renderSidebar();
-        };
-
-        window.addDayToFolder = async (folderId) => {
-            const d = prompt("Enter Date:", new Date().toLocaleDateString('en-GB'));
-            if(d) {
-                await addDoc(collection(db, "days"), { 
-                    date: d, 
-                    createdAt: Date.now(),
-                    folderId: folderId === 'unsorted' ? null : folderId
-                });
-                if (!expandedFolders.has(folderId)) {
-                    expandedFolders.add(folderId);
-                    renderSidebar();
-                }
-            }
-        };
-
-        window.renameFolder = async (id, oldName) => {
-            const newName = prompt("Enter new folder name:", oldName);
-            if (newName && newName.trim() !== "" && newName !== oldName) {
-                await updateDoc(doc(db, "folders", id), { name: newName.trim() });
-            }
-        };
-
-        window.deleteFolder = async (id) => {
-            if (confirm("Delete this folder? (Days inside will be moved to 'Unsorted' so you won't lose them)")) {
-                const daysInFolder = Array.from(daysMap.values()).filter(d => d.folderId === id);
-                for (const day of daysInFolder) {
-                    await updateDoc(doc(db, "days", day.id), { folderId: null });
-                }
-                await deleteDoc(doc(db, "folders", id));
-            }
-        };
-
-        document.getElementById('sidebar-search').oninput = () => renderSidebar();
-
-        onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), (snap) => {
-            foldersMap.clear();
-            snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
-            renderSidebar();
-        });
-
-        onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), (snap) => {
-            daysMap.clear();
-            snap.forEach(d => daysMap.set(d.id, { id: d.id, ...d.data() }));
-            renderSidebar();
-        });
-
-        function renderSidebar() {
-            const list = document.getElementById('day-list');
-            list.innerHTML = '';
-
-            const searchInput = document.getElementById('sidebar-search');
-            const term = searchInput ? searchInput.value.toLowerCase() : '';
-
-            const grouped = { unsorted: [] };
-            
-            // Сортируем папки: сначала по новому полю order, если его нет - по дате создания
-            const sortedFolders = Array.from(foldersMap.values()).sort((a, b) => {
-                const valA = a.order !== undefined ? a.order : -a.createdAt;
-                const valB = b.order !== undefined ? b.order : -b.createdAt;
-                return valA - valB;
-            });
-
-            sortedFolders.forEach(f => grouped[f.id] = []);
-
-            daysMap.forEach(day => {
-                const fId = day.folderId || 'unsorted';
-                if (!grouped[fId]) grouped[fId] = []; 
-                grouped[fId].push(day);
-            });
-
-            const renderFolder = (folderId, folderName) => {
-                let daysInFolder = grouped[folderId] || [];
-                
-                // Сортируем дни внутри папки
-                daysInFolder.sort((a, b) => {
-                    const valA = a.order !== undefined ? a.order : -a.createdAt;
-                    const valB = b.order !== undefined ? b.order : -b.createdAt;
-                    return valA - valB;
-                });
-                
-                const filteredDays = daysInFolder.filter(d => d.date.toLowerCase().includes(term));
-                const folderMatches = folderName.toLowerCase().includes(term);
-
-                if (term && !folderMatches && filteredDays.length === 0) return; 
-
-                const displayDays = term ? filteredDays : daysInFolder;
-
-                if (folderId === 'unsorted' && displayDays.length === 0) return; 
-
-                const isOpen = term ? true : expandedFolders.has(folderId); 
-                const fDiv = document.createElement('div');
-                fDiv.className = 'folder-container';
-                
-                // Настройки перетаскивания папок (кроме Unsorted)
-                if(folderId !== 'unsorted') {
-                    fDiv.classList.add('draggable');
-                    fDiv.draggable = true;
-                }
-                fDiv.dataset.type = 'folder';
-                fDiv.dataset.id = folderId;
-                
-                let actionBtns = '';
-                if (folderId !== 'unsorted') {
-                    actionBtns = `
-                        <button class="folder-action-btn" title="Rename Folder" onclick="event.stopPropagation(); window.renameFolder('${folderId}', '${escapeHTML(folderName)}')">✎</button>
-                        <button class="folder-action-btn" title="Delete Folder" style="color:#e74c3c;" onclick="event.stopPropagation(); window.deleteFolder('${folderId}')">🗑</button>
-                    `;
-                }
-
-                fDiv.innerHTML = `
-                    <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
-                        <span>${isOpen ? '📂' : '📁'} ${escapeHTML(folderName)}</span>
-                        <div class="folder-actions">
-                            ${actionBtns}
-                            <button class="add-to-folder-btn" title="Add Day" onclick="event.stopPropagation(); window.addDayToFolder('${folderId}')">+</button>
-                        </div>
-                    </div>
-                    <div class="folder-content ${isOpen ? 'open' : ''}" id="folder-${folderId}"></div>
-                `;
-                const contentDiv = fDiv.querySelector('.folder-content');
-
-                displayDays.forEach(day => {
-                    const div = document.createElement('div');
-                    div.className = `day-item draggable ${activeDayId === day.id ? 'active' : ''}`;
-                    div.dataset.id = day.id; 
-                    div.dataset.type = 'day';
-                    div.dataset.folder = folderId;
-                    div.draggable = true; // Разрешаем перетаскивать дни
-                    div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
-                    div.querySelector('.day-text').onclick = () => window.selectDay(day.id, day.date);
-                    div.querySelector('.delete-day-btn').onclick = (e) => { e.stopPropagation(); window.deleteDay(day.id); };
-                    contentDiv.appendChild(div);
-                });
-
-                list.appendChild(fDiv);
-            };
-
-            sortedFolders.forEach(f => renderFolder(f.id, f.name));
-            renderFolder('unsorted', 'Unsorted');
+    } else {
+        const tf = e.target.closest('.folder-container');
+        if (tf && tf !== draggedItem && tf.dataset.id !== 'unsorted') {
+            const c = tf.parentNode, rect = tf.getBoundingClientRect();
+            c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? tf.nextSibling : tf);
+            Array.from(c.querySelectorAll('.folder-container:not([data-id="unsorted"])')).forEach(async(el,i) => await updateDoc(doc(db,'folders',el.dataset.id),{order:i}));
         }
+    }
+});
 
-        // --- ЛОГИКА DRAG AND DROP ---
-        let draggedItem = null;
+// ===================== CALENDAR =====================
+function openCalendar(folderId) {
+    calTarget = folderId; calSelected = null;
+    const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
+    renderCalendar();
+    document.getElementById('cal-modal').style.display = 'flex';
+}
+function renderCalendar() {
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('cal-title').textContent = `${MONTHS[calMonth]} ${calYear}`;
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
+        const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
+    });
+    const firstDow = ((new Date(calYear, calMonth, 1).getDay() + 6) % 7);
+    const dIM = new Date(calYear, calMonth+1, 0).getDate();
+    const dIPrev = new Date(calYear, calMonth, 0).getDate();
+    const today = new Date();
+    for (let i = firstDow-1; i >= 0; i--) {
+        const el = document.createElement('div'); el.className = 'cal-cell other-month'; el.textContent = dIPrev-i; grid.appendChild(el);
+    }
+    for (let d = 1; d <= dIM; d++) {
+        const el = document.createElement('div'); el.className = 'cal-cell';
+        const ds = `${String(d).padStart(2,'0')}.${String(calMonth+1).padStart(2,'0')}.${calYear}`;
+        el.textContent = d;
+        if (d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear()) el.classList.add('today');
+        if (calSelected === ds) el.classList.add('selected');
+        if (existingDatesSet.has(ds)) el.classList.add('has-notes');
+        el.onclick = () => { calSelected = ds; renderCalendar(); };
+        grid.appendChild(el);
+    }
+    const rem = (firstDow + dIM) % 7;
+    for (let d = 1; d <= (rem ? 7-rem : 0); d++) {
+        const el = document.createElement('div'); el.className = 'cal-cell other-month'; el.textContent = d; grid.appendChild(el);
+    }
+}
+document.getElementById('cal-prev').onclick = () => { calMonth--; if (calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
+document.getElementById('cal-next').onclick = () => { calMonth++; if (calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
+document.getElementById('cal-cancel').onclick = () => document.getElementById('cal-modal').style.display='none';
+document.getElementById('cal-confirm').onclick = async () => {
+    if (!calSelected) { alert("Select a date first."); return; }
+    if (existingDatesSet.has(calSelected)) { alert("This date already exists!"); return; }
+    await addDoc(collection(db,"days"), { date: calSelected, createdAt: parseDateToTs(calSelected), folderId: calTarget==='unsorted'?null:calTarget });
+    if (!expandedFolders.has(calTarget)) expandedFolders.add(calTarget);
+    document.getElementById('cal-modal').style.display='none';
+    addNotification('📅 Day added: ' + calSelected, '', 'info');
+};
 
-        document.addEventListener('dragstart', (e) => {
-            if(e.target.classList.contains('folder-container') || e.target.classList.contains('day-item')) {
-                draggedItem = e.target;
-                setTimeout(() => e.target.classList.add('dragging'), 0);
-                e.dataTransfer.effectAllowed = 'move';
-            }
+// ===================== DAYS & NOTES =====================
+window.selectDay = (id, date) => {
+    activeDayId = id; activeDayDate = date;
+    document.getElementById('day-label').textContent = date;
+    document.getElementById('print-date-label').textContent = 'Date: ' + date + ' | Printed: ' + new Date().toLocaleString();
+    document.getElementById('new-note-trigger').style.display = 'block';
+    document.getElementById('tmpl-open-btn').style.display = 'block';
+    document.getElementById('print-btn').style.display = 'block';
+    document.querySelectorAll('.day-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+    loadNotes(id);
+};
+
+window.deleteDay = async id => {
+    if (!confirm("Delete day and ALL notes?")) return;
+    const notes = await getDocs(collection(db, `days/${id}/notes`));
+    for (const n of notes.docs) await deleteDoc(doc(db, `days/${id}/notes`, n.id));
+    await deleteDoc(doc(db, "days", id));
+};
+
+function loadNotes(dayId) {
+    onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
+        if (activeDayId !== dayId) return;
+        const grid = document.getElementById('notes-grid');
+        grid.innerHTML = '';
+        const term = document.getElementById('search').value.toLowerCase();
+        snap.forEach(nDoc => {
+            const n = nDoc.data();
+            const plainText = stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'');
+            if (!plainText.toLowerCase().includes(term)) return;
+            const card = document.createElement('div');
+            card.className = `note-card${n.done?' done':''}${n.tag==='urgent'?' urgent-card':''}`;
+            const noteContent = n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>');
+            const authorColor = n.authorColor || '#3498db';
+            card.innerHTML = `
+                <div class="note-time">
+                    <span>${n.time}</span>
+                    ${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}
+                </div>
+                <span class="tag tag-${n.tag}">${n.tag}</span>
+                ${n.room ? `<div class="note-room">R: ${escapeHTML(n.room)}</div>` : ''}
+                <div class="note-text${n.tag==='urgent'?' important-style':''}">${noteContent}</div>
+                ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
+                <div class="card-actions">
+                    <button class="action-link" onclick="window.toggleDone('${nDoc.id}',${n.done})">${n.done?'Undo':'Done'}</button>
+                    <button class="action-link" onclick="window.editNote('${nDoc.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
+                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
+                </div>`;
+            grid.appendChild(card);
         });
+    });
+}
 
-        document.addEventListener('dragend', (e) => {
-            if(draggedItem) {
-                draggedItem.classList.remove('dragging');
-                document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => {
-                    el.classList.remove('drag-over', 'drag-over-folder');
-                });
-                draggedItem = null;
-            }
-        });
+document.getElementById('new-note-trigger').onclick = () => {
+    editingNoteId = null; currentEditingData = null;
+    document.getElementById('m-title').textContent = "Add Shift Note";
+    document.getElementById('m-editor').innerHTML = '';
+    document.getElementById('m-room').value = '';
+    document.getElementById('m-file').value = '';
+    document.getElementById('m-tag').value = 'info';
+    document.getElementById('modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('m-editor').focus(), 100);
+};
 
-        document.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if(!draggedItem) return;
-            
-            const targetDay = e.target.closest('.day-item');
-            const targetFolderHeader = e.target.closest('.folder-header');
-            
-            document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => {
-                if(el !== targetDay && el !== targetFolderHeader && el !== e.target.closest('.folder-container')) {
-                    el.classList.remove('drag-over', 'drag-over-folder');
-                }
-            });
+document.getElementById('m-cancel').onclick = () => document.getElementById('modal').style.display='none';
 
-            if(draggedItem.dataset.type === 'day') {
-                if(targetDay && targetDay !== draggedItem) {
-                    targetDay.classList.add('drag-over');
-                } else if(targetFolderHeader) {
-                    targetFolderHeader.classList.add('drag-over-folder');
-                }
-            } else if (draggedItem.dataset.type === 'folder') {
-                const targetFolder = e.target.closest('.folder-container');
-                if(targetFolder && targetFolder !== draggedItem && targetFolder.dataset.id !== 'unsorted') {
-                    targetFolder.classList.add('drag-over');
-                }
-            }
-        });
+document.getElementById('m-save').onclick = async () => {
+    const html = document.getElementById('m-editor').innerHTML;
+    const text = document.getElementById('m-editor').innerText;
+    const room = document.getElementById('m-room').value;
+    const tag = document.getElementById('m-tag').value;
+    const file = document.getElementById('m-file').files[0];
+    const btn = document.getElementById('m-save');
+    btn.textContent = "Saving..."; btn.disabled = true;
+    let photoData = currentEditingData?.photoData || null;
+    if (file) photoData = await compressImg(file);
+    const payload = {
+        text, htmlContent: html, room, tag, photoData,
+        author: currentUser?.name || null,
+        authorColor: currentUser?.color || '#3498db',
+        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+        createdAt: editingNoteId ? currentEditingData.createdAt : Date.now(),
+        done: false
+    };
+    if (editingNoteId) {
+        await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
+    } else {
+        await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
+        if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
+    }
+    document.getElementById('modal').style.display='none';
+    btn.textContent = "Save Data"; btn.disabled = false;
+    loadAllNotesForCache();
+};
 
-        document.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            if(!draggedItem) return;
-            
-            const type = draggedItem.dataset.type;
-            const id = draggedItem.dataset.id;
-            
-            document.querySelectorAll('.drag-over, .drag-over-folder').forEach(el => el.classList.remove('drag-over', 'drag-over-folder'));
+window.editNote = (id, data) => {
+    editingNoteId = id; currentEditingData = data;
+    document.getElementById('m-title').textContent = "Edit Note";
+    document.getElementById('m-editor').innerHTML = data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>');
+    document.getElementById('m-room').value = data.room || '';
+    document.getElementById('m-tag').value = data.tag;
+    document.getElementById('modal').style.display='flex';
+};
 
-            if (type === 'day') {
-                const targetDay = e.target.closest('.day-item');
-                const targetFolderHeader = e.target.closest('.folder-header');
-                
-                if (targetDay && targetDay !== draggedItem) {
-                    // Перестановка дней внутри папки
-                    const container = targetDay.parentNode;
-                    const rect = targetDay.getBoundingClientRect();
-                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-                    container.insertBefore(draggedItem, next ? targetDay.nextSibling : targetDay);
-                    updateOrderInDB('days', container.querySelectorAll('.day-item'));
-                } else if (targetFolderHeader) {
-                    // Перенос дня в другую папку
-                    const targetFolderContainer = targetFolderHeader.closest('.folder-container');
-                    const newFolderId = targetFolderContainer.dataset.id;
-                    if(draggedItem.dataset.folder !== newFolderId) {
-                        await updateDoc(doc(db, "days", id), { folderId: newFolderId === 'unsorted' ? null : newFolderId });
-                    }
-                }
-            } else if (type === 'folder') {
-                const targetFolder = e.target.closest('.folder-container');
-                // Перестановка папок
-                if(targetFolder && targetFolder !== draggedItem && targetFolder.dataset.id !== 'unsorted' && id !== 'unsorted') {
-                    const container = targetFolder.parentNode;
-                    const rect = targetFolder.getBoundingClientRect();
-                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-                    container.insertBefore(draggedItem, next ? targetFolder.nextSibling : targetFolder);
-                    updateOrderInDB('folders', container.querySelectorAll('.folder-container:not([data-id="unsorted"])'));
-                }
-            }
-        });
+window.deleteNote = async id => {
+    if (confirm("Delete?")) { await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); loadAllNotesForCache(); }
+};
 
-        async function updateOrderInDB(collectionName, elements) {
-            Array.from(elements).forEach(async (el, index) => {
-                const docId = el.dataset.id;
-                await updateDoc(doc(db, collectionName, docId), { order: index });
-            });
-        }
-        // -----------------------------
+window.toggleDone = async (id, s) => {
+    await updateDoc(doc(db, `days/${activeDayId}/notes`, id), {done:!s, tag:!s?'done':'info'});
+    if (!s) addNotification('✅ Note marked as done', '', 'done');
+    loadAllNotesForCache();
+};
 
-        window.selectDay = (id, date) => {
-            activeDayId = id;
-            document.getElementById('day-label').innerText = date;
-            document.getElementById('new-note-trigger').style.display = 'block';
-            
-            document.querySelectorAll('.day-item').forEach(item => {
-                if(item.dataset.id === id) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-            
-            loadNotes(id);
+document.getElementById('search').oninput = () => { if(activeDayId) loadNotes(activeDayId); };
+document.getElementById('theme-selector').onchange = e => document.body.setAttribute('data-theme', e.target.value);
+
+// ===================== RICH TEXT =====================
+window.execFmt = (cmd, val) => {
+    document.getElementById('m-editor').focus();
+    document.execCommand(cmd, false, val||null);
+};
+document.getElementById('ed-font').onchange = function() { if(this.value) window.execFmt('fontName',this.value); this.value=''; };
+document.getElementById('ed-size').onchange = function() { if(this.value) window.execFmt('fontSize',this.value); this.value=''; };
+document.querySelectorAll('.color-strip .color-dot[data-color]').forEach(d => {
+    d.onclick = () => { document.getElementById('m-editor').focus(); document.execCommand('foreColor',false,d.dataset.color); };
+});
+document.querySelectorAll('.color-strip .color-dot[data-hl]').forEach(d => {
+    d.onclick = () => { document.getElementById('m-editor').focus(); document.execCommand('hiliteColor',false,d.dataset.hl); };
+});
+document.getElementById('m-editor').addEventListener('mouseup', () => {
+    document.getElementById('ed-bold').classList.toggle('active', document.queryCommandState('bold'));
+    document.getElementById('ed-italic').classList.toggle('active', document.queryCommandState('italic'));
+    document.getElementById('ed-underline').classList.toggle('active', document.queryCommandState('underline'));
+    document.getElementById('ed-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
+});
+
+// ===================== PRINT / PDF =====================
+document.getElementById('print-btn').onclick = () => window.print();
+
+// ===================== TEMPLATES =====================
+function renderTemplates() {
+    const list = document.getElementById('tmpl-list');
+    list.innerHTML = '';
+    if (!templates.length) {
+        list.innerHTML = '<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>';
+        return;
+    }
+    templates.forEach((t, i) => {
+        const card = document.createElement('div');
+        card.className = 'tmpl-card';
+        card.innerHTML = `
+            <div class="tmpl-card-name">${escapeHTML(t.name)}</div>
+            <div class="tmpl-card-preview">${escapeHTML(t.text)}</div>
+            <button class="tmpl-del" onclick="event.stopPropagation();deleteTemplate(${i})">🗑</button>`;
+        card.onclick = () => {
+            document.getElementById('m-editor').innerHTML += escapeHTML(t.text).replace(/\n/g,'<br>');
+            document.getElementById('tmpl-modal').style.display='none';
+            document.getElementById('modal').style.display='flex';
         };
+        list.appendChild(card);
+    });
+}
 
-        window.deleteDay = async (id) => {
-            if(confirm("Delete day and ALL its notes?")) {
-                const notes = await getDocs(collection(db, `days/${id}/notes`));
-                for (const n of notes.docs) { await deleteDoc(doc(db, `days/${id}/notes`, n.id)); }
-                await deleteDoc(doc(db, "days", id));
-            }
-        };
+window.saveTemplate = () => {
+    const name = document.getElementById('tmpl-name').value.trim();
+    const text = document.getElementById('tmpl-text').value.trim();
+    if (!name || !text) { alert("Enter name and text."); return; }
+    templates.push({ name, text });
+    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    document.getElementById('tmpl-name').value = '';
+    document.getElementById('tmpl-text').value = '';
+    renderTemplates();
+};
 
-        function loadNotes(dayId) {
-            onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt", "desc")), (snap) => {
-                if(activeDayId !== dayId) return;
-                const grid = document.getElementById('notes-grid');
-                grid.innerHTML = '';
-                const search = document.getElementById('search').value.toLowerCase();
+window.deleteTemplate = i => {
+    templates.splice(i, 1);
+    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    renderTemplates();
+};
 
-                snap.forEach(nDoc => {
-                    const n = nDoc.data();
-                    if((n.text || "").toLowerCase().includes(search) || (n.room || "").toLowerCase().includes(search)) {
-                        const card = document.createElement('div');
-                        card.className = `note-card ${n.done ? 'done' : ''}`;
-                        card.innerHTML = `
-                            <div class="note-time">${n.time}</div>
-                            <span class="tag tag-${n.tag}">${n.tag}</span>
-                            ${n.room ? `<div class="note-room">R: ${escapeHTML(n.room)}</div>` : ''}
-                            <div class="note-text ${n.tag === 'urgent' ? 'important-style' : ''} ${n.formats ? n.formats.join(' ') : ''}">${escapeHTML(n.text || '')}</div>
-                            ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
-                            <div class="card-actions">
-                                <button class="action-link" onclick="window.toggleDone('${nDoc.id}', ${n.done})">${n.done ? 'Undo' : 'Done'}</button>
-                                <button class="action-link" onclick="window.editNote('${nDoc.id}', ${JSON.stringify(n).replace(/"/g, '&quot;')})">Edit</button>
-                                <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    }
-                });
-            });
-        }
+document.getElementById('tmpl-open-btn').onclick = () => {
+    renderTemplates();
+    document.getElementById('tmpl-modal').style.display='flex';
+};
 
-        document.getElementById('new-note-trigger').onclick = () => {
-            editingNoteId = null; currentEditingData = null;
-            document.getElementById('m-title').innerText = "Add Shift Note";
-            document.getElementById('m-text').value = ''; document.getElementById('m-room').value = '';
-            document.getElementById('m-file').value = ''; document.getElementById('m-tag').value = 'info';
-            activeFormats = []; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            modal.style.display = 'flex';
-        };
+// Default templates
+if (!templates.length) {
+    templates = [
+        { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
+        { name: 'Maintenance Request', text: 'Maintenance needed in room ___\nIssue: \nReported to maintenance: YES / NO\nEst. resolution: ' },
+        { name: 'Late Checkout', text: 'Room ___ requested late checkout until ___\nApproved by: \nCharge applied: YES / NO' },
+        { name: 'VIP Arrival', text: 'VIP guest arriving: \nRoom: \nSpecial requests: \nAmenities prepared: ' },
+    ];
+    localStorage.setItem('kd_templates', JSON.stringify(templates));
+}
 
-        document.getElementById('m-cancel').onclick = () => modal.style.display = 'none';
-
-        document.getElementById('m-save').onclick = async () => {
-            const text = document.getElementById('m-text').value;
-            const room = document.getElementById('m-room').value;
-            const tag = document.getElementById('m-tag').value;
-            const file = document.getElementById('m-file').files[0];
-            const btn = document.getElementById('m-save');
-
-            btn.innerText = "Saving..."; btn.disabled = true;
-
-            let photoData = currentEditingData?.photoData || null;
-            if (file) photoData = await compressImg(file);
-
-            const payload = {
-                text, room, tag, photoData,
-                formats: [...activeFormats],
-                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                createdAt: editingNoteId ? currentEditingData.createdAt : Date.now()
-            };
-
-            if(editingNoteId) {
-                await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
-            } else {
-                await addDoc(collection(db, `days/${activeDayId}/notes`), {...payload, done: false});
-            }
-            modal.style.display = 'none';
-            btn.innerText = "Save Data"; btn.disabled = false;
-        };
-
-        window.editNote = (id, data) => {
-            editingNoteId = id; currentEditingData = data;
-            document.getElementById('m-title').innerText = "Edit Note";
-            document.getElementById('m-text').value = data.text || '';
-            document.getElementById('m-room').value = data.room || '';
-            document.getElementById('m-tag').value = data.tag;
-            activeFormats = data.formats || [];
-            modal.style.display = 'flex';
-        };
-
-        window.deleteNote = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); };
-        window.toggleDone = async (id, s) => await updateDoc(doc(db, `days/${activeDayId}/notes`, id), { done: !s, tag: !s ? 'done' : 'info' });
-
-        document.getElementById('theme-selector').onchange = (e) => document.body.setAttribute('data-theme', e.target.value);
-        
-        const bindF = (id, cls) => {
-            document.getElementById(id).onclick = () => {
-                const i = activeFormats.indexOf(cls);
-                if(i > -1) { activeFormats.splice(i, 1); document.getElementById(id).classList.remove('active'); }
-                else { activeFormats.push(cls); document.getElementById(id).classList.add('active'); }
-            };
-        };
-        bindF('f-red', 'fmt-red'); bindF('f-u', 'fmt-underline'); bindF('f-s', 'fmt-strike');
-        document.getElementById('search').oninput = () => loadNotes(activeDayId);
-    </script>
+// ===================== CLOSE MODALS ON OUTSIDE CLICK =====================
+document.getElementById('cal-modal').onclick = e => { if(e.target===document.getElementById('cal-modal')) document.getElementById('cal-modal').style.display='none'; };
+document.getElementById('stats-modal').onclick = e => { if(e.target===document.getElementById('stats-modal')) document.getElementById('stats-modal').style.display='none'; };
+document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
+document.addEventListener('click', e => {
+    const panel = document.getElementById('notif-panel');
+    if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
+        panel.style.display='none';
+});
+</script>
 </body>
 </html>
