@@ -59,7 +59,8 @@
         .folder-action-btn:hover { opacity: 1; color: var(--accent-color); }
         .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 20px; height: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s; }
         .add-to-folder-btn:hover { filter: brightness(1.2); }
-        .day-item { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.25s ease; }
+        .day-item { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.25s ease; animation: fadeSlideIn 0.22s ease; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         .day-item:hover { border-color: var(--accent-color); }
         .day-item.active { border-left: 5px solid var(--accent-color); background: rgba(197,160,89,0.12); transform: translateX(4px); box-shadow: 0 3px 10px rgba(197,160,89,0.2); border-color: var(--accent-color); }
         .day-text { font-weight: bold; flex-grow: 1; font-size: 0.9rem; }
@@ -81,7 +82,8 @@
 
         /* NOTES GRID */
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.3rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.3rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.3rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); animation: cardIn 0.25s ease; }
+        @keyframes cardIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .note-card.done { opacity: 0.55; filter: grayscale(0.5); }
         .note-card.urgent-card { border-left: 4px solid var(--tag-urgent); }
         .note-time { font-size: 0.72rem; color: #999; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
@@ -99,7 +101,9 @@
 
         /* MODALS BASE */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
-        .modal-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 520px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 92vh; overflow-y: auto; }
+        .modal.open { display: flex; }
+        .modal-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 520px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 92vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-content input[type="text"], .modal-content select { width: 100%; margin-bottom: 0.9rem; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.95rem; }
         .modal-title { margin-bottom: 1rem; color: var(--accent-color); font-size: 1.1rem; font-weight: bold; }
 
@@ -116,7 +120,7 @@
 
         /* CALENDAR MODAL */
         .cal-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
-        .cal-content { background: var(--card-bg); border-radius: 14px; padding: 1.5rem; width: 310px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .cal-content { background: var(--card-bg); border-radius: 14px; padding: 1.5rem; width: 310px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: modalIn 0.2s ease; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .cal-nav { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
         .cal-nav:hover { background: var(--accent-color); color: white; }
@@ -138,7 +142,7 @@
 
         /* STATS MODAL */
         .stats-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 150; backdrop-filter: blur(3px); }
-        .stats-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .stats-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: modalIn 0.2s ease; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 1rem 0; }
         .stat-box { background: var(--bg-color); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid var(--border-color); }
         .stat-num { font-size: 2rem; font-weight: bold; color: var(--accent-color); }
@@ -155,7 +159,7 @@
 
         /* GLOBAL SEARCH MODAL */
         .gsearch-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: flex-start; align-items: flex-start; z-index: 300; backdrop-filter: blur(4px); padding-top: 80px; }
-        .gsearch-content { background: var(--card-bg); border-radius: 14px; width: 640px; max-width: 95vw; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden; }
+        .gsearch-content { background: var(--card-bg); border-radius: 14px; width: 640px; max-width: 95vw; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden; animation: modalIn 0.2s ease; }
         .gsearch-input-wrap { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border-color); gap: 10px; }
         .gsearch-input-wrap span { font-size: 1.2rem; color: #999; }
         #gsearch-input { flex: 1; background: none; border: none; outline: none; font-size: 1rem; color: var(--text-main); }
@@ -187,7 +191,7 @@
 
         /* TEMPLATES MODAL */
         .tmpl-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
-        .tmpl-content { background: var(--card-bg); padding: 1.8rem; border-radius: 14px; width: 520px; max-width: 95vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .tmpl-content { background: var(--card-bg); padding: 1.8rem; border-radius: 14px; width: 520px; max-width: 95vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: modalIn 0.2s ease; }
         .tmpl-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
         .tmpl-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; position: relative; }
         .tmpl-card:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.08); }
@@ -198,20 +202,63 @@
         .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
         .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
 
-        /* LOGIN MODAL */
+        /* ===================== LOGIN / USER MANAGEMENT MODAL ===================== */
         .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
-        .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; }
+        .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 400px; max-width: 96vw; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; animation: modalIn 0.22s ease; max-height: 90vh; overflow-y: auto; }
         .login-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 0.5rem; letter-spacing: 2px; }
-        .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1.5rem; }
-        .user-option { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; background: var(--bg-color); }
+        .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1rem; }
+
+        /* Tab switcher */
+        .login-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+        .login-tab { flex: 1; padding: 8px; background: var(--bg-color); border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-main); transition: 0.2s; }
+        .login-tab.active { background: var(--accent-color); color: white; }
+
+        /* User list in manage tab */
+        .user-manage-list { text-align: left; }
+        .user-manage-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; background: var(--bg-color); transition: 0.2s; }
+        .user-manage-item:hover { border-color: var(--accent-color); }
+        .user-manage-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.82rem; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; position: relative; }
+        .user-manage-avatar:hover { transform: scale(1.1); }
+        .user-manage-avatar::after { content: '✎'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); border-radius: 50%; opacity: 0; transition: 0.15s; font-size: 0.75rem; }
+        .user-manage-avatar:hover::after { opacity: 1; }
+        .user-manage-info { flex: 1; }
+        .user-manage-name { font-weight: 600; font-size: 0.88rem; }
+        .user-manage-initials { font-size: 0.68rem; color: #999; }
+        .user-manage-actions { display: flex; gap: 5px; }
+        .uman-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 4px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; transition: 0.2s; }
+        .uman-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .uman-btn.del { border-color: #ffcdd2; color: #e74c3c; }
+        .uman-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
+        .uman-btn.select { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        /* Add new user form */
+        .add-user-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 10px; text-align: left; }
+        .add-user-form-title { font-size: 0.78rem; font-weight: bold; color: var(--accent-color); margin-bottom: 8px; }
+        .add-user-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .add-user-row input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; }
+        .add-user-color-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.72rem; color: #888; }
+        .color-picker-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.15s; }
+        .color-picker-swatch.selected { border-color: var(--text-main); transform: scale(1.15); }
+        .add-user-btn { width: 100%; padding: 8px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.88rem; transition: 0.2s; }
+        .add-user-btn:hover { filter: brightness(1.1); }
+
+        /* Edit user inline form */
+        .user-edit-row { display: none; flex-direction: column; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-color); border: 1px solid var(--border-color); margin-top: -3px; margin-bottom: 7px; animation: fadeSlideIn 0.18s ease; }
+        .user-edit-row.open { display: flex; }
+        .user-edit-row input { padding: 6px 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.86rem; }
+        .user-edit-colors { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+        .user-edit-save { padding: 6px 14px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.82rem; align-self: flex-end; transition: 0.2s; }
+        .user-edit-save:hover { filter: brightness(1.1); }
+
+        /* Select tab - the old style list */
+        .user-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; cursor: pointer; transition: 0.2s; background: var(--bg-color); text-align: left; }
         .user-option:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.1); }
-        .user-option-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.9rem; }
-        .user-option-name { font-weight: 600; font-size: 0.95rem; color: var(--text-main); text-align: left; }
-        .user-option-role { font-size: 0.72rem; color: #999; }
-        .login-custom { margin-top: 12px; display: flex; gap: 8px; }
-        .login-custom input { flex: 1; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
-        .login-custom button { padding: 9px 14px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .login-custom button:hover { filter: brightness(1.1); }
+        .user-option-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.88rem; flex-shrink: 0; }
+        .user-option-name { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        .user-option-role { font-size: 0.7rem; color: #999; }
+
+        /* Color input type in modal */
+        input[type="color"] { width: 34px; height: 34px; padding: 2px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: var(--card-bg); }
 
         /* PRINT STYLES */
         @media print {
@@ -259,7 +306,7 @@
         <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
         <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
         <div id="day-list"></div>
-        <div class="sidebar-footer">Powered by Danylevskij v3.0.0</div>
+        <div class="sidebar-footer">Powered by Danylevskij v3.1.0</div>
     </aside>
 
     <main>
@@ -420,15 +467,36 @@
     </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- LOGIN / USER MANAGEMENT MODAL -->
 <div id="login-modal" class="login-modal">
     <div class="login-content">
         <div class="login-title">KING DAVID</div>
-        <div class="login-sub">Select your profile to continue</div>
-        <div id="preset-users"></div>
-        <div class="login-custom">
-            <input type="text" id="custom-name-input" placeholder="Or enter your name...">
-            <button id="custom-login-btn">Go</button>
+        <div class="login-sub" id="login-sub">Select or manage your profile</div>
+
+        <!-- Tab switcher -->
+        <div class="login-tabs">
+            <button class="login-tab active" id="tab-select" onclick="switchLoginTab('select')">Select</button>
+            <button class="login-tab" id="tab-manage" onclick="switchLoginTab('manage')">Manage</button>
+        </div>
+
+        <!-- SELECT TAB -->
+        <div id="tab-select-content">
+            <div id="preset-users"></div>
+        </div>
+
+        <!-- MANAGE TAB -->
+        <div id="tab-manage-content" style="display:none;">
+            <div class="user-manage-list" id="manage-user-list"></div>
+
+            <!-- Add new user form -->
+            <div class="add-user-form">
+                <div class="add-user-form-title">+ Add New Member</div>
+                <div class="add-user-row">
+                    <input type="text" id="new-user-name" placeholder="Full name (e.g. Anna)">
+                    <input type="color" id="new-user-color" value="#3498db" title="Pick color">
+                </div>
+                <button class="add-user-btn" onclick="addNewUser()">Add Member</button>
+            </div>
         </div>
     </div>
 </div>
@@ -456,7 +524,7 @@ let editingNoteId = null;
 let currentEditingData = null;
 let foldersMap = new Map();
 let daysMap = new Map();
-let allNotesCache = []; // for global search & stats
+let allNotesCache = [];
 let expandedFolders = new Set(['unsorted']);
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
@@ -469,35 +537,158 @@ let calMonth = new Date().getMonth();
 let calSelected = null;
 const existingDatesSet = new Set();
 
-// ===================== PRESET USERS =====================
-const PRESET_USERS = [
-    { name: 'Martin', color: '#3498db', icon: 'MU' },
-    { name: 'Stepan', color: '#9b59b6', icon: 'SL' },
-    { name: 'Danylo', color: '#c5a059', icon: 'DI' },
-    { name: 'Kuba', color: '#27D3F5', icon: 'KH' },
-    { name: 'Sumeet', color: '#002EFC', icon: 'SG' },
-    { name: 'Jana', color: '#E427F5', icon: 'JS' },
-    { name: 'Kirill', color: '#e67e33', icon: 'DK' },
-     { name: 'Basem', color: '#DAFC00', icon: 'BH' },
+// ===================== USER MANAGEMENT =====================
+// Default preset users — stored in localStorage so they can be edited/deleted
+const DEFAULT_PRESET_USERS = [
+    { name: 'Martin', color: '#3498db' },
+    { name: 'Stepan', color: '#9b59b6' },
+    { name: 'Danylo', color: '#c5a059' },
+    { name: 'Kuba', color: '#27D3F5' },
+    { name: 'Sumeet', color: '#002EFC' },
+    { name: 'Jana', color: '#E427F5' },
+    { name: 'Kirill', color: '#e67e33' },
+    { name: 'Basem', color: '#DAFC00' },
 ];
 
-function initUserUI() {
+function loadUsers() {
+    const stored = localStorage.getItem('kd_users');
+    if (stored) return JSON.parse(stored);
+    localStorage.setItem('kd_users', JSON.stringify(DEFAULT_PRESET_USERS));
+    return DEFAULT_PRESET_USERS;
+}
+
+function saveUsers(users) {
+    localStorage.setItem('kd_users', JSON.stringify(users));
+}
+
+function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// Make these accessible globally
+window.switchLoginTab = function(tab) {
+    document.getElementById('tab-select').classList.toggle('active', tab === 'select');
+    document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
+    document.getElementById('tab-select-content').style.display = tab === 'select' ? 'block' : 'none';
+    document.getElementById('tab-manage-content').style.display = tab === 'manage' ? 'block' : 'none';
+    if (tab === 'select') renderSelectTab();
+    else renderManageTab();
+};
+
+function renderSelectTab() {
+    const users = loadUsers();
     const container = document.getElementById('preset-users');
     container.innerHTML = '';
-    PRESET_USERS.forEach(u => {
+    users.forEach(u => {
         const el = document.createElement('div');
         el.className = 'user-option';
-        el.innerHTML = `<div class="user-option-avatar" style="background:${u.color}">${u.icon}</div><div><div class="user-option-name">${u.name}</div><div class="user-option-role">Tap to select</div></div>`;
+        el.innerHTML = `
+            <div class="user-option-avatar" style="background:${u.color}">${getInitials(u.name)}</div>
+            <div>
+                <div class="user-option-name">${escapeHTML(u.name)}</div>
+                <div class="user-option-role">Tap to select</div>
+            </div>`;
         el.onclick = () => loginAs(u.name, u.color);
         container.appendChild(el);
     });
 }
 
+function renderManageTab() {
+    const users = loadUsers();
+    const list = document.getElementById('manage-user-list');
+    list.innerHTML = '';
+    users.forEach((u, idx) => {
+        const isMe = currentUser && currentUser.name === u.name;
+        const wrapper = document.createElement('div');
+
+        // Main item
+        const item = document.createElement('div');
+        item.className = 'user-manage-item';
+        item.innerHTML = `
+            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">
+                ${getInitials(u.name)}
+            </div>
+            <div class="user-manage-info">
+                <div class="user-manage-name">${escapeHTML(u.name)}${isMe ? ' <span style="font-size:0.65rem;color:var(--accent-color);">(you)</span>' : ''}</div>
+                <div class="user-manage-initials">${getInitials(u.name)}</div>
+            </div>
+            <div class="user-manage-actions">
+                <button class="uman-btn${isMe ? ' select' : ''}" onclick="window.toggleEditUser(${idx})">✎ Edit</button>
+                ${!isMe ? `<button class="uman-btn del" onclick="window.deleteUser(${idx})">🗑</button>` : ''}
+            </div>`;
+
+        // Edit row (hidden by default)
+        const editRow = document.createElement('div');
+        editRow.className = 'user-edit-row';
+        editRow.id = `edit-row-${idx}`;
+        editRow.innerHTML = `
+            <input type="text" id="edit-name-${idx}" value="${escapeHTML(u.name)}" placeholder="Name">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:0.75rem;color:#888;">Color:</span>
+                <input type="color" id="edit-color-${idx}" value="${u.color}" style="width:34px;height:34px;padding:2px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;">
+            </div>
+            <button class="user-edit-save" onclick="window.saveEditUser(${idx})">Save</button>`;
+
+        wrapper.appendChild(item);
+        wrapper.appendChild(editRow);
+        list.appendChild(wrapper);
+    });
+}
+
+window.toggleEditUser = function(idx) {
+    const row = document.getElementById(`edit-row-${idx}`);
+    const isOpen = row.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.user-edit-row.open').forEach(r => r.classList.remove('open'));
+    if (!isOpen) row.classList.add('open');
+};
+
+window.saveEditUser = function(idx) {
+    const users = loadUsers();
+    const newName = document.getElementById(`edit-name-${idx}`).value.trim();
+    const newColor = document.getElementById(`edit-color-${idx}`).value;
+    if (!newName) { alert('Name cannot be empty'); return; }
+    const oldName = users[idx].name;
+    users[idx] = { name: newName, color: newColor };
+    saveUsers(users);
+    // Update currentUser if it's the same person
+    if (currentUser && currentUser.name === oldName) {
+        currentUser.name = newName;
+        currentUser.color = newColor;
+        currentUser.initials = getInitials(newName);
+        localStorage.setItem('kd_user', JSON.stringify(currentUser));
+        updateUserBadge();
+    }
+    renderManageTab();
+};
+
+window.deleteUser = function(idx) {
+    const users = loadUsers();
+    if (!confirm(`Delete "${users[idx].name}" from the list?`)) return;
+    users.splice(idx, 1);
+    saveUsers(users);
+    renderManageTab();
+};
+
+window.addNewUser = function() {
+    const nameInput = document.getElementById('new-user-name');
+    const colorInput = document.getElementById('new-user-color');
+    const name = nameInput.value.trim();
+    const color = colorInput.value;
+    if (!name) { alert('Enter a name'); return; }
+    const users = loadUsers();
+    if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) { alert('A member with this name already exists'); return; }
+    users.push({ name, color });
+    saveUsers(users);
+    nameInput.value = '';
+    colorInput.value = '#3498db';
+    renderManageTab();
+    addNotification('👤 New member added: ' + name, '', 'info');
+};
+
 function loginAs(name, color) {
-    const colors = ['#3498db','#9b59b6','#c5a059','#2ecc71','#e67e22','#e74c3c','#1abc9c'];
-    const c = color || colors[Math.abs(name.split('').reduce((a,b) => a + b.charCodeAt(0), 0)) % colors.length];
-    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    currentUser = { name, color: c, initials };
+    const initials = getInitials(name);
+    currentUser = { name, color, initials };
     localStorage.setItem('kd_user', JSON.stringify(currentUser));
     document.getElementById('login-modal').style.display = 'none';
     updateUserBadge();
@@ -506,18 +697,15 @@ function loginAs(name, color) {
 
 function updateUserBadge() {
     if (!currentUser) return;
-    document.getElementById('user-avatar-badge').textContent = currentUser.initials;
+    document.getElementById('user-avatar-badge').textContent = currentUser.initials || getInitials(currentUser.name);
     document.getElementById('user-avatar-badge').style.background = currentUser.color;
     document.getElementById('user-name-badge').textContent = currentUser.name;
 }
 
 document.getElementById('change-user-btn').onclick = () => {
-    initUserUI();
+    renderSelectTab();
+    window.switchLoginTab('select');
     document.getElementById('login-modal').style.display = 'flex';
-};
-document.getElementById('custom-login-btn').onclick = () => {
-    const n = document.getElementById('custom-name-input').value.trim();
-    if (n) loginAs(n);
 };
 
 // Load saved user
@@ -526,7 +714,7 @@ if (savedUser) {
     currentUser = JSON.parse(savedUser);
     updateUserBadge();
 } else {
-    initUserUI();
+    renderSelectTab();
     document.getElementById('login-modal').style.display = 'flex';
 }
 
@@ -649,14 +837,12 @@ function buildStats() {
     const done = allNotesCache.filter(n => n.done).length;
     const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
 
-    // Notes by user
     const byUser = {};
     allNotesCache.forEach(n => {
         const u = n.author || 'Unknown';
         byUser[u] = (byUser[u] || 0) + 1;
     });
 
-    // Notes by day (last 7 days)
     const byDay = {};
     daysMap.forEach(d => { byDay[d.date] = 0; });
     allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
@@ -832,10 +1018,11 @@ function renderSidebar() {
     });
 
     const renderFolder = (folderId, folderName) => {
-        let days = (grouped[folderId] || []).sort((a,b) => {
-            if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
-            return parseDateToTs(a.date) - parseDateToTs(b.date);
-        });
+        let days = (grouped[folderId] || []);
+
+        // Sort: descending by date (newest first: 25, 24, 23...)
+        days = days.sort((a, b) => parseDateToTs(b.date) - parseDateToTs(a.date));
+
         const filtered = days.filter(d => d.date.toLowerCase().includes(term));
         if (term && !folderName.toLowerCase().includes(term) && !filtered.length) return;
         const display = term ? filtered : days;
@@ -1158,7 +1345,6 @@ document.getElementById('tmpl-open-btn').onclick = () => {
     document.getElementById('tmpl-modal').style.display='flex';
 };
 
-// Default templates
 if (!templates.length) {
     templates = [
         { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
@@ -1173,6 +1359,8 @@ if (!templates.length) {
 document.getElementById('cal-modal').onclick = e => { if(e.target===document.getElementById('cal-modal')) document.getElementById('cal-modal').style.display='none'; };
 document.getElementById('stats-modal').onclick = e => { if(e.target===document.getElementById('stats-modal')) document.getElementById('stats-modal').style.display='none'; };
 document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
+document.getElementById('modal').onclick = e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; };
+document.getElementById('login-modal').onclick = e => { if(e.target===document.getElementById('login-modal') && currentUser) document.getElementById('login-modal').style.display='none'; };
 document.addEventListener('click', e => {
     const panel = document.getElementById('notif-panel');
     if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
