@@ -137,41 +137,6 @@
         .main-act-btn { padding: 7px 13px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
         .main-act-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
 
-        /* ===== CHECKLIST ON MAIN SCREEN ===== */
-        #main-checklist-wrap { margin-bottom: 1.3rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .checklist-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--header-bg); color: var(--header-text); cursor: pointer; user-select: none; }
-        .checklist-header-bar .cl-title { font-weight: 700; font-size: 0.95rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-        .checklist-header-bar .cl-shift-badge { font-size: 0.72rem; background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
-        .checklist-header-bar .cl-toggle-arr { font-size: 0.9rem; color: rgba(255,255,255,0.6); transition: 0.2s; }
-        .checklist-body { display: none; }
-        .checklist-body.open { display: block; }
-        .checklist-shifts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .checklist-shift-col { padding: 14px 16px; border-right: 1px solid var(--border-color); }
-        .checklist-shift-col:last-child { border-right: none; }
-        .checklist-shift-label { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .checklist-shift-label span.cl-time { font-size: 0.65rem; color: #999; font-weight: normal; text-transform: none; }
-        .checklist-item { display: flex; align-items: center; gap: 7px; padding: 4px 3px; border-radius: 5px; transition: 0.15s; }
-        .checklist-item:hover { background: rgba(197,160,89,0.07); }
-        .checklist-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
-        .checklist-item label { font-size: 0.8rem; flex: 1; cursor: pointer; transition: 0.15s; line-height: 1.3; }
-        .checklist-item.checked label { text-decoration: line-through; color: #999; }
-        .checklist-item-actions { display: flex; gap: 2px; opacity: 0; transition: 0.15s; }
-        .checklist-item:hover .checklist-item-actions { opacity: 1; }
-        .cl-act-btn { background: none; border: none; cursor: pointer; color: #bbb; font-size: 0.76rem; padding: 1px 3px; transition: 0.15s; }
-        .cl-act-btn:hover { color: var(--accent-color); }
-        .cl-act-btn.del:hover { color: #e74c3c; }
-        .checklist-add-row { display: flex; gap: 5px; margin-top: 8px; }
-        .checklist-add-row input { flex: 1; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.78rem; }
-        .checklist-add-row button { background: var(--accent-color); color: white; border: none; border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
-        .checklist-add-row button:hover { filter: brightness(1.15); }
-        .checklist-reset-btn { width: 100%; padding: 5px; background: none; border: 1px solid var(--border-color); color: #888; border-radius: 5px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: 0.2s; margin-top: 5px; }
-        .checklist-reset-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        .checklist-progress { font-size: 0.66rem; color: #999; display: flex; align-items: center; gap: 5px; margin-top: 5px; }
-        .checklist-bar { flex: 1; height: 3px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
-        .checklist-bar-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
-        .cl-current-highlight { background: rgba(197,160,89,0.08); border-radius: 8px; }
-        .cl-current-label { font-size: 0.68rem; color: var(--accent-color); font-weight: bold; text-align: center; padding: 4px 0 0; }
-
         /* NOTES GRID */
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
         .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.2rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); animation: cardIn 0.25s ease; }
