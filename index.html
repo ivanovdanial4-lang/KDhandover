@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KD Handover | Cloud Handover</title>
-
     <link rel="icon" href="./favicon.ico">
-    
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -42,12 +40,22 @@
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         #day-list { flex: 1; margin-bottom: 12px; }
 
-        /* USER BADGE in sidebar */
+        /* USER BADGE */
         .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); }
         .user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; }
         .user-name-badge { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
         .user-change-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: #999; font-size: 0.75rem; }
         .user-change-btn:hover { color: var(--accent-color); }
+
+        /* TABS NAV */
+        .tabs-nav { display: flex; border-bottom: 2px solid var(--border-color); background: var(--sidebar-bg); }
+        .tab-nav-btn { flex: 1; padding: 8px 4px; background: none; border: none; cursor: pointer; font-size: 0.72rem; font-weight: 600; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+        .tab-nav-btn.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .tab-nav-btn:hover { color: var(--accent-color); }
+
+        /* TAB PANELS */
+        .tab-panel { display: none; flex: 1; overflow-y: auto; padding: 1rem; }
+        .tab-panel.active { display: flex; flex-direction: column; }
 
         /* FOLDERS */
         .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 5px; margin-bottom: 4px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.92rem; }
@@ -86,6 +94,11 @@
         @keyframes cardIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .note-card.done { opacity: 0.55; filter: grayscale(0.5); }
         .note-card.urgent-card { border-left: 4px solid var(--tag-urgent); }
+        /* Note drag handle */
+        .note-drag-handle { cursor: grab; color: #ccc; font-size: 1.1rem; margin-right: 6px; user-select: none; transition: 0.15s; }
+        .note-drag-handle:hover { color: var(--accent-color); }
+        .note-card.note-dragging { opacity: 0.4; border: 2px dashed var(--accent-color); }
+        .note-card.note-drag-over { border: 2px dashed var(--accent-color); transform: scale(1.02); }
         .note-time { font-size: 0.72rem; color: #999; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .note-author { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; color: white; font-weight: bold; }
         .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 4px; }
@@ -98,6 +111,75 @@
         .action-link { font-size: 0.78rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s; }
         .action-link:hover { color: var(--accent-color); }
         .note-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; }
+
+        /* ===================== GOLDEN SPINNER ===================== */
+        #global-spinner { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.18); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(1px); }
+        #global-spinner.show { display: flex; }
+        .spinner-ring { width: 52px; height: 52px; border-radius: 50%; border: 5px solid rgba(255,215,0,0.2); border-top-color: #FFD700; border-right-color: #FFA500; animation: spinnerRotate 0.9s linear infinite, spinnerGlow 1.8s ease-in-out infinite; box-shadow: 0 0 18px rgba(255,215,0,0.5); }
+        @keyframes spinnerRotate { to { transform: rotate(360deg); } }
+        @keyframes spinnerGlow { 0%,100% { box-shadow: 0 0 14px rgba(255,215,0,0.4); } 50% { box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 50px rgba(255,165,0,0.4); } }
+
+        /* ===================== CHECKLIST TAB ===================== */
+        .shift-info-bar { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.82rem; }
+        .shift-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 0.78rem; margin-left: 8px; }
+        .shift-day-badge { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid #3498db; }
+        .shift-night-badge { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid #9b59b6; }
+        .checklist-items { flex: 1; overflow-y: auto; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; background: var(--card-bg); transition: 0.2s; animation: fadeSlideIn 0.18s ease; }
+        .checklist-item:hover { border-color: var(--accent-color); }
+        .checklist-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
+        .checklist-item-label { flex: 1; font-size: 0.9rem; line-height: 1.4; }
+        .checklist-item-label.checked { text-decoration: line-through; color: #999; }
+        .checklist-item-edit { background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.85rem; transition: 0.15s; padding: 2px 5px; }
+        .checklist-item-edit:hover { color: var(--accent-color); }
+        .checklist-item-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.85rem; transition: 0.15s; padding: 2px 5px; }
+        .checklist-item-del:hover { color: #e74c3c; }
+        .checklist-add-row { display: flex; gap: 8px; margin-top: 10px; }
+        .checklist-add-row input { flex: 1; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
+        .checklist-add-row button { padding: 9px 16px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; white-space: nowrap; }
+        .checklist-add-row button:hover { filter: brightness(1.1); }
+        .checklist-progress { font-size: 0.78rem; color: #888; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .checklist-progress-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
+        .checklist-progress-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); border-radius: 3px; transition: width 0.4s ease; }
+        .shift-history-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; margin-top: 10px; transition: 0.2s; }
+        .shift-history-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        /* ===================== MONTH TAB ===================== */
+        .month-list { flex: 1; overflow-y: auto; }
+        .month-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: var(--card-bg); transition: 0.2s; animation: fadeSlideIn 0.18s ease; }
+        .month-item:hover { border-color: var(--accent-color); }
+        .month-item.active { border-left: 4px solid var(--accent-color); background: rgba(197,160,89,0.08); }
+        .month-item-label { font-weight: bold; font-size: 0.9rem; }
+        .month-item-count { font-size: 0.72rem; color: #888; }
+        .month-search { width: 100%; padding: 9px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
+
+        /* ===================== INFO TAB ===================== */
+        .info-list { flex: 1; overflow-y: auto; }
+        .info-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.1rem; margin-bottom: 10px; position: relative; animation: fadeSlideIn 0.18s ease; }
+        .info-card:hover { border-color: var(--accent-color); }
+        .info-card-title { font-weight: bold; font-size: 0.95rem; color: var(--accent-color); margin-bottom: 6px; }
+        .info-card-text { font-size: 0.88rem; line-height: 1.5; color: var(--text-main); white-space: pre-wrap; word-break: break-word; }
+        .info-card-meta { font-size: 0.68rem; color: #999; margin-top: 8px; }
+        .info-card-actions { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px; }
+        .info-add-btn { width: 100%; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 14px; transition: 0.2s; }
+        .info-add-btn:hover { filter: brightness(1.1); }
+
+        /* ===================== TRASH TAB ===================== */
+        .trash-list { flex: 1; overflow-y: auto; }
+        .trash-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; margin-bottom: 10px; animation: fadeSlideIn 0.18s ease; opacity: 0.85; }
+        .trash-card:hover { border-color: #e74c3c; opacity: 1; }
+        .trash-source-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; color: white; text-transform: uppercase; margin-bottom: 6px; }
+        .trash-source-notes { background: #3498db; }
+        .trash-source-checklist { background: #9b59b6; }
+        .trash-source-month { background: #27ae60; }
+        .trash-source-info { background: #e67e22; }
+        .trash-card-title { font-weight: bold; font-size: 0.88rem; margin-bottom: 4px; }
+        .trash-card-preview { font-size: 0.82rem; color: #888; line-height: 1.4; }
+        .trash-card-meta { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
+        .trash-card-actions { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px; }
+        .trash-clear-btn { width: 100%; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 14px; transition: 0.2s; }
+        .trash-clear-btn:hover { filter: brightness(1.1); }
+        .trash-empty-msg { text-align: center; color: #999; font-size: 0.88rem; padding: 2rem; }
 
         /* MODALS BASE */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
@@ -202,18 +284,33 @@
         .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
         .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
 
-        /* ===================== LOGIN / USER MANAGEMENT MODAL ===================== */
+        /* INFO MODAL */
+        .info-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .info-modal-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 500px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 88vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+        .info-modal-content input[type="text"], .info-modal-content textarea { width: 100%; margin-bottom: 0.9rem; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.95rem; font-family: inherit; resize: vertical; }
+
+        /* MONTH MODAL */
+        .month-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .month-modal-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 620px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 88vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+        .month-day-row { padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .month-day-row:last-child { border-bottom: none; }
+        .month-day-date { font-weight: bold; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        /* CHECKLIST SHIFT HISTORY MODAL */
+        .shift-hist-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .shift-hist-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 540px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 88vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+        .shift-hist-item { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; background: var(--bg-color); }
+        .shift-hist-header { font-weight: bold; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .shift-hist-check { font-size: 0.82rem; padding: 3px 0; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+
+        /* LOGIN / USER MANAGEMENT MODAL */
         .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
         .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 400px; max-width: 96vw; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; animation: modalIn 0.22s ease; max-height: 90vh; overflow-y: auto; }
         .login-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 0.5rem; letter-spacing: 2px; }
         .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1rem; }
-
-        /* Tab switcher */
         .login-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
         .login-tab { flex: 1; padding: 8px; background: var(--bg-color); border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-main); transition: 0.2s; }
         .login-tab.active { background: var(--accent-color); color: white; }
-
-        /* User list in manage tab */
         .user-manage-list { text-align: left; }
         .user-manage-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; background: var(--bg-color); transition: 0.2s; }
         .user-manage-item:hover { border-color: var(--accent-color); }
@@ -230,37 +327,26 @@
         .uman-btn.del { border-color: #ffcdd2; color: #e74c3c; }
         .uman-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
         .uman-btn.select { background: var(--accent-color); color: white; border-color: var(--accent-color); }
-
-        /* Add new user form */
         .add-user-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 10px; text-align: left; }
         .add-user-form-title { font-size: 0.78rem; font-weight: bold; color: var(--accent-color); margin-bottom: 8px; }
         .add-user-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .add-user-row input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; }
-        .add-user-color-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.72rem; color: #888; }
-        .color-picker-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.15s; }
-        .color-picker-swatch.selected { border-color: var(--text-main); transform: scale(1.15); }
         .add-user-btn { width: 100%; padding: 8px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.88rem; transition: 0.2s; }
         .add-user-btn:hover { filter: brightness(1.1); }
-
-        /* Edit user inline form */
         .user-edit-row { display: none; flex-direction: column; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-color); border: 1px solid var(--border-color); margin-top: -3px; margin-bottom: 7px; animation: fadeSlideIn 0.18s ease; }
         .user-edit-row.open { display: flex; }
         .user-edit-row input { padding: 6px 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.86rem; }
         .user-edit-colors { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
         .user-edit-save { padding: 6px 14px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.82rem; align-self: flex-end; transition: 0.2s; }
         .user-edit-save:hover { filter: brightness(1.1); }
-
-        /* Select tab - the old style list */
         .user-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; cursor: pointer; transition: 0.2s; background: var(--bg-color); text-align: left; }
         .user-option:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.1); }
         .user-option-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.88rem; flex-shrink: 0; }
         .user-option-name { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
         .user-option-role { font-size: 0.7rem; color: #999; }
-
-        /* Color input type in modal */
         input[type="color"] { width: 34px; height: 34px; padding: 2px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: var(--card-bg); }
 
-        /* PRINT STYLES */
+        /* PRINT */
         @media print {
             header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input { display: none !important; }
             body { overflow: visible; height: auto; }
@@ -274,9 +360,25 @@
         #print-header { display: none; padding: 10px 0 20px; border-bottom: 2px solid #333; margin-bottom: 20px; }
         #print-header h1 { font-size: 1.4rem; letter-spacing: 2px; }
         #print-header p { font-size: 0.85rem; color: #666; margin-top: 4px; }
+
+        /* Generic form elements inside panels */
+        .panel-textarea { width: 100%; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 80px; }
+        .panel-input { width: 100%; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; margin-bottom: 8px; }
+        .panel-btn { padding: 9px 18px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.88rem; transition: 0.2s; }
+        .panel-btn:hover { filter: brightness(1.1); }
+        .panel-btn-sm { padding: 5px 12px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.78rem; transition: 0.2s; }
+        .panel-btn-sm:hover { filter: brightness(1.1); }
+        .panel-btn-danger { background: #e74c3c; }
+        .panel-btn-ghost { background: none; border: 1px solid var(--border-color); color: var(--text-main); }
+        .panel-btn-ghost:hover { border-color: var(--accent-color); color: var(--accent-color); background: none; }
     </style>
 </head>
 <body>
+
+<!-- GOLDEN SPINNER -->
+<div id="global-spinner">
+    <div class="spinner-ring"></div>
+</div>
 
 <header>
     <div class="header-left">
@@ -303,10 +405,59 @@
             <span class="user-name-badge" id="user-name-badge">Not logged in</span>
             <button class="user-change-btn" id="change-user-btn" title="Change User">✎</button>
         </div>
-        <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
-        <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
-        <div id="day-list"></div>
-        <div class="sidebar-footer">Powered by Danylevskij v3.1.0</div>
+
+        <!-- TABS NAV -->
+        <div class="tabs-nav">
+            <button class="tab-nav-btn active" data-tab="notes" onclick="switchTab('notes')">📝 Notes</button>
+            <button class="tab-nav-btn" data-tab="checklist" onclick="switchTab('checklist')">✅ Check</button>
+            <button class="tab-nav-btn" data-tab="month" onclick="switchTab('month')">📅 Month</button>
+            <button class="tab-nav-btn" data-tab="info" onclick="switchTab('info')">ℹ️ Info</button>
+            <button class="tab-nav-btn" data-tab="trash" onclick="switchTab('trash')">🗑 Trash</button>
+        </div>
+
+        <!-- NOTES TAB -->
+        <div class="tab-panel active" id="tab-notes">
+            <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
+            <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
+            <div id="day-list"></div>
+        </div>
+
+        <!-- CHECKLIST TAB -->
+        <div class="tab-panel" id="tab-checklist">
+            <div class="shift-info-bar" id="shift-info-bar">
+                Loading shift...
+            </div>
+            <div class="checklist-progress" id="checklist-progress">
+                <span id="checklist-progress-text">0 / 0 done</span>
+                <div class="checklist-progress-bar"><div class="checklist-progress-fill" id="checklist-progress-fill" style="width:0%"></div></div>
+            </div>
+            <div class="checklist-items" id="checklist-items"></div>
+            <div class="checklist-add-row">
+                <input type="text" id="checklist-new-input" placeholder="Add checklist item..." class="panel-input" style="margin-bottom:0;">
+                <button onclick="addChecklistItem()">+ Add</button>
+            </div>
+            <button class="shift-history-btn" onclick="openShiftHistory()">📋 Shift History</button>
+        </div>
+
+        <!-- MONTH TAB -->
+        <div class="tab-panel" id="tab-month">
+            <input type="text" id="month-search" class="month-search" placeholder="Search month or date..." oninput="renderMonthList()">
+            <div class="month-list" id="month-list"></div>
+        </div>
+
+        <!-- INFO TAB -->
+        <div class="tab-panel" id="tab-info">
+            <button class="info-add-btn" onclick="openInfoModal()">+ Add Info</button>
+            <div class="info-list" id="info-list"></div>
+        </div>
+
+        <!-- TRASH TAB -->
+        <div class="tab-panel" id="tab-trash">
+            <button class="trash-clear-btn" onclick="clearTrash()">🗑 Clear All Trash</button>
+            <div class="trash-list" id="trash-list"></div>
+        </div>
+
+        <div class="sidebar-footer">Powered by Danylevskij v3.2.0</div>
     </aside>
 
     <main>
@@ -467,28 +618,55 @@
     </div>
 </div>
 
+<!-- INFO MODAL -->
+<div id="info-modal" class="info-modal">
+    <div class="info-modal-content">
+        <h3 class="modal-title" id="info-modal-title">Add Info</h3>
+        <input type="text" id="info-modal-heading" placeholder="Title (e.g. Emergency Contacts, Hotel Policy)" class="panel-input">
+        <textarea id="info-modal-body" class="panel-textarea" rows="6" placeholder="Info content..."></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
+            <button onclick="closeInfoModal()" class="panel-btn panel-btn-ghost" style="padding:9px 18px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.88rem;border:1px solid var(--border-color);background:none;color:var(--text-main);">Cancel</button>
+            <button onclick="saveInfo()" class="panel-btn">Save Info</button>
+        </div>
+    </div>
+</div>
+
+<!-- MONTH DETAIL MODAL -->
+<div id="month-modal" class="month-modal">
+    <div class="month-modal-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="color:var(--accent-color);" id="month-modal-title">Month Details</h3>
+            <button onclick="closeMonthModal()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#999;">✕</button>
+        </div>
+        <div id="month-modal-body"></div>
+    </div>
+</div>
+
+<!-- SHIFT HISTORY MODAL -->
+<div id="shift-hist-modal" class="shift-hist-modal">
+    <div class="shift-hist-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="color:var(--accent-color);">📋 Shift History</h3>
+            <button onclick="document.getElementById('shift-hist-modal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#999;">✕</button>
+        </div>
+        <div id="shift-hist-body"></div>
+    </div>
+</div>
+
 <!-- LOGIN / USER MANAGEMENT MODAL -->
 <div id="login-modal" class="login-modal">
     <div class="login-content">
         <div class="login-title">KING DAVID</div>
         <div class="login-sub" id="login-sub">Select or manage your profile</div>
-
-        <!-- Tab switcher -->
         <div class="login-tabs">
             <button class="login-tab active" id="tab-select" onclick="switchLoginTab('select')">Select</button>
             <button class="login-tab" id="tab-manage" onclick="switchLoginTab('manage')">Manage</button>
         </div>
-
-        <!-- SELECT TAB -->
         <div id="tab-select-content">
             <div id="preset-users"></div>
         </div>
-
-        <!-- MANAGE TAB -->
         <div id="tab-manage-content" style="display:none;">
             <div class="user-manage-list" id="manage-user-list"></div>
-
-            <!-- Add new user form -->
             <div class="add-user-form">
                 <div class="add-user-form-title">+ Add New Member</div>
                 <div class="add-user-row">
@@ -503,7 +681,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -516,6 +694,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// ===================== SPINNER =====================
+function showSpinner() { document.getElementById('global-spinner').classList.add('show'); }
+function hideSpinner() { document.getElementById('global-spinner').classList.remove('show'); }
 
 // ===================== STATE =====================
 let activeDayId = null;
@@ -537,17 +719,22 @@ let calMonth = new Date().getMonth();
 let calSelected = null;
 const existingDatesSet = new Set();
 
+// ===================== TAB SWITCHING =====================
+window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+    if (tab === 'checklist') { initChecklist(); }
+    if (tab === 'month') { renderMonthList(); }
+    if (tab === 'info') { renderInfoList(); }
+    if (tab === 'trash') { renderTrashList(); }
+};
+
 // ===================== USER MANAGEMENT =====================
-// Default preset users — stored in localStorage so they can be edited/deleted
 const DEFAULT_PRESET_USERS = [
-    { name: 'Martin', color: '#3498db' },
-    { name: 'Stepan', color: '#9b59b6' },
-    { name: 'Danylo', color: '#c5a059' },
-    { name: 'Kuba', color: '#27D3F5' },
-    { name: 'Sumeet', color: '#002EFC' },
-    { name: 'Jana', color: '#E427F5' },
-    { name: 'Kirill', color: '#e67e33' },
-    { name: 'Basem', color: '#DAFC00' },
+    { name: 'Martin', color: '#3498db' }, { name: 'Stepan', color: '#9b59b6' },
+    { name: 'Danylo', color: '#c5a059' }, { name: 'Kuba', color: '#27D3F5' },
+    { name: 'Sumeet', color: '#002EFC' }, { name: 'Jana', color: '#E427F5' },
+    { name: 'Kirill', color: '#e67e33' }, { name: 'Basem', color: '#DAFC00' },
 ];
 
 function loadUsers() {
@@ -556,16 +743,9 @@ function loadUsers() {
     localStorage.setItem('kd_users', JSON.stringify(DEFAULT_PRESET_USERS));
     return DEFAULT_PRESET_USERS;
 }
+function saveUsers(users) { localStorage.setItem('kd_users', JSON.stringify(users)); }
+function getInitials(name) { return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
 
-function saveUsers(users) {
-    localStorage.setItem('kd_users', JSON.stringify(users));
-}
-
-function getInitials(name) {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-}
-
-// Make these accessible globally
 window.switchLoginTab = function(tab) {
     document.getElementById('tab-select').classList.toggle('active', tab === 'select');
     document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
@@ -584,10 +764,7 @@ function renderSelectTab() {
         el.className = 'user-option';
         el.innerHTML = `
             <div class="user-option-avatar" style="background:${u.color}">${getInitials(u.name)}</div>
-            <div>
-                <div class="user-option-name">${escapeHTML(u.name)}</div>
-                <div class="user-option-role">Tap to select</div>
-            </div>`;
+            <div><div class="user-option-name">${escapeHTML(u.name)}</div><div class="user-option-role">Tap to select</div></div>`;
         el.onclick = () => loginAs(u.name, u.color);
         container.appendChild(el);
     });
@@ -600,14 +777,10 @@ function renderManageTab() {
     users.forEach((u, idx) => {
         const isMe = currentUser && currentUser.name === u.name;
         const wrapper = document.createElement('div');
-
-        // Main item
         const item = document.createElement('div');
         item.className = 'user-manage-item';
         item.innerHTML = `
-            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">
-                ${getInitials(u.name)}
-            </div>
+            <div class="user-manage-avatar" style="background:${u.color}" data-idx="${idx}">${getInitials(u.name)}</div>
             <div class="user-manage-info">
                 <div class="user-manage-name">${escapeHTML(u.name)}${isMe ? ' <span style="font-size:0.65rem;color:var(--accent-color);">(you)</span>' : ''}</div>
                 <div class="user-manage-initials">${getInitials(u.name)}</div>
@@ -616,8 +789,6 @@ function renderManageTab() {
                 <button class="uman-btn${isMe ? ' select' : ''}" onclick="window.toggleEditUser(${idx})">✎ Edit</button>
                 ${!isMe ? `<button class="uman-btn del" onclick="window.deleteUser(${idx})">🗑</button>` : ''}
             </div>`;
-
-        // Edit row (hidden by default)
         const editRow = document.createElement('div');
         editRow.className = 'user-edit-row';
         editRow.id = `edit-row-${idx}`;
@@ -625,10 +796,9 @@ function renderManageTab() {
             <input type="text" id="edit-name-${idx}" value="${escapeHTML(u.name)}" placeholder="Name">
             <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:0.75rem;color:#888;">Color:</span>
-                <input type="color" id="edit-color-${idx}" value="${u.color}" style="width:34px;height:34px;padding:2px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;">
+                <input type="color" id="edit-color-${idx}" value="${u.color}">
             </div>
             <button class="user-edit-save" onclick="window.saveEditUser(${idx})">Save</button>`;
-
         wrapper.appendChild(item);
         wrapper.appendChild(editRow);
         list.appendChild(wrapper);
@@ -638,7 +808,6 @@ function renderManageTab() {
 window.toggleEditUser = function(idx) {
     const row = document.getElementById(`edit-row-${idx}`);
     const isOpen = row.classList.contains('open');
-    // Close all
     document.querySelectorAll('.user-edit-row.open').forEach(r => r.classList.remove('open'));
     if (!isOpen) row.classList.add('open');
 };
@@ -651,10 +820,8 @@ window.saveEditUser = function(idx) {
     const oldName = users[idx].name;
     users[idx] = { name: newName, color: newColor };
     saveUsers(users);
-    // Update currentUser if it's the same person
     if (currentUser && currentUser.name === oldName) {
-        currentUser.name = newName;
-        currentUser.color = newColor;
+        currentUser.name = newName; currentUser.color = newColor;
         currentUser.initials = getInitials(newName);
         localStorage.setItem('kd_user', JSON.stringify(currentUser));
         updateUserBadge();
@@ -665,23 +832,18 @@ window.saveEditUser = function(idx) {
 window.deleteUser = function(idx) {
     const users = loadUsers();
     if (!confirm(`Delete "${users[idx].name}" from the list?`)) return;
-    users.splice(idx, 1);
-    saveUsers(users);
-    renderManageTab();
+    users.splice(idx, 1); saveUsers(users); renderManageTab();
 };
 
 window.addNewUser = function() {
     const nameInput = document.getElementById('new-user-name');
     const colorInput = document.getElementById('new-user-color');
-    const name = nameInput.value.trim();
-    const color = colorInput.value;
+    const name = nameInput.value.trim(); const color = colorInput.value;
     if (!name) { alert('Enter a name'); return; }
     const users = loadUsers();
     if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) { alert('A member with this name already exists'); return; }
-    users.push({ name, color });
-    saveUsers(users);
-    nameInput.value = '';
-    colorInput.value = '#3498db';
+    users.push({ name, color }); saveUsers(users);
+    nameInput.value = ''; colorInput.value = '#3498db';
     renderManageTab();
     addNotification('👤 New member added: ' + name, '', 'info');
 };
@@ -703,54 +865,40 @@ function updateUserBadge() {
 }
 
 document.getElementById('change-user-btn').onclick = () => {
-    renderSelectTab();
-    window.switchLoginTab('select');
+    renderSelectTab(); window.switchLoginTab('select');
     document.getElementById('login-modal').style.display = 'flex';
 };
 
-// Load saved user
 const savedUser = localStorage.getItem('kd_user');
-if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    updateUserBadge();
-} else {
-    renderSelectTab();
-    document.getElementById('login-modal').style.display = 'flex';
-}
+if (savedUser) { currentUser = JSON.parse(savedUser); updateUserBadge(); }
+else { renderSelectTab(); document.getElementById('login-modal').style.display = 'flex'; }
 
 // ===================== HELPERS =====================
 function escapeHTML(str) {
     return String(str || '').replace(/[&<>'"]/g,
         t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
 }
-
 function parseDateToTs(str) {
     const p = str.split('.');
     if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]).getTime();
     return 0;
 }
-
 const compressImg = (file) => new Promise(resolve => {
     const r = new FileReader();
     r.readAsDataURL(file);
     r.onload = e => {
-        const img = new Image();
-        img.src = e.target.result;
+        const img = new Image(); img.src = e.target.result;
         img.onload = () => {
-            const c = document.createElement('canvas');
-            const ctx = c.getContext('2d');
+            const c = document.createElement('canvas'); const ctx = c.getContext('2d');
             let w = img.width, h = img.height;
             if (w > 800) { h *= 800/w; w = 800; }
-            c.width = w; c.height = h;
-            ctx.drawImage(img, 0, 0, w, h);
+            c.width = w; c.height = h; ctx.drawImage(img, 0, 0, w, h);
             resolve(c.toDataURL('image/jpeg', 0.6));
         };
     };
 });
-
 function stripHTML(html) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
+    const div = document.createElement('div'); div.innerHTML = html;
     return div.textContent || '';
 }
 
@@ -761,73 +909,48 @@ function addNotification(title, sub, type = 'info') {
     localStorage.setItem('kd_notifs', JSON.stringify(notifications));
     renderNotifBadge();
 }
-
 function renderNotifBadge() {
     const badge = document.getElementById('notif-badge');
     const count = notifications.filter(n => !n.read).length;
     badge.textContent = count > 9 ? '9+' : count;
     badge.style.display = count > 0 ? 'flex' : 'none';
 }
-
 function renderNotifPanel() {
     const list = document.getElementById('notif-list');
-    if (!notifications.length) {
-        list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
-        return;
-    }
+    if (!notifications.length) { list.innerHTML = '<div class="notif-empty">No notifications yet</div>'; return; }
     list.innerHTML = '';
     notifications.slice(0, 20).forEach(n => {
         const colors = { urgent: '#e74c3c', important: '#f39c12', info: '#3498db', done: '#2ecc71' };
         const div = document.createElement('div');
         div.className = 'notif-item';
-        div.innerHTML = `
-            <div class="notif-dot" style="background:${colors[n.type]||'#3498db'}"></div>
-            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>
-        `;
+        div.innerHTML = `<div class="notif-dot" style="background:${colors[n.type]||'#3498db'}"></div>
+            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>`;
         list.appendChild(div);
     });
     notifications.forEach(n => n.read = true);
     localStorage.setItem('kd_notifs', JSON.stringify(notifications));
     renderNotifBadge();
 }
-
 document.getElementById('notif-btn').onclick = () => {
     const panel = document.getElementById('notif-panel');
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
     renderNotifPanel();
 };
-
 document.getElementById('notif-clear-btn').onclick = () => {
-    notifications = [];
-    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
-    renderNotifPanel();
-    renderNotifBadge();
+    notifications = []; localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    renderNotifPanel(); renderNotifBadge();
 };
-
-document.getElementById('notif-check-btn').onclick = () => {
-    checkUrgentNotes();
-};
-
+document.getElementById('notif-check-btn').onclick = () => { checkUrgentNotes(); };
 function checkUrgentNotes() {
     const urgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done);
-    if (urgent.length === 0) {
-        addNotification('✅ All clear!', 'No open urgent notes found', 'done');
-    } else {
-        urgent.forEach(n => {
-            addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent');
-        });
-    }
+    if (urgent.length === 0) addNotification('✅ All clear!', 'No open urgent notes found', 'done');
+    else urgent.forEach(n => addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent'));
     renderNotifPanel();
 }
-
 renderNotifBadge();
 
 // ===================== STATS =====================
-document.getElementById('stats-btn').onclick = () => {
-    buildStats();
-    document.getElementById('stats-modal').style.display = 'flex';
-};
-
+document.getElementById('stats-btn').onclick = () => { buildStats(); document.getElementById('stats-modal').style.display = 'flex'; };
 function buildStats() {
     const body = document.getElementById('stats-body');
     const total = allNotesCache.length;
@@ -836,20 +959,13 @@ function buildStats() {
     const info = allNotesCache.filter(n => n.tag === 'info').length;
     const done = allNotesCache.filter(n => n.done).length;
     const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
-
     const byUser = {};
-    allNotesCache.forEach(n => {
-        const u = n.author || 'Unknown';
-        byUser[u] = (byUser[u] || 0) + 1;
-    });
-
+    allNotesCache.forEach(n => { const u = n.author || 'Unknown'; byUser[u] = (byUser[u] || 0) + 1; });
     const byDay = {};
     daysMap.forEach(d => { byDay[d.date] = 0; });
     allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
-
     const sortedDays = Object.entries(byDay).sort((a,b) => parseDateToTs(a[0]) - parseDateToTs(b[0])).slice(-7);
     const maxDayCount = Math.max(...sortedDays.map(d => d[1]), 1);
-
     body.innerHTML = `
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total Notes</div></div>
@@ -857,30 +973,17 @@ function buildStats() {
             <div class="stat-box"><div class="stat-num" style="color:#2ecc71">${done}</div><div class="stat-lbl">Resolved</div></div>
             <div class="stat-box"><div class="stat-num">${daysMap.size}</div><div class="stat-lbl">Days Logged</div></div>
         </div>
-
         <div class="stats-section-title">Note Breakdown</div>
-        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl, col, val]) => `
-        <div class="stat-bar-wrap">
-            <div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total ? Math.round(val/total*100) : 0}%)</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill" style="width:${total ? val/total*100 : 0}%;background:${col}"></div></div>
-        </div>`).join('')}
-
+        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl,col,val]) =>
+        `<div class="stat-bar-wrap"><div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total ? Math.round(val/total*100) : 0}%)</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${total ? val/total*100 : 0}%;background:${col}"></div></div></div>`).join('')}
         <div class="stats-section-title">Activity — Last ${sortedDays.length} Days</div>
-        ${sortedDays.map(([date, cnt]) => `
-        <div class="stat-bar-wrap">
-            <div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div>
-        </div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
-
+        ${sortedDays.map(([date,cnt]) => `<div class="stat-bar-wrap"><div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div></div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
         <div class="stats-section-title">Notes by Staff</div>
-        <table class="stats-table">
-            <thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead>
-            <tbody>
-                ${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c]) => `
-                <tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total ? Math.round(c/total*100) : 0}%</td></tr>`).join('') || '<tr><td colspan="3" style="color:#888">No data</td></tr>'}
-            </tbody>
-        </table>
-    `;
+        <table class="stats-table"><thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead><tbody>
+            ${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c]) => `<tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total ? Math.round(c/total*100) : 0}%</td></tr>`).join('') || '<tr><td colspan="3" style="color:#888">No data</td></tr>'}
+        </tbody></table>`;
 }
 
 // ===================== GLOBAL SEARCH =====================
@@ -889,7 +992,6 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGSearch(); }
     if (e.key === 'Escape') closeGSearch();
 });
-
 function openGSearch() {
     document.getElementById('gsearch-modal').style.display = 'flex';
     document.getElementById('gsearch-input').value = '';
@@ -899,42 +1001,27 @@ function openGSearch() {
 }
 window.closeGSearch = () => { document.getElementById('gsearch-modal').style.display = 'none'; };
 document.getElementById('gsearch-modal').onclick = (e) => { if (e.target === document.getElementById('gsearch-modal')) closeGSearch(); };
-
 document.getElementById('gsearch-input').oninput = function() {
     const term = this.value.trim().toLowerCase();
     const results = document.getElementById('gsearch-results');
     const countEl = document.getElementById('gsearch-count');
-    if (!term) {
-        results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
-        countEl.textContent = '';
-        return;
-    }
-    const matched = allNotesCache.filter(n =>
-        (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term)
-    );
+    if (!term) { results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>'; countEl.textContent = ''; return; }
+    const matched = allNotesCache.filter(n => (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term));
     countEl.textContent = matched.length + ' results';
     if (!matched.length) { results.innerHTML = '<div class="gsearch-empty">Nothing found</div>'; return; }
-
     function hl(str) {
         const s = escapeHTML(str);
-        const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
-        return s.replace(re, '<mark>$1</mark>');
+        return s.replace(new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
     }
-
     results.innerHTML = '';
     matched.slice(0, 40).forEach(n => {
         const div = document.createElement('div');
         div.className = 'gsearch-item';
         const plain = stripHTML(n.htmlContent || '').slice(0, 100);
-        div.innerHTML = `
-            <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
+        div.innerHTML = `<div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
             ${n.room ? `<div class="gsearch-item-room">R: ${hl(n.room)}</div>` : ''}
-            <div class="gsearch-item-text">${hl(plain)}</div>
-        `;
-        div.onclick = () => {
-            closeGSearch();
-            if (n._dayId) window.selectDay(n._dayId, n._dayDate || n._dayId);
-        };
+            <div class="gsearch-item-text">${hl(plain)}</div>`;
+        div.onclick = () => { closeGSearch(); if (n._dayId) window.selectDay(n._dayId, n._dayDate || n._dayId); };
         results.appendChild(div);
     });
 };
@@ -946,9 +1033,12 @@ document.getElementById('sidebar-toggle').onclick = () =>
 document.getElementById('new-folder-trigger').onclick = async () => {
     const name = prompt("Enter Folder Name (e.g. April 2026):");
     if (name) {
-        const ref = await addDoc(collection(db, "folders"), { name, createdAt: Date.now() });
-        expandedFolders.add(ref.id);
-        addNotification('📁 Folder created: ' + name, '', 'info');
+        showSpinner();
+        try {
+            const ref = await addDoc(collection(db, "folders"), { name, createdAt: Date.now() });
+            expandedFolders.add(ref.id);
+            addNotification('📁 Folder created: ' + name, '', 'info');
+        } finally { hideSpinner(); }
     }
 };
 
@@ -962,14 +1052,21 @@ window.addDayToFolder = folderId => openCalendar(folderId);
 
 window.renameFolder = async (id, oldName) => {
     const n = prompt("New folder name:", oldName);
-    if (n && n.trim() && n !== oldName) await updateDoc(doc(db, "folders", id), { name: n.trim() });
+    if (n && n.trim() && n !== oldName) {
+        showSpinner();
+        try { await updateDoc(doc(db, "folders", id), { name: n.trim() }); }
+        finally { hideSpinner(); }
+    }
 };
 
 window.deleteFolder = async id => {
     if (!confirm("Delete folder? Days will move to Unsorted.")) return;
-    const days = Array.from(daysMap.values()).filter(d => d.folderId === id);
-    for (const d of days) await updateDoc(doc(db, "days", d.id), { folderId: null });
-    await deleteDoc(doc(db, "folders", id));
+    showSpinner();
+    try {
+        const days = Array.from(daysMap.values()).filter(d => d.folderId === id);
+        for (const d of days) await updateDoc(doc(db, "days", d.id), { folderId: null });
+        await deleteDoc(doc(db, "folders", id));
+    } finally { hideSpinner(); }
 };
 
 document.getElementById('sidebar-search').oninput = () => renderSidebar();
@@ -981,24 +1078,21 @@ onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap 
 });
 
 onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
-    daysMap.clear();
-    existingDatesSet.clear();
+    daysMap.clear(); existingDatesSet.clear();
     snap.forEach(d => {
         const data = { id: d.id, ...d.data() };
-        daysMap.set(d.id, data);
-        existingDatesSet.add(data.date);
+        daysMap.set(d.id, data); existingDatesSet.add(data.date);
     });
     renderSidebar();
     loadAllNotesForCache();
+    renderMonthList();
 });
 
 async function loadAllNotesForCache() {
     allNotesCache = [];
     for (const [dayId, dayData] of daysMap) {
         const snap = await getDocs(collection(db, `days/${dayId}/notes`));
-        snap.forEach(n => {
-            allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date });
-        });
+        snap.forEach(n => { allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date }); });
     }
 }
 
@@ -1007,9 +1101,8 @@ function renderSidebar() {
     list.innerHTML = '';
     const term = (document.getElementById('sidebar-search')?.value || '').toLowerCase();
     const grouped = { unsorted: [] };
-    const sortedFolders = Array.from(foldersMap.values()).sort((a,b) => {
-        return (a.order !== undefined ? a.order : -a.createdAt) - (b.order !== undefined ? b.order : -b.createdAt);
-    });
+    const sortedFolders = Array.from(foldersMap.values()).sort((a,b) =>
+        (a.order !== undefined ? a.order : -a.createdAt) - (b.order !== undefined ? b.order : -b.createdAt));
     sortedFolders.forEach(f => grouped[f.id] = []);
     daysMap.forEach(day => {
         const fId = day.folderId || 'unsorted';
@@ -1018,11 +1111,7 @@ function renderSidebar() {
     });
 
     const renderFolder = (folderId, folderName) => {
-        let days = (grouped[folderId] || []);
-
-        // Sort: descending by date (newest first: 25, 24, 23...)
-        days = days.sort((a, b) => parseDateToTs(b.date) - parseDateToTs(a.date));
-
+        let days = (grouped[folderId] || []).sort((a, b) => parseDateToTs(b.date) - parseDateToTs(a.date));
         const filtered = days.filter(d => d.date.toLowerCase().includes(term));
         if (term && !folderName.toLowerCase().includes(term) && !filtered.length) return;
         const display = term ? filtered : days;
@@ -1032,18 +1121,15 @@ function renderSidebar() {
         fDiv.className = 'folder-container' + (folderId !== 'unsorted' ? ' draggable' : '');
         if (folderId !== 'unsorted') fDiv.draggable = true;
         fDiv.dataset.type = 'folder'; fDiv.dataset.id = folderId;
-
         const actions = folderId !== 'unsorted' ? `
             <button class="folder-action-btn" onclick="event.stopPropagation();window.renameFolder('${folderId}','${escapeHTML(folderName)}')">✎</button>
             <button class="folder-action-btn" style="color:#e74c3c" onclick="event.stopPropagation();window.deleteFolder('${folderId}')">🗑</button>` : '';
-
         fDiv.innerHTML = `
             <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
                 <span>${isOpen?'📂':'📁'} ${escapeHTML(folderName)}</span>
                 <div class="folder-actions">${actions}<button class="add-to-folder-btn" onclick="event.stopPropagation();window.addDayToFolder('${folderId}')">+</button></div>
             </div>
             <div class="folder-content ${isOpen?'open':''}" id="folder-${folderId}"></div>`;
-
         const content = fDiv.querySelector('.folder-content');
         display.forEach(day => {
             const div = document.createElement('div');
@@ -1062,7 +1148,7 @@ function renderSidebar() {
     renderFolder('unsorted', 'Unsorted');
 }
 
-// ===================== DRAG & DROP =====================
+// ===================== SIDEBAR DRAG & DROP (original) =====================
 let draggedItem = null;
 document.addEventListener('dragstart', e => {
     const el = e.target.closest('.folder-container, .day-item');
@@ -1095,18 +1181,25 @@ document.addEventListener('drop', async e => {
         if (td && td !== draggedItem) {
             const c = td.parentNode, rect = td.getBoundingClientRect();
             c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? td.nextSibling : td);
-            Array.from(c.querySelectorAll('.day-item')).forEach(async(el,i) => await updateDoc(doc(db,'days',el.dataset.id),{order:i}));
+            showSpinner();
+            try { Array.from(c.querySelectorAll('.day-item')).forEach(async(el,i) => await updateDoc(doc(db,'days',el.dataset.id),{order:i})); }
+            finally { hideSpinner(); }
         } else if (th) {
             const fc = th.closest('.folder-container'), newFId = fc.dataset.id;
-            if (draggedItem.dataset.folder !== newFId)
-                await updateDoc(doc(db,'days',id),{folderId: newFId==='unsorted'?null:newFId});
+            if (draggedItem.dataset.folder !== newFId) {
+                showSpinner();
+                try { await updateDoc(doc(db,'days',id),{folderId: newFId==='unsorted'?null:newFId}); }
+                finally { hideSpinner(); }
+            }
         }
     } else {
         const tf = e.target.closest('.folder-container');
         if (tf && tf !== draggedItem && tf.dataset.id !== 'unsorted') {
             const c = tf.parentNode, rect = tf.getBoundingClientRect();
             c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? tf.nextSibling : tf);
-            Array.from(c.querySelectorAll('.folder-container:not([data-id="unsorted"])')).forEach(async(el,i) => await updateDoc(doc(db,'folders',el.dataset.id),{order:i}));
+            showSpinner();
+            try { Array.from(c.querySelectorAll('.folder-container:not([data-id="unsorted"])')).forEach(async(el,i) => await updateDoc(doc(db,'folders',el.dataset.id),{order:i})); }
+            finally { hideSpinner(); }
         }
     }
 });
@@ -1154,10 +1247,13 @@ document.getElementById('cal-cancel').onclick = () => document.getElementById('c
 document.getElementById('cal-confirm').onclick = async () => {
     if (!calSelected) { alert("Select a date first."); return; }
     if (existingDatesSet.has(calSelected)) { alert("This date already exists!"); return; }
-    await addDoc(collection(db,"days"), { date: calSelected, createdAt: parseDateToTs(calSelected), folderId: calTarget==='unsorted'?null:calTarget });
-    if (!expandedFolders.has(calTarget)) expandedFolders.add(calTarget);
-    document.getElementById('cal-modal').style.display='none';
-    addNotification('📅 Day added: ' + calSelected, '', 'info');
+    showSpinner();
+    try {
+        await addDoc(collection(db,"days"), { date: calSelected, createdAt: parseDateToTs(calSelected), folderId: calTarget==='unsorted'?null:calTarget });
+        if (!expandedFolders.has(calTarget)) expandedFolders.add(calTarget);
+        document.getElementById('cal-modal').style.display='none';
+        addNotification('📅 Day added: ' + calSelected, '', 'info');
+    } finally { hideSpinner(); }
 };
 
 // ===================== DAYS & NOTES =====================
@@ -1170,32 +1266,105 @@ window.selectDay = (id, date) => {
     document.getElementById('print-btn').style.display = 'block';
     document.querySelectorAll('.day-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
     loadNotes(id);
+    // Switch to notes tab if not there
+    window.switchTab('notes');
 };
 
 window.deleteDay = async id => {
     if (!confirm("Delete day and ALL notes?")) return;
-    const notes = await getDocs(collection(db, `days/${id}/notes`));
-    for (const n of notes.docs) await deleteDoc(doc(db, `days/${id}/notes`, n.id));
-    await deleteDoc(doc(db, "days", id));
+    showSpinner();
+    try {
+        const notes = await getDocs(collection(db, `days/${id}/notes`));
+        // Send deleted notes to trash
+        for (const n of notes.docs) {
+            await sendToTrash({ ...n.data(), _noteId: n.id, _dayId: id }, 'notes');
+            await deleteDoc(doc(db, `days/${id}/notes`, n.id));
+        }
+        await deleteDoc(doc(db, "days", id));
+    } finally { hideSpinner(); }
 };
 
+// ===================== NOTES DRAG & DROP =====================
+let noteDragging = null;
+let noteDragDayId = null;
+
+function makeNoteDraggable(card, noteId) {
+    card.setAttribute('draggable', 'true');
+    const handle = card.querySelector('.note-drag-handle');
+    if (handle) {
+        handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
+    }
+    card.addEventListener('dragstart', e => {
+        noteDragging = card;
+        noteDragDayId = activeDayId;
+        card.classList.add('note-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', noteId);
+    });
+    card.addEventListener('dragend', () => {
+        card.classList.remove('note-dragging');
+        document.querySelectorAll('.note-drag-over').forEach(el => el.classList.remove('note-drag-over'));
+        noteDragging = null;
+    });
+    card.addEventListener('dragover', e => {
+        if (!noteDragging || noteDragging === card || noteDragDayId !== activeDayId) return;
+        e.preventDefault(); e.stopPropagation();
+        document.querySelectorAll('.note-drag-over').forEach(el => el.classList.remove('note-drag-over'));
+        card.classList.add('note-drag-over');
+    });
+    card.addEventListener('drop', async e => {
+        e.preventDefault(); e.stopPropagation();
+        if (!noteDragging || noteDragging === card || noteDragDayId !== activeDayId) return;
+        card.classList.remove('note-drag-over');
+        const grid = document.getElementById('notes-grid');
+        const cards = Array.from(grid.querySelectorAll('.note-card'));
+        const fromIdx = cards.indexOf(noteDragging);
+        const toIdx = cards.indexOf(card);
+        if (fromIdx === -1 || toIdx === -1) return;
+        // Reorder in DOM
+        if (fromIdx < toIdx) grid.insertBefore(noteDragging, card.nextSibling);
+        else grid.insertBefore(noteDragging, card);
+        // Save order to Firebase
+        showSpinner();
+        try {
+            const newCards = Array.from(grid.querySelectorAll('.note-card'));
+            const updates = newCards.map((c, i) => ({ id: c.dataset.noteId, order: i }));
+            for (const u of updates) {
+                if (u.id) await updateDoc(doc(db, `days/${activeDayId}/notes`, u.id), { order: u.order });
+            }
+        } finally { hideSpinner(); }
+    });
+}
+
 function loadNotes(dayId) {
-    onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
+    showSpinner();
+    onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("order", "asc")), snap => {
+        hideSpinner();
         if (activeDayId !== dayId) return;
         const grid = document.getElementById('notes-grid');
         grid.innerHTML = '';
         const term = document.getElementById('search').value.toLowerCase();
-        snap.forEach(nDoc => {
-            const n = nDoc.data();
+
+        // Sort: first by order field, fallback to createdAt desc
+        let noteDocs = [];
+        snap.forEach(nDoc => noteDocs.push({ id: nDoc.id, data: nDoc.data() }));
+        noteDocs.sort((a, b) => {
+            const ao = a.data.order !== undefined ? a.data.order : -a.data.createdAt;
+            const bo = b.data.order !== undefined ? b.data.order : -b.data.createdAt;
+            return ao - bo;
+        });
+
+        noteDocs.forEach(({ id: nId, data: n }) => {
             const plainText = stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'');
             if (!plainText.toLowerCase().includes(term)) return;
             const card = document.createElement('div');
             card.className = `note-card${n.done?' done':''}${n.tag==='urgent'?' urgent-card':''}`;
+            card.dataset.noteId = nId;
             const noteContent = n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>');
             const authorColor = n.authorColor || '#3498db';
             card.innerHTML = `
                 <div class="note-time">
-                    <span>${n.time}</span>
+                    <span><span class="note-drag-handle" title="Drag to reorder">⠿</span>${n.time}</span>
                     ${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}
                 </div>
                 <span class="tag tag-${n.tag}">${n.tag}</span>
@@ -1203,14 +1372,18 @@ function loadNotes(dayId) {
                 <div class="note-text${n.tag==='urgent'?' important-style':''}">${noteContent}</div>
                 ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
                 <div class="card-actions">
-                    <button class="action-link" onclick="window.toggleDone('${nDoc.id}',${n.done})">${n.done?'Undo':'Done'}</button>
-                    <button class="action-link" onclick="window.editNote('${nDoc.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
-                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
+                    <button class="action-link" onclick="window.toggleDone('${nId}',${n.done})">${n.done?'Undo':'Done'}</button>
+                    <button class="action-link" onclick="window.editNote('${nId}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
+                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nId}')">Delete</button>
                 </div>`;
             grid.appendChild(card);
+            makeNoteDraggable(card, nId);
         });
-    });
+    }, () => { hideSpinner(); });
 }
+
+// Fallback: if "order" index doesn't exist yet, also watch createdAt desc
+// (onSnapshot with order:asc will fail gracefully — Firebase just returns all docs)
 
 document.getElementById('new-note-trigger').onclick = () => {
     editingNoteId = null; currentEditingData = null;
@@ -1222,9 +1395,7 @@ document.getElementById('new-note-trigger').onclick = () => {
     document.getElementById('modal').style.display = 'flex';
     setTimeout(() => document.getElementById('m-editor').focus(), 100);
 };
-
 document.getElementById('m-cancel').onclick = () => document.getElementById('modal').style.display='none';
-
 document.getElementById('m-save').onclick = async () => {
     const html = document.getElementById('m-editor').innerHTML;
     const text = document.getElementById('m-editor').innerText;
@@ -1233,25 +1404,30 @@ document.getElementById('m-save').onclick = async () => {
     const file = document.getElementById('m-file').files[0];
     const btn = document.getElementById('m-save');
     btn.textContent = "Saving..."; btn.disabled = true;
-    let photoData = currentEditingData?.photoData || null;
-    if (file) photoData = await compressImg(file);
-    const payload = {
-        text, htmlContent: html, room, tag, photoData,
-        author: currentUser?.name || null,
-        authorColor: currentUser?.color || '#3498db',
-        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
-        createdAt: editingNoteId ? currentEditingData.createdAt : Date.now(),
-        done: false
-    };
-    if (editingNoteId) {
-        await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
-    } else {
-        await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
-        if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
-    }
-    document.getElementById('modal').style.display='none';
-    btn.textContent = "Save Data"; btn.disabled = false;
-    loadAllNotesForCache();
+    showSpinner();
+    try {
+        let photoData = currentEditingData?.photoData || null;
+        if (file) photoData = await compressImg(file);
+        // Get current max order to append new note at end
+        const existingSnap = await getDocs(collection(db, `days/${activeDayId}/notes`));
+        const maxOrder = existingSnap.docs.reduce((mx, d) => Math.max(mx, d.data().order !== undefined ? d.data().order : 0), existingSnap.size);
+        const payload = {
+            text, htmlContent: html, room, tag, photoData,
+            author: currentUser?.name || null,
+            authorColor: currentUser?.color || '#3498db',
+            time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+            createdAt: editingNoteId ? currentEditingData.createdAt : Date.now(),
+            order: editingNoteId ? (currentEditingData.order || 0) : maxOrder + 1,
+            done: false
+        };
+        if (editingNoteId) await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
+        else {
+            await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
+            if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
+        }
+        document.getElementById('modal').style.display='none';
+        loadAllNotesForCache();
+    } finally { btn.textContent = "Save Data"; btn.disabled = false; hideSpinner(); }
 };
 
 window.editNote = (id, data) => {
@@ -1264,13 +1440,23 @@ window.editNote = (id, data) => {
 };
 
 window.deleteNote = async id => {
-    if (confirm("Delete?")) { await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); loadAllNotesForCache(); }
+    if (!confirm("Delete?")) return;
+    showSpinner();
+    try {
+        const nDoc = await getDoc(doc(db, `days/${activeDayId}/notes`, id));
+        if (nDoc.exists()) await sendToTrash({ ...nDoc.data(), _noteId: id, _dayId: activeDayId }, 'notes');
+        await deleteDoc(doc(db, `days/${activeDayId}/notes`, id));
+        loadAllNotesForCache();
+    } finally { hideSpinner(); }
 };
 
 window.toggleDone = async (id, s) => {
-    await updateDoc(doc(db, `days/${activeDayId}/notes`, id), {done:!s, tag:!s?'done':'info'});
-    if (!s) addNotification('✅ Note marked as done', '', 'done');
-    loadAllNotesForCache();
+    showSpinner();
+    try {
+        await updateDoc(doc(db, `days/${activeDayId}/notes`, id), {done:!s, tag:!s?'done':'info'});
+        if (!s) addNotification('✅ Note marked as done', '', 'done');
+        loadAllNotesForCache();
+    } finally { hideSpinner(); }
 };
 
 document.getElementById('search').oninput = () => { if(activeDayId) loadNotes(activeDayId); };
@@ -1303,15 +1489,10 @@ document.getElementById('print-btn').onclick = () => window.print();
 function renderTemplates() {
     const list = document.getElementById('tmpl-list');
     list.innerHTML = '';
-    if (!templates.length) {
-        list.innerHTML = '<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>';
-        return;
-    }
+    if (!templates.length) { list.innerHTML = '<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>'; return; }
     templates.forEach((t, i) => {
-        const card = document.createElement('div');
-        card.className = 'tmpl-card';
-        card.innerHTML = `
-            <div class="tmpl-card-name">${escapeHTML(t.name)}</div>
+        const card = document.createElement('div'); card.className = 'tmpl-card';
+        card.innerHTML = `<div class="tmpl-card-name">${escapeHTML(t.name)}</div>
             <div class="tmpl-card-preview">${escapeHTML(t.text)}</div>
             <button class="tmpl-del" onclick="event.stopPropagation();deleteTemplate(${i})">🗑</button>`;
         card.onclick = () => {
@@ -1322,29 +1503,19 @@ function renderTemplates() {
         list.appendChild(card);
     });
 }
-
 window.saveTemplate = () => {
     const name = document.getElementById('tmpl-name').value.trim();
     const text = document.getElementById('tmpl-text').value.trim();
     if (!name || !text) { alert("Enter name and text."); return; }
     templates.push({ name, text });
     localStorage.setItem('kd_templates', JSON.stringify(templates));
-    document.getElementById('tmpl-name').value = '';
-    document.getElementById('tmpl-text').value = '';
+    document.getElementById('tmpl-name').value = ''; document.getElementById('tmpl-text').value = '';
     renderTemplates();
 };
-
 window.deleteTemplate = i => {
-    templates.splice(i, 1);
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
-    renderTemplates();
+    templates.splice(i, 1); localStorage.setItem('kd_templates', JSON.stringify(templates)); renderTemplates();
 };
-
-document.getElementById('tmpl-open-btn').onclick = () => {
-    renderTemplates();
-    document.getElementById('tmpl-modal').style.display='flex';
-};
-
+document.getElementById('tmpl-open-btn').onclick = () => { renderTemplates(); document.getElementById('tmpl-modal').style.display='flex'; };
 if (!templates.length) {
     templates = [
         { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
@@ -1361,11 +1532,448 @@ document.getElementById('stats-modal').onclick = e => { if(e.target===document.g
 document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
 document.getElementById('modal').onclick = e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; };
 document.getElementById('login-modal').onclick = e => { if(e.target===document.getElementById('login-modal') && currentUser) document.getElementById('login-modal').style.display='none'; };
+document.getElementById('info-modal').onclick = e => { if(e.target===document.getElementById('info-modal')) closeInfoModal(); };
+document.getElementById('month-modal').onclick = e => { if(e.target===document.getElementById('month-modal')) closeMonthModal(); };
+document.getElementById('shift-hist-modal').onclick = e => { if(e.target===document.getElementById('shift-hist-modal')) document.getElementById('shift-hist-modal').style.display='none'; };
 document.addEventListener('click', e => {
     const panel = document.getElementById('notif-panel');
     if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
         panel.style.display='none';
 });
+
+// =====================================================
+// NEW FEATURES BELOW — DO NOT TOUCH ABOVE
+// =====================================================
+
+// ===================== TRASH =====================
+async function sendToTrash(data, source) {
+    try {
+        await addDoc(collection(db, 'trash'), {
+            ...data,
+            source,
+            deletedAt: Date.now(),
+            deletedBy: currentUser?.name || 'Unknown'
+        });
+    } catch(e) { console.error('Trash error', e); }
+}
+
+async function renderTrashList() {
+    showSpinner();
+    const list = document.getElementById('trash-list');
+    list.innerHTML = '';
+    try {
+        const snap = await getDocs(query(collection(db, 'trash'), orderBy('deletedAt', 'desc')));
+        if (snap.empty) { list.innerHTML = '<div class="trash-empty-msg">🗑 Trash is empty</div>'; return; }
+        snap.forEach(trashDoc => {
+            const d = trashDoc.data();
+            const sourceClass = 'trash-source-' + (d.source || 'notes');
+            const card = document.createElement('div');
+            card.className = 'trash-card';
+            const title = d.title || d.room || d.heading || d.label || '(no title)';
+            const preview = d.text || d.content || d.body || stripHTML(d.htmlContent || '') || '';
+            const delTime = d.deletedAt ? new Date(d.deletedAt).toLocaleString() : '';
+            card.innerHTML = `
+                <span class="trash-source-badge ${sourceClass}">${escapeHTML(d.source || 'notes')}</span>
+                <div class="trash-card-title">${escapeHTML(String(title).slice(0, 80))}</div>
+                <div class="trash-card-preview">${escapeHTML(String(preview).slice(0, 120))}</div>
+                <div class="trash-card-meta">Deleted: ${delTime} by ${escapeHTML(d.deletedBy || '—')}</div>
+                <div class="trash-card-actions">
+                    <button class="panel-btn-sm" onclick="restoreFromTrash('${trashDoc.id}')">↩ Restore</button>
+                    <button class="panel-btn-sm panel-btn-danger" onclick="permanentDelete('${trashDoc.id}')">✕ Delete Forever</button>
+                </div>`;
+            list.appendChild(card);
+        });
+    } catch(e) {
+        list.innerHTML = '<div class="trash-empty-msg">Error loading trash</div>';
+    } finally { hideSpinner(); }
+}
+
+window.restoreFromTrash = async (trashId) => {
+    showSpinner();
+    try {
+        const trashRef = doc(db, 'trash', trashId);
+        const trashDoc = await getDoc(trashRef);
+        if (!trashDoc.exists()) return;
+        const d = trashDoc.data();
+        const { source, deletedAt, deletedBy, _noteId, _dayId, ...restoreData } = d;
+
+        if (source === 'notes' && _dayId) {
+            await addDoc(collection(db, `days/${_dayId}/notes`), restoreData);
+        } else if (source === 'checklist') {
+            const tSnap = await getDoc(doc(db, 'checklistTemplate', 'items'));
+            let items = tSnap.exists() ? (tSnap.data().items || []) : [];
+            items.push({ label: restoreData.label || 'Restored item', id: Date.now().toString() });
+            await setDoc(doc(db, 'checklistTemplate', 'items'), { items });
+        } else if (source === 'info') {
+            await addDoc(collection(db, 'infoItems'), restoreData);
+        }
+        // month items — just restore as info
+        await deleteDoc(trashRef);
+        addNotification('↩ Item restored from trash', d.source || '', 'done');
+        renderTrashList();
+    } finally { hideSpinner(); }
+};
+
+window.permanentDelete = async (trashId) => {
+    if (!confirm('Delete permanently? This cannot be undone.')) return;
+    showSpinner();
+    try { await deleteDoc(doc(db, 'trash', trashId)); renderTrashList(); }
+    finally { hideSpinner(); }
+};
+
+window.clearTrash = async () => {
+    if (!confirm('Clear all trash permanently?')) return;
+    showSpinner();
+    try {
+        const snap = await getDocs(collection(db, 'trash'));
+        for (const d of snap.docs) await deleteDoc(doc(db, 'trash', d.id));
+        renderTrashList();
+    } finally { hideSpinner(); }
+};
+
+// ===================== INFO =====================
+let editingInfoId = null;
+
+window.openInfoModal = function(id, heading, body) {
+    editingInfoId = id || null;
+    document.getElementById('info-modal-title').textContent = id ? 'Edit Info' : 'Add Info';
+    document.getElementById('info-modal-heading').value = heading || '';
+    document.getElementById('info-modal-body').value = body || '';
+    document.getElementById('info-modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('info-modal-heading').focus(), 80);
+};
+
+window.closeInfoModal = function() {
+    document.getElementById('info-modal').style.display = 'none';
+    editingInfoId = null;
+};
+
+window.saveInfo = async function() {
+    const heading = document.getElementById('info-modal-heading').value.trim();
+    const body = document.getElementById('info-modal-body').value.trim();
+    if (!heading && !body) { alert('Enter title or content'); return; }
+    showSpinner();
+    try {
+        const payload = {
+            heading, body,
+            author: currentUser?.name || null,
+            createdAt: editingInfoId ? undefined : Date.now(),
+            updatedAt: Date.now()
+        };
+        if (editingInfoId) {
+            delete payload.createdAt;
+            await updateDoc(doc(db, 'infoItems', editingInfoId), payload);
+        } else {
+            await addDoc(collection(db, 'infoItems'), payload);
+        }
+        closeInfoModal();
+        renderInfoList();
+    } finally { hideSpinner(); }
+};
+
+async function renderInfoList() {
+    showSpinner();
+    const list = document.getElementById('info-list');
+    list.innerHTML = '';
+    try {
+        const snap = await getDocs(query(collection(db, 'infoItems'), orderBy('createdAt', 'desc')));
+        if (snap.empty) { list.innerHTML = '<p style="color:#999;text-align:center;font-size:0.85rem;padding:1rem;">No info items yet</p>'; return; }
+        snap.forEach(iDoc => {
+            const d = iDoc.data();
+            const card = document.createElement('div');
+            card.className = 'info-card';
+            const updTime = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : '';
+            card.innerHTML = `
+                ${d.heading ? `<div class="info-card-title">${escapeHTML(d.heading)}</div>` : ''}
+                <div class="info-card-text">${escapeHTML(d.body || '')}</div>
+                <div class="info-card-meta">By ${escapeHTML(d.author || '—')} · ${updTime}</div>
+                <div class="info-card-actions">
+                    <button class="panel-btn-sm" onclick="openInfoModal('${iDoc.id}','${escapeHTML(d.heading||'')}','${escapeHTML(d.body||'')}')">✎ Edit</button>
+                    <button class="panel-btn-sm panel-btn-danger" onclick="deleteInfo('${iDoc.id}','${escapeHTML(d.heading||'')}','${escapeHTML(d.body||'')}')">🗑 Delete</button>
+                </div>`;
+            list.appendChild(card);
+        });
+    } catch(e) {
+        list.innerHTML = '<p style="color:#999;text-align:center;font-size:0.85rem;padding:1rem;">Error loading info</p>';
+    } finally { hideSpinner(); }
+}
+
+window.deleteInfo = async (id, heading, body) => {
+    if (!confirm('Delete this info item?')) return;
+    showSpinner();
+    try {
+        await sendToTrash({ heading, body, author: currentUser?.name || null }, 'info');
+        await deleteDoc(doc(db, 'infoItems', id));
+        renderInfoList();
+    } finally { hideSpinner(); }
+};
+
+// ===================== MONTH TAB =====================
+window.renderMonthList = function() {
+    const list = document.getElementById('month-list');
+    list.innerHTML = '';
+    const term = (document.getElementById('month-search')?.value || '').toLowerCase();
+
+    // Group days by month
+    const monthGroups = new Map();
+    daysMap.forEach(day => {
+        const parts = day.date.split('.');
+        if (parts.length !== 3) return;
+        const key = `${parts[2]}-${parts[1].padStart(2,'0')}`; // YYYY-MM
+        const label = `${getMonthName(parseInt(parts[1])-1)} ${parts[2]}`;
+        if (!monthGroups.has(key)) monthGroups.set(key, { key, label, days: [] });
+        monthGroups.get(key).days.push(day);
+    });
+
+    // Sort months descending
+    const sorted = Array.from(monthGroups.values()).sort((a,b) => b.key.localeCompare(a.key));
+
+    sorted.forEach(mg => {
+        if (term && !mg.label.toLowerCase().includes(term) &&
+            !mg.days.some(d => d.date.includes(term))) return;
+        const item = document.createElement('div');
+        item.className = 'month-item';
+        item.innerHTML = `
+            <span class="month-item-label">📅 ${escapeHTML(mg.label)}</span>
+            <span class="month-item-count">${mg.days.length} day${mg.days.length!==1?'s':''}</span>`;
+        item.onclick = () => openMonthModal(mg);
+        list.appendChild(item);
+    });
+
+    if (!sorted.length) {
+        list.innerHTML = '<p style="color:#999;text-align:center;font-size:0.85rem;padding:1rem;">No months yet</p>';
+    }
+};
+
+function getMonthName(idx) {
+    return ['January','February','March','April','May','June','July','August','September','October','November','December'][idx] || '';
+}
+
+window.openMonthModal = function(mg) {
+    document.getElementById('month-modal-title').textContent = '📅 ' + mg.label;
+    document.getElementById('month-modal').style.display = 'flex';
+    renderMonthModalBody(mg);
+};
+
+function renderMonthModalBody(mg) {
+    const body = document.getElementById('month-modal-body');
+    body.innerHTML = '';
+    const sortedDays = mg.days.sort((a,b) => parseDateToTs(a.date) - parseDateToTs(b.date));
+    sortedDays.forEach(day => {
+        const row = document.createElement('div');
+        row.className = 'month-day-row';
+        row.innerHTML = `<div class="month-day-date" onclick="window.selectDay('${day.id}','${day.date}');closeMonthModal()">
+            📌 ${day.date}
+            <button class="panel-btn-sm" onclick="event.stopPropagation();window.selectDay('${day.id}','${day.date}');closeMonthModal()">Open Day →</button>
+        </div>`;
+        body.appendChild(row);
+    });
+    if (!sortedDays.length) {
+        body.innerHTML = '<p style="color:#999;font-size:0.85rem;padding:1rem 0;">No days in this month</p>';
+    }
+}
+
+window.closeMonthModal = function() { document.getElementById('month-modal').style.display = 'none'; };
+
+// ===================== CHECKLIST =====================
+let checklistTemplate = [];
+let currentShiftId = null;
+let checklistUnsubscribe = null;
+
+function getShiftId() {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    const totalMin = h * 60 + m;
+    // Day shift: 07:35 – 19:35  (455 – 1175 min)
+    // Night shift: 19:35 – 07:35
+    const DAY_START = 7 * 60 + 35;
+    const NIGHT_START = 19 * 60 + 35;
+
+    let shiftType, shiftDate;
+    const d = new Date(now);
+    if (totalMin >= DAY_START && totalMin < NIGHT_START) {
+        shiftType = 'day';
+        shiftDate = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+    } else {
+        shiftType = 'night';
+        // Night shift started previous day if we're before 07:35
+        if (totalMin < DAY_START) d.setDate(d.getDate() - 1);
+        shiftDate = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+    }
+    return `${shiftDate}_${shiftType}`;
+}
+
+function getShiftLabel(shiftId) {
+    if (!shiftId) return '';
+    const [date, type] = shiftId.split('_');
+    if (type === 'day') return `☀️ Day Shift — ${date} (07:35–19:35)`;
+    return `🌙 Night Shift — ${date} (19:35–07:35)`;
+}
+
+async function initChecklist() {
+    currentShiftId = getShiftId();
+    document.getElementById('shift-info-bar').innerHTML =
+        `Current: <span class="shift-badge ${currentShiftId.endsWith('_day') ? 'shift-day-badge' : 'shift-night-badge'}">${getShiftLabel(currentShiftId)}</span>`;
+
+    // Load template
+    showSpinner();
+    try {
+        const tSnap = await getDoc(doc(db, 'checklistTemplate', 'items'));
+        checklistTemplate = tSnap.exists() ? (tSnap.data().items || []) : getDefaultChecklistTemplate();
+        if (!tSnap.exists()) await setDoc(doc(db, 'checklistTemplate', 'items'), { items: checklistTemplate });
+    } catch(e) {
+        checklistTemplate = getDefaultChecklistTemplate();
+    } finally { hideSpinner(); }
+
+    // Load shift progress
+    if (checklistUnsubscribe) checklistUnsubscribe();
+    checklistUnsubscribe = onSnapshot(doc(db, 'checklistShifts', currentShiftId), snap => {
+        const progress = snap.exists() ? (snap.data().checked || {}) : {};
+        renderChecklistItems(progress);
+    });
+}
+
+function getDefaultChecklistTemplate() {
+    return [
+        { id: '1', label: 'Handover notes reviewed' },
+        { id: '2', label: 'Front desk briefing done' },
+        { id: '3', label: 'Keys & access cards checked' },
+        { id: '4', label: 'Pending issues reviewed' },
+        { id: '5', label: 'Maintenance log checked' },
+        { id: '6', label: 'VIP arrivals noted' },
+        { id: '7', label: 'Cash float counted' },
+        { id: '8', label: 'Fire exits clear' },
+    ];
+}
+
+function renderChecklistItems(progress) {
+    const container = document.getElementById('checklist-items');
+    container.innerHTML = '';
+    let checked = 0;
+    checklistTemplate.forEach((item) => {
+        const isChecked = !!progress[item.id];
+        if (isChecked) checked++;
+        const row = document.createElement('div');
+        row.className = 'checklist-item';
+        row.innerHTML = `
+            <input type="checkbox" ${isChecked ? 'checked' : ''} data-id="${item.id}" onchange="toggleChecklistItem('${item.id}',this.checked)">
+            <span class="checklist-item-label${isChecked?' checked':''}" id="chk-label-${item.id}">${escapeHTML(item.label)}</span>
+            <button class="checklist-item-edit" title="Edit" onclick="editChecklistItem('${item.id}')">✎</button>
+            <button class="checklist-item-del" title="Delete" onclick="deleteChecklistItem('${item.id}')">✕</button>`;
+        container.appendChild(row);
+    });
+    // Progress bar
+    const total = checklistTemplate.length;
+    const pct = total ? Math.round(checked / total * 100) : 0;
+    document.getElementById('checklist-progress-text').textContent = `${checked} / ${total} done (${pct}%)`;
+    document.getElementById('checklist-progress-fill').style.width = pct + '%';
+}
+
+window.toggleChecklistItem = async function(itemId, checked) {
+    showSpinner();
+    try {
+        const ref = doc(db, 'checklistShifts', currentShiftId);
+        const snap = await getDoc(ref);
+        let data = snap.exists() ? snap.data() : { shiftId: currentShiftId, checkedAt: Date.now(), checked: {} };
+        data.checked = data.checked || {};
+        if (checked) data.checked[itemId] = Date.now();
+        else delete data.checked[itemId];
+        await setDoc(ref, data);
+    } finally { hideSpinner(); }
+};
+
+window.addChecklistItem = async function() {
+    const input = document.getElementById('checklist-new-input');
+    const label = input.value.trim();
+    if (!label) return;
+    showSpinner();
+    try {
+        checklistTemplate.push({ id: Date.now().toString(), label });
+        await setDoc(doc(db, 'checklistTemplate', 'items'), { items: checklistTemplate });
+        input.value = '';
+        // re-render with current progress
+        const snap = await getDoc(doc(db, 'checklistShifts', currentShiftId));
+        const progress = snap.exists() ? (snap.data().checked || {}) : {};
+        renderChecklistItems(progress);
+    } finally { hideSpinner(); }
+};
+
+window.editChecklistItem = async function(itemId) {
+    const item = checklistTemplate.find(i => i.id === itemId);
+    if (!item) return;
+    const newLabel = prompt('Edit item:', item.label);
+    if (!newLabel || newLabel.trim() === item.label) return;
+    showSpinner();
+    try {
+        item.label = newLabel.trim();
+        await setDoc(doc(db, 'checklistTemplate', 'items'), { items: checklistTemplate });
+        const snap = await getDoc(doc(db, 'checklistShifts', currentShiftId));
+        const progress = snap.exists() ? (snap.data().checked || {}) : {};
+        renderChecklistItems(progress);
+    } finally { hideSpinner(); }
+};
+
+window.deleteChecklistItem = async function(itemId) {
+    if (!confirm('Remove this item from the checklist template?')) return;
+    showSpinner();
+    try {
+        const item = checklistTemplate.find(i => i.id === itemId);
+        await sendToTrash({ label: item?.label || itemId }, 'checklist');
+        checklistTemplate = checklistTemplate.filter(i => i.id !== itemId);
+        await setDoc(doc(db, 'checklistTemplate', 'items'), { items: checklistTemplate });
+        const snap = await getDoc(doc(db, 'checklistShifts', currentShiftId));
+        const progress = snap.exists() ? (snap.data().checked || {}) : {};
+        renderChecklistItems(progress);
+    } finally { hideSpinner(); }
+};
+
+window.openShiftHistory = async function() {
+    showSpinner();
+    const body = document.getElementById('shift-hist-body');
+    body.innerHTML = '<p style="color:#888;text-align:center;">Loading...</p>';
+    document.getElementById('shift-hist-modal').style.display = 'flex';
+    try {
+        const snap = await getDocs(collection(db, 'checklistShifts'));
+        const shifts = [];
+        snap.forEach(d => shifts.push({ id: d.id, ...d.data() }));
+        shifts.sort((a,b) => (b.checkedAt||0) - (a.checkedAt||0));
+
+        if (!shifts.length) { body.innerHTML = '<p style="color:#888;text-align:center;">No shift history yet</p>'; return; }
+
+        body.innerHTML = '';
+        shifts.slice(0, 20).forEach(shift => {
+            const checked = shift.checked || {};
+            const total = Object.keys(checked).length;
+            const item = document.createElement('div');
+            item.className = 'shift-hist-item';
+            const isCurrent = shift.id === currentShiftId;
+            item.innerHTML = `<div class="shift-hist-header">
+                ${getShiftLabel(shift.id)} ${isCurrent ? '<span style="color:var(--accent-color);font-size:0.7rem;">(current)</span>' : ''}
+                <span style="font-size:0.72rem;color:#888;">${total} items checked</span>
+            </div>`;
+            // Show items
+            checklistTemplate.forEach(tmplItem => {
+                const isChecked = !!checked[tmplItem.id];
+                const chkEl = document.createElement('div');
+                chkEl.className = 'shift-hist-check';
+                chkEl.innerHTML = `<span>${isChecked ? '✅' : '⬜'}</span><span style="${isChecked ? '' : 'color:#999'}">${escapeHTML(tmplItem.label)}</span>`;
+                item.appendChild(chkEl);
+            });
+            body.appendChild(item);
+        });
+    } catch(e) {
+        body.innerHTML = '<p style="color:#888;text-align:center;">Error loading history</p>';
+    } finally { hideSpinner(); }
+};
+
+// Keyboard enter on checklist input
+document.getElementById('checklist-new-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.addChecklistItem();
+});
+
+// Init on load
+initChecklist();
+
 </script>
 </body>
 </html>
