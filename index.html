@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KD Handover | Cloud Handover</title>
+
     <link rel="icon" href="./favicon.ico">
+    
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -40,6 +42,7 @@
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         #day-list { flex: 1; margin-bottom: 12px; }
 
+        /* USER BADGE in sidebar */
         .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); }
         .user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; }
         .user-name-badge { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
@@ -69,36 +72,6 @@
         .drag-over-folder { background: rgba(197,160,89,0.1); border: 2px dashed var(--accent-color); border-radius: 6px; }
         .sidebar-footer { text-align: center; font-size: 0.7rem; color: #888; padding-top: 12px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
-        /* SIDEBAR NAV */
-        .sidebar-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 14px; }
-        .snav-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 7px 4px; border-radius: 7px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; text-align: center; }
-        .snav-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        .snav-btn.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
-        .sview { flex: 1; display: flex; flex-direction: column; animation: fadeSlideIn 0.18s ease; }
-
-        /* INFO BLOCKS */
-        .info-block { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
-        .info-block-title { font-weight: bold; font-size: 0.8rem; color: var(--accent-color); margin-bottom: 6px; }
-        .info-block-text { font-size: 0.78rem; color: var(--text-main); line-height: 1.6; }
-
-        /* CHECKLIST HEADER IN SIDEBAR */
-        .checklist-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-
-        /* SIDEBAR TRASH */
-        .sidebar-trash-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 7px; padding: 9px 10px; margin-bottom: 8px; animation: fadeSlideIn 0.18s ease; }
-        .sidebar-trash-meta { font-size: 0.68rem; color: #999; margin-bottom: 3px; }
-        .sidebar-trash-room { font-weight: bold; color: var(--accent-color); font-size: 0.82rem; }
-        .sidebar-trash-text { font-size: 0.78rem; color: var(--text-main); margin-top: 3px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .sidebar-trash-actions { display: flex; gap: 5px; margin-top: 7px; }
-        .str-btn { flex: 1; padding: 4px 0; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold; transition: 0.2s; }
-        .str-restore { background: #e8f8f0; color: #27ae60; }
-        .str-restore:hover { background: #27ae60; color: white; }
-        .str-del { background: #fdecea; color: #e74c3c; }
-        .str-del:hover { background: #e74c3c; color: white; }
-        .trash-empty-btn { width: 100%; padding: 7px; background: #fdecea; color: #e74c3c; border: 1px solid #f5c6cb; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: bold; margin-top: 6px; transition: 0.2s; }
-        .trash-empty-btn:hover { background: #e74c3c; color: white; }
-        .sidebar-empty-msg { text-align: center; color: #999; font-size: 0.82rem; padding: 1.5rem 0.5rem; }
-
         /* MAIN */
         main { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 10px; }
@@ -125,62 +98,6 @@
         .action-link { font-size: 0.78rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s; }
         .action-link:hover { color: var(--accent-color); }
         .note-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; }
-
-        /* NOTE DRAG HANDLE */
-        .note-drag-handle { position: absolute; top: 8px; right: 8px; cursor: grab; color: #ccc; font-size: 1rem; padding: 2px 4px; border-radius: 4px; transition: 0.2s; user-select: none; }
-        .note-drag-handle:hover { color: var(--accent-color); background: rgba(197,160,89,0.1); }
-        .note-drag-handle:active { cursor: grabbing; }
-        .note-card.note-dragging { opacity: 0.4; transform: scale(0.97); border: 2px dashed var(--accent-color) !important; }
-        .note-card.note-drag-over { border: 2px dashed var(--accent-color) !important; background: rgba(197,160,89,0.06); transform: scale(1.01); }
-
-        /* CHECKLIST SECTION */
-        .checklist-section { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.3rem; margin-bottom: 1.3rem; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
-        .checklist-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .checklist-title h3 { font-size: 1rem; font-weight: bold; color: var(--accent-color); letter-spacing: 0.5px; }
-        .checklist-shift-badge { font-size: 0.72rem; padding: 3px 10px; border-radius: 10px; font-weight: bold; color: white; }
-        .shift-night { background: #2c3e50; }
-        .shift-day { background: #f39c12; }
-        .checklist-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-color); transition: 0.2s; animation: fadeSlideIn 0.2s ease; }
-        .checklist-item:hover { border-color: var(--accent-color); }
-        .checklist-item input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
-        .checklist-item-label { flex: 1; font-size: 0.9rem; line-height: 1.4; }
-        .checklist-item-label.checked-label { text-decoration: line-through; color: #999; }
-        .checklist-item-label[contenteditable="true"] { outline: none; border-bottom: 1px dashed var(--accent-color); min-width: 60px; }
-        .checklist-item-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.85rem; padding: 2px 4px; transition: 0.2s; flex-shrink: 0; }
-        .checklist-item-del:hover { color: #e74c3c; }
-        .checklist-add-row { display: flex; gap: 8px; align-items: center; }
-        .checklist-add-input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.88rem; }
-        .checklist-add-btn { padding: 7px 16px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.2s; white-space: nowrap; }
-        .checklist-add-btn:hover { filter: brightness(1.1); }
-        .checklist-section-hidden { display: none; }
-
-        /* TRASH SECTION */
-        .trash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
-        .trash-modal.open { display: flex; }
-        .trash-content { background: var(--card-bg); padding: 1.8rem; border-radius: 14px; width: 640px; max-width: 96vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: modalIn 0.2s ease; }
-        .trash-empty { text-align: center; padding: 2rem; color: #999; font-size: 0.9rem; }
-        .trash-note-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .trash-note-info { flex: 1; }
-        .trash-note-meta { font-size: 0.72rem; color: #999; margin-bottom: 4px; }
-        .trash-note-room { font-weight: bold; color: var(--accent-color); font-size: 0.9rem; }
-        .trash-note-text { font-size: 0.82rem; color: var(--text-main); margin-top: 4px; line-height: 1.4; }
-        .trash-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .trash-restore-btn { padding: 5px 12px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s; }
-        .trash-restore-btn:hover { filter: brightness(1.1); }
-        .trash-perm-del-btn { padding: 5px 12px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s; }
-        .trash-perm-del-btn:hover { filter: brightness(1.1); }
-        .trash-clear-all-btn { width: 100%; padding: 9px; background: #e74c3c; color: white; border: none; border-radius: 7px; cursor: pointer; font-weight: bold; margin-top: 12px; font-size: 0.88rem; transition: 0.2s; }
-        .trash-clear-all-btn:hover { filter: brightness(1.1); }
-
-        /* FILE LOADING SPINNER */
-        .file-spinner-wrap { display: none; align-items: center; gap: 10px; padding: 8px 0; }
-        .file-spinner-wrap.active { display: flex; }
-        .file-spinner { width: 24px; height: 24px; border: 3px solid rgba(197,160,89,0.2); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.7s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .file-spinner-text { font-size: 0.82rem; color: var(--accent-color); font-weight: 600; }
-        .file-preview-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 5px; border: 2px solid var(--accent-color); display: none; }
-        .file-preview-thumb.show { display: block; }
 
         /* MODALS BASE */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
@@ -285,19 +202,25 @@
         .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
         .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
 
-        /* LOGIN / USER MANAGEMENT */
+        /* ===================== LOGIN / USER MANAGEMENT MODAL ===================== */
         .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
         .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 400px; max-width: 96vw; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; animation: modalIn 0.22s ease; max-height: 90vh; overflow-y: auto; }
         .login-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 0.5rem; letter-spacing: 2px; }
         .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1rem; }
+
+        /* Tab switcher */
         .login-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
         .login-tab { flex: 1; padding: 8px; background: var(--bg-color); border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-main); transition: 0.2s; }
         .login-tab.active { background: var(--accent-color); color: white; }
+
+        /* User list in manage tab */
         .user-manage-list { text-align: left; }
         .user-manage-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; background: var(--bg-color); transition: 0.2s; }
         .user-manage-item:hover { border-color: var(--accent-color); }
         .user-manage-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.82rem; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; position: relative; }
         .user-manage-avatar:hover { transform: scale(1.1); }
+        .user-manage-avatar::after { content: '✎'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); border-radius: 50%; opacity: 0; transition: 0.15s; font-size: 0.75rem; }
+        .user-manage-avatar:hover::after { opacity: 1; }
         .user-manage-info { flex: 1; }
         .user-manage-name { font-weight: 600; font-size: 0.88rem; }
         .user-manage-initials { font-size: 0.68rem; color: #999; }
@@ -307,32 +230,45 @@
         .uman-btn.del { border-color: #ffcdd2; color: #e74c3c; }
         .uman-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
         .uman-btn.select { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        /* Add new user form */
         .add-user-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 10px; text-align: left; }
+        .add-user-form-title { font-size: 0.78rem; font-weight: bold; color: var(--accent-color); margin-bottom: 8px; }
         .add-user-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .add-user-row input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; }
+        .add-user-color-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.72rem; color: #888; }
+        .color-picker-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.15s; }
+        .color-picker-swatch.selected { border-color: var(--text-main); transform: scale(1.15); }
         .add-user-btn { width: 100%; padding: 8px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.88rem; transition: 0.2s; }
         .add-user-btn:hover { filter: brightness(1.1); }
+
+        /* Edit user inline form */
         .user-edit-row { display: none; flex-direction: column; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-color); border: 1px solid var(--border-color); margin-top: -3px; margin-bottom: 7px; animation: fadeSlideIn 0.18s ease; }
         .user-edit-row.open { display: flex; }
         .user-edit-row input { padding: 6px 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.86rem; }
+        .user-edit-colors { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
         .user-edit-save { padding: 6px 14px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.82rem; align-self: flex-end; transition: 0.2s; }
         .user-edit-save:hover { filter: brightness(1.1); }
+
+        /* Select tab - the old style list */
         .user-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; cursor: pointer; transition: 0.2s; background: var(--bg-color); text-align: left; }
         .user-option:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.1); }
         .user-option-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.88rem; flex-shrink: 0; }
         .user-option-name { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
         .user-option-role { font-size: 0.7rem; color: #999; }
+
+        /* Color input type in modal */
         input[type="color"] { width: 34px; height: 34px; padding: 2px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: var(--card-bg); }
 
-        /* PRINT */
+        /* PRINT STYLES */
         @media print {
-            header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input, .checklist-add-row, .checklist-item-del, .note-drag-handle { display: none !important; }
+            header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input { display: none !important; }
             body { overflow: visible; height: auto; }
             .container { display: block; }
             main { padding: 0; overflow: visible; }
             .notes-grid { display: block; }
             .note-card { break-inside: avoid; margin-bottom: 12px; box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
-            .modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .login-modal, .trash-modal { display: none !important; }
+            .modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .login-modal { display: none !important; }
             #print-header { display: block !important; }
         }
         #print-header { display: none; padding: 10px 0 20px; border-bottom: 2px solid #333; margin-bottom: 20px; }
@@ -367,70 +303,10 @@
             <span class="user-name-badge" id="user-name-badge">Not logged in</span>
             <button class="user-change-btn" id="change-user-btn" title="Change User">✎</button>
         </div>
-
-        <!-- SIDEBAR NAV TABS -->
-        <div class="sidebar-nav">
-            <button class="snav-btn active" data-view="days" onclick="switchSidebarView('days')" title="Days / Folders">📅 Dates</button>
-            <button class="snav-btn" data-view="checklist" onclick="switchSidebarView('checklist')" title="Shift Checklist">☑ Checklist</button>
-            <button class="snav-btn" data-view="trash" onclick="switchSidebarView('trash')" title="Deleted Notes">🗑 Trash</button>
-            <button class="snav-btn" data-view="info" onclick="switchSidebarView('info')" title="Info">ℹ Info</button>
-        </div>
-
-        <!-- VIEW: DAYS -->
-        <div class="sview" id="sview-days">
-            <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
-            <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
-            <div id="day-list"></div>
-        </div>
-
-        <!-- VIEW: CHECKLIST -->
-        <div class="sview" id="sview-checklist" style="display:none;">
-            <div class="checklist-header-bar">
-                <span class="checklist-shift-badge" id="checklist-shift-badge-side">☀️ Day</span>
-            </div>
-            <div class="checklist-items" id="checklist-items"></div>
-            <div class="checklist-add-row" style="margin-top:10px;">
-                <input type="text" class="checklist-add-input" id="checklist-add-input" placeholder="Add item...">
-                <button class="checklist-add-btn" onclick="addChecklistItem()">+</button>
-            </div>
-            <div id="checklist-no-day" style="display:none;text-align:center;color:#999;font-size:0.82rem;padding:1.5rem 0.5rem;">Select a day first to use the checklist.</div>
-        </div>
-
-        <!-- VIEW: TRASH -->
-        <div class="sview" id="sview-trash" style="display:none;">
-            <div id="sidebar-trash-list"></div>
-        </div>
-
-        <!-- VIEW: INFO -->
-        <div class="sview" id="sview-info" style="display:none;">
-            <div class="info-block">
-                <div class="info-block-title">📋 About</div>
-                <div class="info-block-text">KD Handover — hotel shift management tool. Add folders for months, add day entries, and log shift notes per day.</div>
-            </div>
-            <div class="info-block">
-                <div class="info-block-title">⌨️ Shortcuts</div>
-                <div class="info-block-text"><b>Ctrl+K</b> — Global search<br><b>☰</b> — Toggle sidebar<br><b>Enter</b> — Add checklist item</div>
-            </div>
-            <div class="info-block">
-                <div class="info-block-title">🏷 Tags</div>
-                <div class="info-block-text">
-                    <span class="tag tag-urgent" style="display:inline-block;margin-bottom:4px;">Urgent</span> — Critical issues<br>
-                    <span class="tag tag-important" style="display:inline-block;margin-bottom:4px;">Important</span> — Needs attention<br>
-                    <span class="tag tag-info" style="display:inline-block;margin-bottom:4px;">Info</span> — General info<br>
-                    <span class="tag tag-done" style="display:inline-block;">Done</span> — Resolved
-                </div>
-            </div>
-            <div class="info-block">
-                <div class="info-block-title">🌙 Shifts</div>
-                <div class="info-block-text"><b>Night:</b> 19:35 – 07:35<br><b>Day:</b> 07:35 – 19:35<br>Checklist changes automatically per shift. States saved per day &amp; shift.</div>
-            </div>
-            <div class="info-block">
-                <div class="info-block-title">⚡ Version</div>
-                <div class="info-block-text">Powered by Danylevskij<br>v3.2.0 — Cloud / Firebase</div>
-            </div>
-        </div>
-
-        <div class="sidebar-footer">Powered by Danylevskij v3.2.0</div>
+        <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
+        <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
+        <div id="day-list"></div>
+        <div class="sidebar-footer">Powered by Danylevskij v3.1.0</div>
     </aside>
 
     <main>
@@ -446,7 +322,6 @@
                 <input type="text" id="search" class="search-bar" placeholder="Search notes...">
             </div>
         </div>
-
         <button class="add-day-btn" id="new-note-trigger" style="display:none; width:auto; padding:9px 22px; margin-bottom:1.3rem;">+ Add Shift Note</button>
         <div class="notes-grid" id="notes-grid"></div>
     </main>
@@ -503,14 +378,8 @@
         </div>
         <div id="m-editor" contenteditable="true" spellcheck="true"></div>
         <input type="text" id="m-room" placeholder="Room / Name (101, BOB)">
-        <input type="file" id="m-file" accept="image/*" style="width:100%;margin-bottom:0.5rem;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-main);font-size:0.85rem;">
-        <!-- FILE LOADING SPINNER -->
-        <div class="file-spinner-wrap" id="file-spinner-wrap">
-            <div class="file-spinner"></div>
-            <img class="file-preview-thumb" id="file-preview-thumb" src="" alt="preview">
-            <span class="file-spinner-text" id="file-spinner-text">Loading image...</span>
-        </div>
-        <select id="m-tag" style="margin-bottom:0.9rem;">
+        <input type="file" id="m-file" accept="image/*" style="width:100%;margin-bottom:0.9rem;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-main);font-size:0.85rem;">
+        <select id="m-tag">
             <option value="info">Info (Blue)</option>
             <option value="important">Important (Orange)</option>
             <option value="urgent">Urgent (Red)</option>
@@ -598,31 +467,28 @@
     </div>
 </div>
 
-<!-- TRASH MODAL -->
-<div id="trash-modal" class="trash-modal">
-    <div class="trash-content">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <h3 style="color:#e74c3c;letter-spacing:1px;">🗑 Deleted Notes</h3>
-            <button onclick="document.getElementById('trash-modal').classList.remove('open')" style="background:none;border:none;cursor:pointer;font-size:1.3rem;color:#999;">✕</button>
-        </div>
-        <div id="trash-list"></div>
-    </div>
-</div>
-
 <!-- LOGIN / USER MANAGEMENT MODAL -->
 <div id="login-modal" class="login-modal">
     <div class="login-content">
         <div class="login-title">KING DAVID</div>
         <div class="login-sub" id="login-sub">Select or manage your profile</div>
+
+        <!-- Tab switcher -->
         <div class="login-tabs">
             <button class="login-tab active" id="tab-select" onclick="switchLoginTab('select')">Select</button>
             <button class="login-tab" id="tab-manage" onclick="switchLoginTab('manage')">Manage</button>
         </div>
+
+        <!-- SELECT TAB -->
         <div id="tab-select-content">
             <div id="preset-users"></div>
         </div>
+
+        <!-- MANAGE TAB -->
         <div id="tab-manage-content" style="display:none;">
             <div class="user-manage-list" id="manage-user-list"></div>
+
+            <!-- Add new user form -->
             <div class="add-user-form">
                 <div class="add-user-form-title">+ Add New Member</div>
                 <div class="add-user-row">
@@ -637,7 +503,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -663,7 +529,6 @@ let expandedFolders = new Set(['unsorted']);
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
 let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
-let compressedFileData = null; // holds the compressed image for current modal session
 
 // Calendar state
 let calTarget = null;
@@ -672,169 +537,8 @@ let calMonth = new Date().getMonth();
 let calSelected = null;
 const existingDatesSet = new Set();
 
-// ===================== SHIFT / CHECKLIST =====================
-// Default checklist items
-const DEFAULT_CHECKLIST_NIGHT = [
-    "Check all room statuses and update PMS",
-    "Process night audit",
-    "Print arrival list for next day",
-    "Check and respond to emails",
-    "Complete end-of-day cash drop",
-    "Verify breakfast setup is ready",
-    "Check all common areas are secure",
-    "Review VIP arrivals for next day"
-];
-const DEFAULT_CHECKLIST_DAY = [
-    "Check in all arrivals",
-    "Follow up on pending maintenance requests",
-    "Review and action housekeeping discrepancies",
-    "Process checkouts and settle folios",
-    "Update room block report",
-    "Brief incoming shift on key items",
-    "Check lost & found log",
-    "Confirm restaurant reservations"
-];
-
-function getCurrentShift() {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const totalMin = h * 60 + m;
-    // Night shift: 19:35 - 07:35 next day
-    // Day shift: 07:35 - 19:35
-    const nightStart = 19 * 60 + 35;
-    const dayStart = 7 * 60 + 35;
-    if (totalMin >= nightStart || totalMin < dayStart) return 'night';
-    return 'day';
-}
-
-function getChecklistKey(dayId) {
-    const shift = getCurrentShift();
-    return `kd_checklist_${dayId}_${shift}`;
-}
-
-function getChecklistItemsKey(dayId) {
-    const shift = getCurrentShift();
-    return `kd_checklist_items_${dayId}_${shift}`;
-}
-
-function getChecklistGlobalItemsKey() {
-    const shift = getCurrentShift();
-    return `kd_global_checklist_items_${shift}`;
-}
-
-function loadChecklistItems() {
-    // Try day-specific overrides first, then global template
-    const globalKey = getChecklistGlobalItemsKey();
-    const stored = localStorage.getItem(globalKey);
-    if (stored) return JSON.parse(stored);
-    const shift = getCurrentShift();
-    return shift === 'night' ? [...DEFAULT_CHECKLIST_NIGHT] : [...DEFAULT_CHECKLIST_DAY];
-}
-
-function saveChecklistItems(items) {
-    const globalKey = getChecklistGlobalItemsKey();
-    localStorage.setItem(globalKey, JSON.stringify(items));
-}
-
-function loadChecklistStates(dayId) {
-    const key = getChecklistKey(dayId);
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : {};
-}
-
-function saveChecklistStates(dayId, states) {
-    const key = getChecklistKey(dayId);
-    localStorage.setItem(key, JSON.stringify(states));
-}
-
-function renderChecklist(dayId) {
-    const section = document.getElementById('checklist-section');
-    section.classList.remove('checklist-section-hidden');
-
-    const shift = getCurrentShift();
-    const badge = document.getElementById('checklist-shift-badge');
-    if (shift === 'night') {
-        badge.textContent = '🌙 Night 19:35 – 07:35';
-        badge.className = 'checklist-shift-badge shift-night';
-    } else {
-        badge.textContent = '☀️ Day 07:35 – 19:35';
-        badge.className = 'checklist-shift-badge shift-day';
-    }
-
-    const items = loadChecklistItems();
-    const states = loadChecklistStates(dayId);
-    const container = document.getElementById('checklist-items');
-    container.innerHTML = '';
-
-    items.forEach((text, idx) => {
-        const checked = !!states[idx];
-        const div = document.createElement('div');
-        div.className = 'checklist-item';
-        div.dataset.idx = idx;
-
-        div.innerHTML = `
-            <input type="checkbox" ${checked ? 'checked' : ''} data-idx="${idx}">
-            <span class="checklist-item-label${checked ? ' checked-label' : ''}" contenteditable="true" data-idx="${idx}">${escapeHTML(text)}</span>
-            <button class="checklist-item-del" data-idx="${idx}" title="Remove item">✕</button>
-        `;
-
-        // Checkbox toggle
-        div.querySelector('input[type="checkbox"]').addEventListener('change', function() {
-            const states = loadChecklistStates(dayId);
-            states[this.dataset.idx] = this.checked;
-            saveChecklistStates(dayId, states);
-            const label = div.querySelector('.checklist-item-label');
-            label.classList.toggle('checked-label', this.checked);
-        });
-
-        // Edit label inline
-        const label = div.querySelector('.checklist-item-label');
-        label.addEventListener('blur', function() {
-            const items = loadChecklistItems();
-            items[this.dataset.idx] = this.textContent.trim();
-            saveChecklistItems(items);
-        });
-        label.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
-        });
-
-        // Delete item
-        div.querySelector('.checklist-item-del').addEventListener('click', function() {
-            const items = loadChecklistItems();
-            items.splice(+this.dataset.idx, 1);
-            saveChecklistItems(items);
-            // Remap states
-            const states = loadChecklistStates(dayId);
-            const newStates = {};
-            items.forEach((_, i) => {
-                if (i < +this.dataset.idx) newStates[i] = states[i];
-                else newStates[i] = states[i + 1];
-            });
-            saveChecklistStates(dayId, newStates);
-            renderChecklist(dayId);
-        });
-
-        container.appendChild(div);
-    });
-}
-
-window.addChecklistItem = function() {
-    const input = document.getElementById('checklist-add-input');
-    const text = input.value.trim();
-    if (!text) return;
-    const items = loadChecklistItems();
-    items.push(text);
-    saveChecklistItems(items);
-    input.value = '';
-    renderChecklist(activeDayId);
-};
-
-document.getElementById('checklist-add-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') window.addChecklistItem();
-});
-
 // ===================== USER MANAGEMENT =====================
+// Default preset users — stored in localStorage so they can be edited/deleted
 const DEFAULT_PRESET_USERS = [
     { name: 'Martin', color: '#3498db' },
     { name: 'Stepan', color: '#9b59b6' },
@@ -852,9 +556,16 @@ function loadUsers() {
     localStorage.setItem('kd_users', JSON.stringify(DEFAULT_PRESET_USERS));
     return DEFAULT_PRESET_USERS;
 }
-function saveUsers(users) { localStorage.setItem('kd_users', JSON.stringify(users)); }
-function getInitials(name) { return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
 
+function saveUsers(users) {
+    localStorage.setItem('kd_users', JSON.stringify(users));
+}
+
+function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// Make these accessible globally
 window.switchLoginTab = function(tab) {
     document.getElementById('tab-select').classList.toggle('active', tab === 'select');
     document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
@@ -873,7 +584,10 @@ function renderSelectTab() {
         el.className = 'user-option';
         el.innerHTML = `
             <div class="user-option-avatar" style="background:${u.color}">${getInitials(u.name)}</div>
-            <div><div class="user-option-name">${escapeHTML(u.name)}</div><div class="user-option-role">Tap to select</div></div>`;
+            <div>
+                <div class="user-option-name">${escapeHTML(u.name)}</div>
+                <div class="user-option-role">Tap to select</div>
+            </div>`;
         el.onclick = () => loginAs(u.name, u.color);
         container.appendChild(el);
     });
@@ -886,10 +600,14 @@ function renderManageTab() {
     users.forEach((u, idx) => {
         const isMe = currentUser && currentUser.name === u.name;
         const wrapper = document.createElement('div');
+
+        // Main item
         const item = document.createElement('div');
         item.className = 'user-manage-item';
         item.innerHTML = `
-            <div class="user-manage-avatar" style="background:${u.color}" data-idx="${idx}">${getInitials(u.name)}</div>
+            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">
+                ${getInitials(u.name)}
+            </div>
             <div class="user-manage-info">
                 <div class="user-manage-name">${escapeHTML(u.name)}${isMe ? ' <span style="font-size:0.65rem;color:var(--accent-color);">(you)</span>' : ''}</div>
                 <div class="user-manage-initials">${getInitials(u.name)}</div>
@@ -898,6 +616,8 @@ function renderManageTab() {
                 <button class="uman-btn${isMe ? ' select' : ''}" onclick="window.toggleEditUser(${idx})">✎ Edit</button>
                 ${!isMe ? `<button class="uman-btn del" onclick="window.deleteUser(${idx})">🗑</button>` : ''}
             </div>`;
+
+        // Edit row (hidden by default)
         const editRow = document.createElement('div');
         editRow.className = 'user-edit-row';
         editRow.id = `edit-row-${idx}`;
@@ -905,22 +625,25 @@ function renderManageTab() {
             <input type="text" id="edit-name-${idx}" value="${escapeHTML(u.name)}" placeholder="Name">
             <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:0.75rem;color:#888;">Color:</span>
-                <input type="color" id="edit-color-${idx}" value="${u.color}">
+                <input type="color" id="edit-color-${idx}" value="${u.color}" style="width:34px;height:34px;padding:2px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;">
             </div>
             <button class="user-edit-save" onclick="window.saveEditUser(${idx})">Save</button>`;
+
         wrapper.appendChild(item);
         wrapper.appendChild(editRow);
         list.appendChild(wrapper);
     });
 }
 
-window.toggleEditUser = idx => {
+window.toggleEditUser = function(idx) {
     const row = document.getElementById(`edit-row-${idx}`);
     const isOpen = row.classList.contains('open');
+    // Close all
     document.querySelectorAll('.user-edit-row.open').forEach(r => r.classList.remove('open'));
     if (!isOpen) row.classList.add('open');
 };
-window.saveEditUser = idx => {
+
+window.saveEditUser = function(idx) {
     const users = loadUsers();
     const newName = document.getElementById(`edit-name-${idx}`).value.trim();
     const newColor = document.getElementById(`edit-color-${idx}`).value;
@@ -928,19 +651,26 @@ window.saveEditUser = idx => {
     const oldName = users[idx].name;
     users[idx] = { name: newName, color: newColor };
     saveUsers(users);
+    // Update currentUser if it's the same person
     if (currentUser && currentUser.name === oldName) {
-        currentUser.name = newName; currentUser.color = newColor; currentUser.initials = getInitials(newName);
+        currentUser.name = newName;
+        currentUser.color = newColor;
+        currentUser.initials = getInitials(newName);
         localStorage.setItem('kd_user', JSON.stringify(currentUser));
         updateUserBadge();
     }
     renderManageTab();
 };
-window.deleteUser = idx => {
+
+window.deleteUser = function(idx) {
     const users = loadUsers();
     if (!confirm(`Delete "${users[idx].name}" from the list?`)) return;
-    users.splice(idx, 1); saveUsers(users); renderManageTab();
+    users.splice(idx, 1);
+    saveUsers(users);
+    renderManageTab();
 };
-window.addNewUser = () => {
+
+window.addNewUser = function() {
     const nameInput = document.getElementById('new-user-name');
     const colorInput = document.getElementById('new-user-color');
     const name = nameInput.value.trim();
@@ -948,8 +678,10 @@ window.addNewUser = () => {
     if (!name) { alert('Enter a name'); return; }
     const users = loadUsers();
     if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) { alert('A member with this name already exists'); return; }
-    users.push({ name, color }); saveUsers(users);
-    nameInput.value = ''; colorInput.value = '#3498db';
+    users.push({ name, color });
+    saveUsers(users);
+    nameInput.value = '';
+    colorInput.value = '#3498db';
     renderManageTab();
     addNotification('👤 New member added: ' + name, '', 'info');
 };
@@ -976,19 +708,28 @@ document.getElementById('change-user-btn').onclick = () => {
     document.getElementById('login-modal').style.display = 'flex';
 };
 
+// Load saved user
 const savedUser = localStorage.getItem('kd_user');
-if (savedUser) { currentUser = JSON.parse(savedUser); updateUserBadge(); }
-else { renderSelectTab(); document.getElementById('login-modal').style.display = 'flex'; }
+if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    updateUserBadge();
+} else {
+    renderSelectTab();
+    document.getElementById('login-modal').style.display = 'flex';
+}
 
 // ===================== HELPERS =====================
 function escapeHTML(str) {
-    return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
+    return String(str || '').replace(/[&<>'"]/g,
+        t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
 }
+
 function parseDateToTs(str) {
     const p = str.split('.');
     if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]).getTime();
     return 0;
 }
+
 const compressImg = (file) => new Promise(resolve => {
     const r = new FileReader();
     r.readAsDataURL(file);
@@ -1006,50 +747,11 @@ const compressImg = (file) => new Promise(resolve => {
         };
     };
 });
-function stripHTML(html) { const div = document.createElement('div'); div.innerHTML = html; return div.textContent || ''; }
 
-// ===================== FILE SPINNER =====================
-document.getElementById('m-file').addEventListener('change', async function() {
-    const file = this.files[0];
-    const spinnerWrap = document.getElementById('file-spinner-wrap');
-    const spinnerText = document.getElementById('file-spinner-text');
-    const thumb = document.getElementById('file-preview-thumb');
-    compressedFileData = null;
-
-    if (!file) {
-        spinnerWrap.classList.remove('active');
-        thumb.classList.remove('show');
-        return;
-    }
-
-    spinnerWrap.classList.add('active');
-    spinnerText.textContent = 'Loading image...';
-    thumb.classList.remove('show');
-
-    const data = await compressImg(file);
-    compressedFileData = data;
-
-    spinnerText.textContent = 'Ready ✓';
-    thumb.src = data;
-    thumb.classList.add('show');
-
-    setTimeout(() => {
-        spinnerText.textContent = '';
-        // hide spinner, keep thumb
-        document.querySelector('.file-spinner').style.display = 'none';
-    }, 600);
-});
-
-// Reset spinner when modal opens
-function resetFileSpinner() {
-    const spinnerWrap = document.getElementById('file-spinner-wrap');
-    const thumb = document.getElementById('file-preview-thumb');
-    const spinner = document.querySelector('.file-spinner');
-    spinnerWrap.classList.remove('active');
-    thumb.classList.remove('show');
-    thumb.src = '';
-    spinner.style.display = '';
-    compressedFileData = null;
+function stripHTML(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || '';
 }
 
 // ===================== NOTIFICATIONS =====================
@@ -1059,15 +761,20 @@ function addNotification(title, sub, type = 'info') {
     localStorage.setItem('kd_notifs', JSON.stringify(notifications));
     renderNotifBadge();
 }
+
 function renderNotifBadge() {
     const badge = document.getElementById('notif-badge');
     const count = notifications.filter(n => !n.read).length;
     badge.textContent = count > 9 ? '9+' : count;
     badge.style.display = count > 0 ? 'flex' : 'none';
 }
+
 function renderNotifPanel() {
     const list = document.getElementById('notif-list');
-    if (!notifications.length) { list.innerHTML = '<div class="notif-empty">No notifications yet</div>'; return; }
+    if (!notifications.length) {
+        list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+        return;
+    }
     list.innerHTML = '';
     notifications.slice(0, 20).forEach(n => {
         const colors = { urgent: '#e74c3c', important: '#f39c12', info: '#3498db', done: '#2ecc71' };
@@ -1075,32 +782,52 @@ function renderNotifPanel() {
         div.className = 'notif-item';
         div.innerHTML = `
             <div class="notif-dot" style="background:${colors[n.type]||'#3498db'}"></div>
-            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>`;
+            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>
+        `;
         list.appendChild(div);
     });
     notifications.forEach(n => n.read = true);
     localStorage.setItem('kd_notifs', JSON.stringify(notifications));
     renderNotifBadge();
 }
+
 document.getElementById('notif-btn').onclick = () => {
     const panel = document.getElementById('notif-panel');
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
     renderNotifPanel();
 };
+
 document.getElementById('notif-clear-btn').onclick = () => {
-    notifications = []; localStorage.setItem('kd_notifs', JSON.stringify(notifications));
-    renderNotifPanel(); renderNotifBadge();
-};
-document.getElementById('notif-check-btn').onclick = () => {
-    const urgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done);
-    if (!urgent.length) addNotification('✅ All clear!', 'No open urgent notes found', 'done');
-    else urgent.forEach(n => addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent'));
+    notifications = [];
+    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
     renderNotifPanel();
+    renderNotifBadge();
 };
+
+document.getElementById('notif-check-btn').onclick = () => {
+    checkUrgentNotes();
+};
+
+function checkUrgentNotes() {
+    const urgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done);
+    if (urgent.length === 0) {
+        addNotification('✅ All clear!', 'No open urgent notes found', 'done');
+    } else {
+        urgent.forEach(n => {
+            addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent');
+        });
+    }
+    renderNotifPanel();
+}
+
 renderNotifBadge();
 
 // ===================== STATS =====================
-document.getElementById('stats-btn').onclick = () => { buildStats(); document.getElementById('stats-modal').style.display = 'flex'; };
+document.getElementById('stats-btn').onclick = () => {
+    buildStats();
+    document.getElementById('stats-modal').style.display = 'flex';
+};
+
 function buildStats() {
     const body = document.getElementById('stats-body');
     const total = allNotesCache.length;
@@ -1109,13 +836,20 @@ function buildStats() {
     const info = allNotesCache.filter(n => n.tag === 'info').length;
     const done = allNotesCache.filter(n => n.done).length;
     const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
+
     const byUser = {};
-    allNotesCache.forEach(n => { const u = n.author || 'Unknown'; byUser[u] = (byUser[u] || 0) + 1; });
+    allNotesCache.forEach(n => {
+        const u = n.author || 'Unknown';
+        byUser[u] = (byUser[u] || 0) + 1;
+    });
+
     const byDay = {};
     daysMap.forEach(d => { byDay[d.date] = 0; });
     allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
+
     const sortedDays = Object.entries(byDay).sort((a,b) => parseDateToTs(a[0]) - parseDateToTs(b[0])).slice(-7);
     const maxDayCount = Math.max(...sortedDays.map(d => d[1]), 1);
+
     body.innerHTML = `
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total Notes</div></div>
@@ -1123,18 +857,21 @@ function buildStats() {
             <div class="stat-box"><div class="stat-num" style="color:#2ecc71">${done}</div><div class="stat-lbl">Resolved</div></div>
             <div class="stat-box"><div class="stat-num">${daysMap.size}</div><div class="stat-lbl">Days Logged</div></div>
         </div>
+
         <div class="stats-section-title">Note Breakdown</div>
-        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl,col,val]) => `
+        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl, col, val]) => `
         <div class="stat-bar-wrap">
             <div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total ? Math.round(val/total*100) : 0}%)</span></div>
             <div class="stat-bar"><div class="stat-bar-fill" style="width:${total ? val/total*100 : 0}%;background:${col}"></div></div>
         </div>`).join('')}
+
         <div class="stats-section-title">Activity — Last ${sortedDays.length} Days</div>
-        ${sortedDays.map(([date,cnt]) => `
+        ${sortedDays.map(([date, cnt]) => `
         <div class="stat-bar-wrap">
             <div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
             <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div>
         </div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
+
         <div class="stats-section-title">Notes by Staff</div>
         <table class="stats-table">
             <thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead>
@@ -1142,7 +879,8 @@ function buildStats() {
                 ${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c]) => `
                 <tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total ? Math.round(c/total*100) : 0}%</td></tr>`).join('') || '<tr><td colspan="3" style="color:#888">No data</td></tr>'}
             </tbody>
-        </table>`;
+        </table>
+    `;
 }
 
 // ===================== GLOBAL SEARCH =====================
@@ -1151,6 +889,7 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGSearch(); }
     if (e.key === 'Escape') closeGSearch();
 });
+
 function openGSearch() {
     document.getElementById('gsearch-modal').style.display = 'flex';
     document.getElementById('gsearch-input').value = '';
@@ -1159,20 +898,29 @@ function openGSearch() {
     setTimeout(() => document.getElementById('gsearch-input').focus(), 50);
 }
 window.closeGSearch = () => { document.getElementById('gsearch-modal').style.display = 'none'; };
-document.getElementById('gsearch-modal').onclick = e => { if (e.target === document.getElementById('gsearch-modal')) closeGSearch(); };
+document.getElementById('gsearch-modal').onclick = (e) => { if (e.target === document.getElementById('gsearch-modal')) closeGSearch(); };
+
 document.getElementById('gsearch-input').oninput = function() {
     const term = this.value.trim().toLowerCase();
     const results = document.getElementById('gsearch-results');
     const countEl = document.getElementById('gsearch-count');
-    if (!term) { results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>'; countEl.textContent = ''; return; }
-    const matched = allNotesCache.filter(n => (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term));
+    if (!term) {
+        results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
+        countEl.textContent = '';
+        return;
+    }
+    const matched = allNotesCache.filter(n =>
+        (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term)
+    );
     countEl.textContent = matched.length + ' results';
     if (!matched.length) { results.innerHTML = '<div class="gsearch-empty">Nothing found</div>'; return; }
+
     function hl(str) {
         const s = escapeHTML(str);
         const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
         return s.replace(re, '<mark>$1</mark>');
     }
+
     results.innerHTML = '';
     matched.slice(0, 40).forEach(n => {
         const div = document.createElement('div');
@@ -1181,7 +929,8 @@ document.getElementById('gsearch-input').oninput = function() {
         div.innerHTML = `
             <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
             ${n.room ? `<div class="gsearch-item-room">R: ${hl(n.room)}</div>` : ''}
-            <div class="gsearch-item-text">${hl(plain)}</div>`;
+            <div class="gsearch-item-text">${hl(plain)}</div>
+        `;
         div.onclick = () => {
             closeGSearch();
             if (n._dayId) window.selectDay(n._dayId, n._dayDate || n._dayId);
@@ -1189,90 +938,6 @@ document.getElementById('gsearch-input').oninput = function() {
         results.appendChild(div);
     });
 };
-
-// ===================== TRASH =====================
-function loadTrash() {
-    return JSON.parse(localStorage.getItem('kd_trash') || '[]');
-}
-function saveTrash(trash) {
-    localStorage.setItem('kd_trash', JSON.stringify(trash));
-}
-
-function moveToTrash(noteData, noteId, dayId, dayDate) {
-    const trash = loadTrash();
-    trash.unshift({ ...noteData, _trashedNoteId: noteId, _trashedDayId: dayId, _trashedDayDate: dayDate, _trashedAt: Date.now() });
-    if (trash.length > 100) trash.length = 100;
-    saveTrash(trash);
-}
-
-function renderTrash() {
-    const list = document.getElementById('trash-list');
-    const trash = loadTrash();
-    if (!trash.length) {
-        list.innerHTML = '<div class="trash-empty">🗑 Trash is empty</div>';
-        return;
-    }
-    list.innerHTML = '';
-    trash.forEach((n, idx) => {
-        const card = document.createElement('div');
-        card.className = 'trash-note-card';
-        const plain = stripHTML(n.htmlContent || n.text || '').slice(0, 120);
-        card.innerHTML = `
-            <div class="trash-note-info">
-                <div class="trash-note-meta">${escapeHTML(n._trashedDayDate || '')} · ${escapeHTML(n.tag || '')} · ${n.author ? escapeHTML(n.author) : 'Unknown'} · ${n.time||''}</div>
-                ${n.room ? `<div class="trash-note-room">R: ${escapeHTML(n.room)}</div>` : ''}
-                <div class="trash-note-text">${escapeHTML(plain)}</div>
-            </div>
-            <div class="trash-actions">
-                <button class="trash-restore-btn" data-idx="${idx}">↩ Restore</button>
-                <button class="trash-perm-del-btn" data-idx="${idx}">✕ Delete</button>
-            </div>`;
-
-        card.querySelector('.trash-restore-btn').addEventListener('click', async () => {
-            const trash = loadTrash();
-            const item = trash[idx];
-            if (!item._trashedDayId) { alert('Cannot restore: original day not found'); return; }
-            // Re-add to Firestore
-            const { _trashedNoteId, _trashedDayId, _trashedDayDate, _trashedAt, ...notePayload } = item;
-            await addDoc(collection(db, `days/${_trashedDayId}/notes`), { ...notePayload, createdAt: Date.now() });
-            trash.splice(idx, 1);
-            saveTrash(trash);
-            renderTrash();
-            loadAllNotesForCache();
-            addNotification('↩ Note restored', notePayload.room || '', 'info');
-        });
-
-        card.querySelector('.trash-perm-del-btn').addEventListener('click', () => {
-            if (!confirm('Permanently delete this note? This cannot be undone.')) return;
-            const trash = loadTrash();
-            trash.splice(idx, 1);
-            saveTrash(trash);
-            renderTrash();
-        });
-
-        list.appendChild(card);
-    });
-
-    if (trash.length > 0) {
-        const clearBtn = document.createElement('button');
-        clearBtn.className = 'trash-clear-all-btn';
-        clearBtn.textContent = '🗑 Empty Trash (' + trash.length + ' notes)';
-        clearBtn.onclick = () => {
-            if (!confirm('Permanently delete ALL notes in trash?')) return;
-            saveTrash([]);
-            renderTrash();
-        };
-        list.appendChild(clearBtn);
-    }
-}
-
-document.getElementById('trash-open-btn').onclick = () => {
-    renderTrash();
-    document.getElementById('trash-modal').classList.add('open');
-};
-document.getElementById('trash-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('trash-modal')) document.getElementById('trash-modal').classList.remove('open');
-});
 
 // ===================== SIDEBAR =====================
 document.getElementById('sidebar-toggle').onclick = () =>
@@ -1286,15 +951,20 @@ document.getElementById('new-folder-trigger').onclick = async () => {
         addNotification('📁 Folder created: ' + name, '', 'info');
     }
 };
+
 window.toggleFolder = id => {
-    if (expandedFolders.has(id)) expandedFolders.delete(id); else expandedFolders.add(id);
+    if (expandedFolders.has(id)) expandedFolders.delete(id);
+    else expandedFolders.add(id);
     renderSidebar();
 };
+
 window.addDayToFolder = folderId => openCalendar(folderId);
+
 window.renameFolder = async (id, oldName) => {
     const n = prompt("New folder name:", oldName);
     if (n && n.trim() && n !== oldName) await updateDoc(doc(db, "folders", id), { name: n.trim() });
 };
+
 window.deleteFolder = async id => {
     if (!confirm("Delete folder? Days will move to Unsorted.")) return;
     const days = Array.from(daysMap.values()).filter(d => d.folderId === id);
@@ -1309,8 +979,10 @@ onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap 
     snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
     renderSidebar();
 });
+
 onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
-    daysMap.clear(); existingDatesSet.clear();
+    daysMap.clear();
+    existingDatesSet.clear();
     snap.forEach(d => {
         const data = { id: d.id, ...d.data() };
         daysMap.set(d.id, data);
@@ -1324,7 +996,9 @@ async function loadAllNotesForCache() {
     allNotesCache = [];
     for (const [dayId, dayData] of daysMap) {
         const snap = await getDocs(collection(db, `days/${dayId}/notes`));
-        snap.forEach(n => { allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date }); });
+        snap.forEach(n => {
+            allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date });
+        });
     }
 }
 
@@ -1342,8 +1016,13 @@ function renderSidebar() {
         if (!grouped[fId]) grouped[fId] = [];
         grouped[fId].push(day);
     });
+
     const renderFolder = (folderId, folderName) => {
-        let days = (grouped[folderId] || []).sort((a,b) => parseDateToTs(b.date) - parseDateToTs(a.date));
+        let days = (grouped[folderId] || []);
+
+        // Sort: descending by date (newest first: 25, 24, 23...)
+        days = days.sort((a, b) => parseDateToTs(b.date) - parseDateToTs(a.date));
+
         const filtered = days.filter(d => d.date.toLowerCase().includes(term));
         if (term && !folderName.toLowerCase().includes(term) && !filtered.length) return;
         const display = term ? filtered : days;
@@ -1353,15 +1032,18 @@ function renderSidebar() {
         fDiv.className = 'folder-container' + (folderId !== 'unsorted' ? ' draggable' : '');
         if (folderId !== 'unsorted') fDiv.draggable = true;
         fDiv.dataset.type = 'folder'; fDiv.dataset.id = folderId;
+
         const actions = folderId !== 'unsorted' ? `
             <button class="folder-action-btn" onclick="event.stopPropagation();window.renameFolder('${folderId}','${escapeHTML(folderName)}')">✎</button>
             <button class="folder-action-btn" style="color:#e74c3c" onclick="event.stopPropagation();window.deleteFolder('${folderId}')">🗑</button>` : '';
+
         fDiv.innerHTML = `
             <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
                 <span>${isOpen?'📂':'📁'} ${escapeHTML(folderName)}</span>
                 <div class="folder-actions">${actions}<button class="add-to-folder-btn" onclick="event.stopPropagation();window.addDayToFolder('${folderId}')">+</button></div>
             </div>
             <div class="folder-content ${isOpen?'open':''}" id="folder-${folderId}"></div>`;
+
         const content = fDiv.querySelector('.folder-content');
         display.forEach(day => {
             const div = document.createElement('div');
@@ -1375,11 +1057,12 @@ function renderSidebar() {
         });
         list.appendChild(fDiv);
     };
+
     sortedFolders.forEach(f => renderFolder(f.id, f.name));
     renderFolder('unsorted', 'Unsorted');
 }
 
-// ===================== DRAG & DROP (sidebar folders/days) =====================
+// ===================== DRAG & DROP =====================
 let draggedItem = null;
 document.addEventListener('dragstart', e => {
     const el = e.target.closest('.folder-container, .day-item');
@@ -1486,7 +1169,6 @@ window.selectDay = (id, date) => {
     document.getElementById('tmpl-open-btn').style.display = 'block';
     document.getElementById('print-btn').style.display = 'block';
     document.querySelectorAll('.day-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
-    renderChecklist(id);
     loadNotes(id);
 };
 
@@ -1497,88 +1179,14 @@ window.deleteDay = async id => {
     await deleteDoc(doc(db, "days", id));
 };
 
-// ===================== NOTE DRAG & DROP WITHIN GRID =====================
-let noteDragSrc = null;
-let noteDragSrcId = null;
-
-function makeNoteDraggable(card, noteId) {
-    card.setAttribute('draggable', true);
-    card.dataset.noteId = noteId;
-
-    card.addEventListener('dragstart', e => {
-        noteDragSrc = card;
-        noteDragSrcId = noteId;
-        setTimeout(() => card.classList.add('note-dragging'), 0);
-        e.dataTransfer.effectAllowed = 'move';
-    });
-    card.addEventListener('dragend', () => {
-        card.classList.remove('note-dragging');
-        document.querySelectorAll('.note-card.note-drag-over').forEach(c => c.classList.remove('note-drag-over'));
-        noteDragSrc = null;
-        noteDragSrcId = null;
-    });
-    card.addEventListener('dragover', e => {
-        e.preventDefault();
-        if (noteDragSrc && noteDragSrc !== card) {
-            document.querySelectorAll('.note-card.note-drag-over').forEach(c => c.classList.remove('note-drag-over'));
-            card.classList.add('note-drag-over');
-        }
-    });
-    card.addEventListener('dragleave', () => {
-        card.classList.remove('note-drag-over');
-    });
-    card.addEventListener('drop', async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        card.classList.remove('note-drag-over');
-        if (!noteDragSrc || noteDragSrc === card) return;
-
-        const grid = document.getElementById('notes-grid');
-        const cards = Array.from(grid.querySelectorAll('.note-card'));
-        const srcIdx = cards.indexOf(noteDragSrc);
-        const tgtIdx = cards.indexOf(card);
-
-        // Reorder DOM
-        const rect = card.getBoundingClientRect();
-        const after = (e.clientY - rect.top) / rect.height > 0.5;
-        if (after) grid.insertBefore(noteDragSrc, card.nextSibling);
-        else grid.insertBefore(noteDragSrc, card);
-
-        // Save new order to Firestore
-        const newCards = Array.from(grid.querySelectorAll('.note-card'));
-        for (let i = 0; i < newCards.length; i++) {
-            const nid = newCards[i].dataset.noteId;
-            if (nid) {
-                await updateDoc(doc(db, `days/${activeDayId}/notes`, nid), { order: i });
-            }
-        }
-    });
-}
-
 function loadNotes(dayId) {
     onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
         if (activeDayId !== dayId) return;
         const grid = document.getElementById('notes-grid');
         grid.innerHTML = '';
         const term = document.getElementById('search').value.toLowerCase();
-
-        // Collect notes and apply order
-        const notesArr = [];
         snap.forEach(nDoc => {
-            notesArr.push({ id: nDoc.id, data: nDoc.data() });
-        });
-
-        // Sort by custom order if available, else by createdAt desc (already ordered by query)
-        const hasOrder = notesArr.some(n => n.data.order !== undefined);
-        if (hasOrder) {
-            notesArr.sort((a, b) => {
-                const oa = a.data.order !== undefined ? a.data.order : 9999;
-                const ob = b.data.order !== undefined ? b.data.order : 9999;
-                return oa - ob;
-            });
-        }
-
-        notesArr.forEach(({ id: nDocId, data: n }) => {
+            const n = nDoc.data();
             const plainText = stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'');
             if (!plainText.toLowerCase().includes(term)) return;
             const card = document.createElement('div');
@@ -1586,7 +1194,6 @@ function loadNotes(dayId) {
             const noteContent = n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>');
             const authorColor = n.authorColor || '#3498db';
             card.innerHTML = `
-                <div class="note-drag-handle" title="Drag to reorder">⠿</div>
                 <div class="note-time">
                     <span>${n.time}</span>
                     ${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}
@@ -1596,12 +1203,10 @@ function loadNotes(dayId) {
                 <div class="note-text${n.tag==='urgent'?' important-style':''}">${noteContent}</div>
                 ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
                 <div class="card-actions">
-                    <button class="action-link" onclick="window.toggleDone('${nDocId}',${n.done})">${n.done?'Undo':'Done'}</button>
-                    <button class="action-link" onclick="window.editNote('${nDocId}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
-                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDocId}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Delete</button>
+                    <button class="action-link" onclick="window.toggleDone('${nDoc.id}',${n.done})">${n.done?'Undo':'Done'}</button>
+                    <button class="action-link" onclick="window.editNote('${nDoc.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
+                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
                 </div>`;
-
-            makeNoteDraggable(card, nDocId);
             grid.appendChild(card);
         });
     });
@@ -1614,7 +1219,6 @@ document.getElementById('new-note-trigger').onclick = () => {
     document.getElementById('m-room').value = '';
     document.getElementById('m-file').value = '';
     document.getElementById('m-tag').value = 'info';
-    resetFileSpinner();
     document.getElementById('modal').style.display = 'flex';
     setTimeout(() => document.getElementById('m-editor').focus(), 100);
 };
@@ -1626,12 +1230,11 @@ document.getElementById('m-save').onclick = async () => {
     const text = document.getElementById('m-editor').innerText;
     const room = document.getElementById('m-room').value;
     const tag = document.getElementById('m-tag').value;
+    const file = document.getElementById('m-file').files[0];
     const btn = document.getElementById('m-save');
     btn.textContent = "Saving..."; btn.disabled = true;
-
-    // Use already-compressed data if available, else keep existing
-    let photoData = compressedFileData || currentEditingData?.photoData || null;
-
+    let photoData = currentEditingData?.photoData || null;
+    if (file) photoData = await compressImg(file);
     const payload = {
         text, htmlContent: html, room, tag, photoData,
         author: currentUser?.name || null,
@@ -1643,12 +1246,11 @@ document.getElementById('m-save').onclick = async () => {
     if (editingNoteId) {
         await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
     } else {
-        const noteRef = await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
+        await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
         if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
     }
     document.getElementById('modal').style.display='none';
     btn.textContent = "Save Data"; btn.disabled = false;
-    compressedFileData = null;
     loadAllNotesForCache();
 };
 
@@ -1658,17 +1260,11 @@ window.editNote = (id, data) => {
     document.getElementById('m-editor').innerHTML = data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>');
     document.getElementById('m-room').value = data.room || '';
     document.getElementById('m-tag').value = data.tag;
-    document.getElementById('m-file').value = '';
-    resetFileSpinner();
     document.getElementById('modal').style.display='flex';
 };
 
-window.deleteNote = async (id, data) => {
-    if (!confirm("Move to trash?")) return;
-    // Move to trash first
-    moveToTrash(data || {}, id, activeDayId, activeDayDate);
-    await deleteDoc(doc(db, `days/${activeDayId}/notes`, id));
-    loadAllNotesForCache();
+window.deleteNote = async id => {
+    if (confirm("Delete?")) { await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); loadAllNotesForCache(); }
 };
 
 window.toggleDone = async (id, s) => {
@@ -1700,7 +1296,7 @@ document.getElementById('m-editor').addEventListener('mouseup', () => {
     document.getElementById('ed-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
 });
 
-// ===================== PRINT =====================
+// ===================== PRINT / PDF =====================
 document.getElementById('print-btn').onclick = () => window.print();
 
 // ===================== TEMPLATES =====================
@@ -1726,6 +1322,7 @@ function renderTemplates() {
         list.appendChild(card);
     });
 }
+
 window.saveTemplate = () => {
     const name = document.getElementById('tmpl-name').value.trim();
     const text = document.getElementById('tmpl-text').value.trim();
@@ -1736,15 +1333,18 @@ window.saveTemplate = () => {
     document.getElementById('tmpl-text').value = '';
     renderTemplates();
 };
+
 window.deleteTemplate = i => {
     templates.splice(i, 1);
     localStorage.setItem('kd_templates', JSON.stringify(templates));
     renderTemplates();
 };
+
 document.getElementById('tmpl-open-btn').onclick = () => {
     renderTemplates();
     document.getElementById('tmpl-modal').style.display='flex';
 };
+
 if (!templates.length) {
     templates = [
         { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
