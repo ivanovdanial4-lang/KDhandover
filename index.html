@@ -39,101 +39,142 @@
 
         /* LAYOUT */
         .container { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 1.2rem; display: flex; flex-direction: column; transition: margin-left 0.3s ease; overflow-y: auto; }
-        .sidebar-hidden { margin-left: -280px !important; }
-        .sidebar-search { width: 100%; padding: 9px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.9rem; }
-        .add-day-btn { width: 100%; padding: 11px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 1.2rem; transition: 0.2s; }
-        .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        #day-list { flex: 1; margin-bottom: 12px; }
 
-        /* USER BADGE */
-        .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); }
+        /* ===== NEW SIDEBAR ===== */
+        #sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; transition: margin-left 0.3s ease; overflow: hidden; }
+        .sidebar-hidden { margin-left: -260px !important; }
+
+        /* Sidebar tab nav */
+        .sidebar-tabs { display: flex; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+        .sidebar-tab { flex: 1; padding: 10px 4px; background: none; border: none; cursor: pointer; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #999; transition: 0.2s; border-bottom: 3px solid transparent; margin-bottom: -2px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .sidebar-tab .tab-icon { font-size: 1.1rem; }
+        .sidebar-tab:hover { color: var(--accent-color); }
+        .sidebar-tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); background: rgba(197,160,89,0.07); }
+
+        /* Sidebar panels */
+        .sidebar-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; padding: 12px; }
+        .sidebar-panel.active { display: flex; }
+
+        /* User badge (shown in each panel top) */
+        .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); flex-shrink: 0; }
         .user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; }
         .user-name-badge { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
         .user-change-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: #999; font-size: 0.75rem; }
         .user-change-btn:hover { color: var(--accent-color); }
 
-        /* SIDEBAR SECTION HEADERS (Month, Trash, Checklist) */
-        .sidebar-section { margin-bottom: 6px; }
-        .sidebar-section-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; cursor: pointer; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); border-radius: 6px; transition: 0.2s; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 4px; }
-        .sidebar-section-header:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        .sidebar-section-header .sec-icon { font-size: 1rem; }
-        .sidebar-section-content { display: none; padding-left: 4px; }
-        .sidebar-section-content.open { display: block; }
+        /* Sidebar search */
+        .sidebar-search { width: 100%; padding: 8px 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.88rem; flex-shrink: 0; }
+
+        .add-day-btn-sidebar { width: 100%; padding: 9px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: 0.2s; font-size: 0.85rem; flex-shrink: 0; }
+        .add-day-btn-sidebar:hover { filter: brightness(1.1); }
+
+        #day-list-wrap { flex: 1; overflow-y: auto; }
 
         /* FOLDERS */
-        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 5px; margin-bottom: 4px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.92rem; }
+        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; margin-bottom: 4px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.88rem; }
         .folder-header:hover { color: var(--accent-color); border-bottom-color: var(--accent-color); }
-        .folder-content { display: none; padding-left: 10px; margin-bottom: 12px; margin-top: 8px; }
+        .folder-content { display: none; padding-left: 8px; margin-bottom: 10px; margin-top: 6px; }
         .folder-content.open { display: block; }
         .folder-actions { display: flex; gap: 4px; align-items: center; }
-        .folder-action-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 0.95rem; opacity: 0.6; transition: 0.2s; padding: 0 3px; }
+        .folder-action-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 0.88rem; opacity: 0.6; transition: 0.2s; padding: 0 3px; }
         .folder-action-btn:hover { opacity: 1; color: var(--accent-color); }
-        .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 20px; height: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s; }
+        .add-to-folder-btn { background: var(--accent-color); color: white; border: none; border-radius: 4px; width: 18px; height: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: 0.2s; }
         .add-to-folder-btn:hover { filter: brightness(1.2); }
-        .day-item { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.25s ease; animation: fadeSlideIn 0.22s ease; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .day-item { padding: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: 7px; cursor: pointer; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: all 0.22s ease; animation: fadeSlideIn 0.2s ease; font-size: 0.85rem; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .day-item:hover { border-color: var(--accent-color); }
-        .day-item.active { border-left: 5px solid var(--accent-color); background: rgba(197,160,89,0.12); transform: translateX(4px); box-shadow: 0 3px 10px rgba(197,160,89,0.2); border-color: var(--accent-color); }
-        .day-text { font-weight: bold; flex-grow: 1; font-size: 0.9rem; }
-        .day-item-meta { font-size: 0.65rem; color: #999; display: block; }
-        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 1rem; padding: 4px; transition: 0.2s; }
+        .day-item.active { border-left: 4px solid var(--accent-color); background: rgba(197,160,89,0.12); transform: translateX(3px); box-shadow: 0 2px 8px rgba(197,160,89,0.18); border-color: var(--accent-color); }
+        .day-text { font-weight: bold; flex-grow: 1; }
+        .delete-day-btn { color: #ccc; border: none; background: none; cursor: pointer; font-size: 0.9rem; padding: 3px; transition: 0.2s; }
         .delete-day-btn:hover { color: #e74c3c; }
         .draggable { cursor: grab; } .draggable:active { cursor: grabbing; }
         .dragging { opacity: 0.4; } .drag-over { border: 2px dashed var(--accent-color) !important; }
         .drag-over-folder { background: rgba(197,160,89,0.1); border: 2px dashed var(--accent-color); border-radius: 6px; }
-        .sidebar-footer { text-align: center; font-size: 0.7rem; color: #888; padding-top: 12px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
-        /* TRASH */
-        .trash-item { padding: 9px 10px; margin-bottom: 6px; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--bg-color); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+        .sidebar-footer { text-align: center; font-size: 0.68rem; color: #888; padding: 8px 12px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; flex-shrink: 0; }
+
+        /* TRASH PANEL */
+        .trash-item { padding: 8px 9px; margin-bottom: 5px; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--bg-color); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
         .trash-item-info { flex: 1; overflow: hidden; }
-        .trash-item-date { font-size: 0.68rem; color: var(--accent-color); font-weight: bold; }
-        .trash-item-room { font-weight: 600; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .trash-item-text { font-size: 0.72rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .trash-actions { display: flex; gap: 4px; }
-        .trash-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 3px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; transition: 0.2s; white-space: nowrap; }
+        .trash-item-date { font-size: 0.66rem; color: var(--accent-color); font-weight: bold; }
+        .trash-item-room { font-weight: 600; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trash-item-text { font-size: 0.7rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trash-actions { display: flex; gap: 3px; }
+        .trash-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 3px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; transition: 0.2s; white-space: nowrap; }
         .trash-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
         .trash-btn.del { border-color: #ffcdd2; color: #e74c3c; }
         .trash-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
         .trash-empty { font-size: 0.8rem; color: #aaa; padding: 10px 5px; text-align: center; }
-        .trash-clear-all { width: 100%; padding: 7px; background: none; border: 1px dashed #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: 0.2s; margin-top: 6px; }
+        .trash-clear-all { width: 100%; padding: 6px; background: none; border: 1px dashed #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-size: 0.76rem; font-weight: 600; transition: 0.2s; margin-top: 6px; }
         .trash-clear-all:hover { background: #e74c3c; color: white; }
+        #trash-panel-list { flex: 1; overflow-y: auto; }
 
-        /* CHECKLIST */
-        .checklist-shift { margin-bottom: 10px; }
-        .checklist-shift-header { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .checklist-shift-header span { font-size: 0.65rem; font-weight: normal; color: #999; }
-        .checklist-item { display: flex; align-items: center; gap: 7px; padding: 5px 4px; border-radius: 5px; transition: 0.15s; }
-        .checklist-item:hover { background: rgba(197,160,89,0.07); }
-        .checklist-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
-        .checklist-item label { font-size: 0.82rem; flex: 1; cursor: pointer; transition: 0.15s; line-height: 1.3; }
-        .checklist-item.checked label { text-decoration: line-through; color: #999; }
-        .checklist-item-actions { display: flex; gap: 3px; opacity: 0; transition: 0.15s; }
-        .checklist-item:hover .checklist-item-actions { opacity: 1; }
-        .cl-act-btn { background: none; border: none; cursor: pointer; color: #bbb; font-size: 0.8rem; padding: 1px 3px; transition: 0.15s; }
-        .cl-act-btn:hover { color: var(--accent-color); }
-        .cl-act-btn.del:hover { color: #e74c3c; }
-        .checklist-add-row { display: flex; gap: 5px; margin-top: 6px; }
-        .checklist-add-row input { flex: 1; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.8rem; }
-        .checklist-add-row button { background: var(--accent-color); color: white; border: none; border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 0.82rem; font-weight: bold; transition: 0.2s; }
-        .checklist-add-row button:hover { filter: brightness(1.15); }
-        .checklist-reset-btn { width: 100%; padding: 5px; background: none; border: 1px solid var(--border-color); color: #888; border-radius: 5px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: 0.2s; margin-top: 6px; }
-        .checklist-reset-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        .checklist-progress { font-size: 0.68rem; color: #999; display: flex; align-items: center; gap: 5px; margin-top: 4px; }
-        .checklist-bar { flex: 1; height: 3px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
-        .checklist-bar-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
+        /* ===== INFO PANEL ===== */
+        #info-panel-content { flex: 1; overflow-y: auto; }
+        .info-folder-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px; margin-bottom: 4px; cursor: pointer; font-weight: 700; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-color); transition: 0.2s; font-size: 0.84rem; }
+        .info-folder-header:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .info-folder-content { display: none; padding: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 0 0 7px 7px; border-top: none; margin-top: -4px; background: var(--card-bg); }
+        .info-folder-content.open { display: block; }
+        .info-note-item { padding: 6px 8px; border-radius: 5px; margin-bottom: 4px; border: 1px solid var(--border-color); background: var(--bg-color); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 5px; cursor: pointer; transition: 0.15s; }
+        .info-note-item:hover { border-color: var(--accent-color); }
+        .info-note-title { font-weight: 600; font-size: 0.78rem; color: var(--text-main); }
+        .info-note-preview { font-size: 0.7rem; color: #888; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+        .info-del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.8rem; transition: 0.15s; flex-shrink: 0; padding: 1px 3px; }
+        .info-del-btn:hover { color: #e74c3c; }
+        .info-add-row { display: flex; gap: 5px; margin-top: 6px; }
+        .info-add-row input { flex: 1; padding: 5px 7px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.78rem; }
+        .info-add-row button { background: var(--accent-color); color: white; border: none; border-radius: 5px; padding: 5px 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .info-add-row button:hover { filter: brightness(1.15); }
+        .info-folder-actions { display: flex; gap: 4px; align-items: center; }
+        .info-folder-act-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 0.82rem; opacity: 0.55; transition: 0.2s; padding: 0 2px; }
+        .info-folder-act-btn:hover { opacity: 1; color: var(--accent-color); }
 
         /* MAIN */
         main { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
-        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 10px; }
-        .search-bar { padding: 8px 15px; width: 220px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; gap: 10px; }
+        .search-bar { padding: 7px 14px; width: 200px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); }
         .main-actions { display: flex; gap: 8px; align-items: center; }
-        .main-act-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+        .main-act-btn { padding: 7px 13px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
         .main-act-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
 
+        /* ===== CHECKLIST ON MAIN SCREEN ===== */
+        #main-checklist-wrap { margin-bottom: 1.3rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .checklist-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--header-bg); color: var(--header-text); cursor: pointer; user-select: none; }
+        .checklist-header-bar .cl-title { font-weight: 700; font-size: 0.95rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .checklist-header-bar .cl-shift-badge { font-size: 0.72rem; background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .checklist-header-bar .cl-toggle-arr { font-size: 0.9rem; color: rgba(255,255,255,0.6); transition: 0.2s; }
+        .checklist-body { display: none; }
+        .checklist-body.open { display: block; }
+        .checklist-shifts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .checklist-shift-col { padding: 14px 16px; border-right: 1px solid var(--border-color); }
+        .checklist-shift-col:last-child { border-right: none; }
+        .checklist-shift-label { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .checklist-shift-label span.cl-time { font-size: 0.65rem; color: #999; font-weight: normal; text-transform: none; }
+        .checklist-item { display: flex; align-items: center; gap: 7px; padding: 4px 3px; border-radius: 5px; transition: 0.15s; }
+        .checklist-item:hover { background: rgba(197,160,89,0.07); }
+        .checklist-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
+        .checklist-item label { font-size: 0.8rem; flex: 1; cursor: pointer; transition: 0.15s; line-height: 1.3; }
+        .checklist-item.checked label { text-decoration: line-through; color: #999; }
+        .checklist-item-actions { display: flex; gap: 2px; opacity: 0; transition: 0.15s; }
+        .checklist-item:hover .checklist-item-actions { opacity: 1; }
+        .cl-act-btn { background: none; border: none; cursor: pointer; color: #bbb; font-size: 0.76rem; padding: 1px 3px; transition: 0.15s; }
+        .cl-act-btn:hover { color: var(--accent-color); }
+        .cl-act-btn.del:hover { color: #e74c3c; }
+        .checklist-add-row { display: flex; gap: 5px; margin-top: 8px; }
+        .checklist-add-row input { flex: 1; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.78rem; }
+        .checklist-add-row button { background: var(--accent-color); color: white; border: none; border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .checklist-add-row button:hover { filter: brightness(1.15); }
+        .checklist-reset-btn { width: 100%; padding: 5px; background: none; border: 1px solid var(--border-color); color: #888; border-radius: 5px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: 0.2s; margin-top: 5px; }
+        .checklist-reset-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .checklist-progress { font-size: 0.66rem; color: #999; display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+        .checklist-bar { flex: 1; height: 3px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
+        .checklist-bar-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
+        .cl-current-highlight { background: rgba(197,160,89,0.08); border-radius: 8px; }
+        .cl-current-label { font-size: 0.68rem; color: var(--accent-color); font-weight: bold; text-align: center; padding: 4px 0 0; }
+
         /* NOTES GRID */
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.3rem; }
-        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.3rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); animation: cardIn 0.25s ease; }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.2rem; position: relative; box-shadow: 0 3px 8px rgba(0,0,0,0.04); animation: cardIn 0.25s ease; }
         @keyframes cardIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .note-card.done { opacity: 0.55; filter: grayscale(0.5); }
         .note-card.urgent-card { border-left: 4px solid var(--tag-urgent); }
@@ -257,6 +298,11 @@
         .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
         .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
 
+        /* INFO NOTE MODAL */
+        .info-note-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(3px); }
+        .info-note-content { background: var(--card-bg); padding: 1.8rem; border-radius: 12px; width: 520px; max-width: 96vw; box-shadow: 0 15px 35px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+        .info-note-content input, .info-note-content textarea { width: 100%; margin-bottom: 0.9rem; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.95rem; font-family: inherit; resize: vertical; }
+
         /* LOGIN / USER MANAGEMENT MODAL */
         .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
         .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 400px; max-width: 96vw; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; animation: modalIn 0.22s ease; max-height: 90vh; overflow-y: auto; }
@@ -301,18 +347,25 @@
 
         /* PRINT STYLES */
         @media print {
-            header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input { display: none !important; }
+            header, #sidebar, .main-actions, #new-note-trigger, .card-actions, .main-header input, #main-checklist-wrap { display: none !important; }
             body { overflow: visible; height: auto; }
             .container { display: block; }
             main { padding: 0; overflow: visible; }
             .notes-grid { display: block; }
             .note-card { break-inside: avoid; margin-bottom: 12px; box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
-            .modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .login-modal { display: none !important; }
+            .modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .login-modal, .info-note-modal { display: none !important; }
             #print-header { display: block !important; }
         }
         #print-header { display: none; padding: 10px 0 20px; border-bottom: 2px solid #333; margin-bottom: 20px; }
         #print-header h1 { font-size: 1.4rem; letter-spacing: 2px; }
         #print-header p { font-size: 0.85rem; color: #666; margin-top: 4px; }
+
+        /* Responsive checklist for mobile */
+        @media (max-width: 600px) {
+            .checklist-shifts-grid { grid-template-columns: 1fr; }
+            .checklist-shift-col { border-right: none; border-bottom: 1px solid var(--border-color); }
+            .checklist-shift-col:last-child { border-bottom: none; }
+        }
     </style>
 </head>
 <body>
@@ -339,49 +392,54 @@
 </header>
 
 <div class="container">
+    <!-- ===== NEW SIDEBAR ===== -->
     <aside id="sidebar">
-        <div class="user-badge" id="user-badge">
-            <div class="user-avatar" id="user-avatar-badge" style="background:#3498db;">?</div>
-            <span class="user-name-badge" id="user-name-badge">Not logged in</span>
-            <button class="user-change-btn" id="change-user-btn" title="Change User">✎</button>
+        <!-- Tab Navigation -->
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab active" data-tab="months" onclick="switchSidebarTab('months')">
+                <span class="tab-icon">📅</span>Months
+            </button>
+            <button class="sidebar-tab" data-tab="trash" onclick="switchSidebarTab('trash')">
+                <span class="tab-icon">🗑</span>Trash
+            </button>
+            <button class="sidebar-tab" data-tab="info" onclick="switchSidebarTab('info')">
+                <span class="tab-icon">📌</span>Info
+            </button>
         </div>
-        <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
-        <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
 
-        <!-- MONTHS SECTION -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-header" id="sec-months-header" onclick="toggleSection('months')">
-                <span><span class="sec-icon">📅</span> Months</span>
-                <span id="sec-months-arrow">▼</span>
+        <!-- MONTHS PANEL -->
+        <div class="sidebar-panel active" id="panel-months">
+            <div class="user-badge" id="user-badge">
+                <div class="user-avatar" id="user-avatar-badge" style="background:#3498db;">?</div>
+                <span class="user-name-badge" id="user-name-badge">Not logged in</span>
+                <button class="user-change-btn" id="change-user-btn" title="Change User">✎</button>
             </div>
-            <div class="sidebar-section-content open" id="sec-months-content">
+            <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
+            <button class="add-day-btn-sidebar" id="new-folder-trigger">+ Add Folder</button>
+            <div id="day-list-wrap">
                 <div id="day-list"></div>
             </div>
+            <div class="sidebar-footer">Powered by Danylevskij v3.2.0</div>
         </div>
 
-        <!-- CHECKLIST SECTION -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-header" id="sec-checklist-header" onclick="toggleSection('checklist')">
-                <span><span class="sec-icon">✅</span> Checklist</span>
-                <span id="sec-checklist-arrow">▼</span>
+        <!-- TRASH PANEL -->
+        <div class="sidebar-panel" id="panel-trash">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--accent-color);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);flex-shrink:0;">
+                🗑 Trash <span id="trash-count-badge" style="color:#e74c3c;"></span>
             </div>
-            <div class="sidebar-section-content open" id="sec-checklist-content">
-                <div id="checklist-container"></div>
-            </div>
+            <div id="trash-panel-list" style="flex:1;overflow-y:auto;"></div>
+            <div class="sidebar-footer">Deleted notes restored here</div>
         </div>
 
-        <!-- TRASH SECTION -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-header" id="sec-trash-header" onclick="toggleSection('trash')">
-                <span><span class="sec-icon">🗑</span> Trash <span id="trash-count-badge" style="font-size:0.68rem;color:#e74c3c;font-weight:bold;"></span></span>
-                <span id="sec-trash-arrow">▼</span>
+        <!-- INFO PANEL -->
+        <div class="sidebar-panel" id="panel-info">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--accent-color);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);flex-shrink:0;">
+                📌 Info Boards
             </div>
-            <div class="sidebar-section-content" id="sec-trash-content">
-                <div id="trash-list"></div>
-            </div>
+            <button class="add-day-btn-sidebar" id="add-info-folder-btn">+ New Info Board</button>
+            <div id="info-panel-content" style="flex:1;overflow-y:auto;"></div>
+            <div class="sidebar-footer">Custom information boards</div>
         </div>
-
-        <div class="sidebar-footer">Powered by Danylevskij v3.2.0</div>
     </aside>
 
     <main>
@@ -397,7 +455,23 @@
                 <input type="text" id="search" class="search-bar" placeholder="Search notes...">
             </div>
         </div>
-        <button class="add-day-btn" id="new-note-trigger" style="display:none; width:auto; padding:9px 22px; margin-bottom:1.3rem;">+ Add Shift Note</button>
+
+        <!-- ===== CHECKLIST ON MAIN SCREEN ===== -->
+        <div id="main-checklist-wrap">
+            <div class="checklist-header-bar" onclick="toggleChecklistBody()">
+                <div class="cl-title">
+                    <span id="cl-shift-icon">☀️</span>
+                    Shift Checklist
+                    <span class="cl-shift-badge" id="cl-shift-badge-label">Day Shift</span>
+                </div>
+                <span class="cl-toggle-arr" id="cl-toggle-arr">▼</span>
+            </div>
+            <div class="checklist-body open" id="checklist-body">
+                <div class="checklist-shifts-grid" id="checklist-shifts-grid"></div>
+            </div>
+        </div>
+
+        <button class="add-day-btn-sidebar" id="new-note-trigger" style="display:none; width:auto; padding:9px 22px; margin-bottom:1.2rem; background:var(--accent-color); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.9rem;">+ Add Shift Note</button>
         <div class="notes-grid" id="notes-grid"></div>
     </main>
 </div>
@@ -461,7 +535,7 @@
         </select>
         <div style="text-align:right; margin-top:10px; display:flex; justify-content:flex-end; gap:10px; align-items:center;">
             <button id="m-cancel" style="background:none;border:none;cursor:pointer;color:var(--text-main);font-weight:bold;">Cancel</button>
-            <button id="m-save" class="add-day-btn" style="width:auto;margin:0;padding:9px 28px;">Save Data</button>
+            <button id="m-save" class="add-day-btn-sidebar" style="width:auto;margin:0;padding:9px 28px;">Save Data</button>
         </div>
     </div>
 </div>
@@ -542,6 +616,19 @@
     </div>
 </div>
 
+<!-- INFO NOTE MODAL -->
+<div id="info-note-modal" class="info-note-modal">
+    <div class="info-note-content">
+        <h3 style="margin-bottom:1rem;color:var(--accent-color);font-size:1.1rem;font-weight:bold;" id="info-note-modal-title">Info Note</h3>
+        <input type="text" id="info-note-title-input" placeholder="Title (e.g. Parking Rules, VIP Guests)">
+        <textarea id="info-note-body-input" rows="8" placeholder="Write your information here..."></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
+            <button onclick="document.getElementById('info-note-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--text-main);font-weight:bold;">Cancel</button>
+            <button id="info-note-save-btn" style="background:var(--accent-color);color:white;border:none;border-radius:6px;padding:9px 22px;cursor:pointer;font-weight:bold;">Save</button>
+        </div>
+    </div>
+</div>
+
 <!-- LOGIN / USER MANAGEMENT MODAL -->
 <div id="login-modal" class="login-modal">
     <div class="login-content">
@@ -601,9 +688,14 @@ let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
 let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
 let trash = JSON.parse(localStorage.getItem('kd_trash') || '[]');
+let infoFolders = JSON.parse(localStorage.getItem('kd_info_folders') || '[]');
+let infoNotes = JSON.parse(localStorage.getItem('kd_info_notes') || '[]');
+let expandedInfoFolders = new Set(JSON.parse(localStorage.getItem('kd_info_expanded') || '[]'));
+let checklistOpen = localStorage.getItem('kd_checklist_open') !== 'false';
 
-// Sidebar sections open/closed
-let sectionStates = JSON.parse(localStorage.getItem('kd_sections') || '{"months":true,"checklist":true,"trash":false}');
+// Info note modal state
+let editingInfoNoteId = null;
+let editingInfoFolderId = null;
 
 // Calendar state
 let calTarget = null;
@@ -613,27 +705,44 @@ let calSelected = null;
 const existingDatesSet = new Set();
 
 // Note drag state
-let draggedNoteId = null;
-let draggedNoteEl = null;
-let noteOrderCache = {}; // dayId -> [noteId, ...]
+let noteDragId = null;
+let noteDragOverId = null;
 
-// ===================== SECTION TOGGLE =====================
-window.toggleSection = function(name) {
-    sectionStates[name] = !sectionStates[name];
-    localStorage.setItem('kd_sections', JSON.stringify(sectionStates));
-    applySectionStates();
+// ===================== SIDEBAR TABS =====================
+window.switchSidebarTab = function(tab) {
+    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
 };
 
-function applySectionStates() {
-    ['months','checklist','trash'].forEach(name => {
-        const content = document.getElementById(`sec-${name}-content`);
-        const arrow = document.getElementById(`sec-${name}-arrow`);
-        if (!content || !arrow) return;
-        if (sectionStates[name]) { content.classList.add('open'); arrow.textContent = '▼'; }
-        else { content.classList.remove('open'); arrow.textContent = '▶'; }
-    });
+// ===================== CHECKLIST TOGGLE =====================
+window.toggleChecklistBody = function() {
+    const body = document.getElementById('checklist-body');
+    const arr = document.getElementById('cl-toggle-arr');
+    checklistOpen = !body.classList.contains('open');
+    body.classList.toggle('open', checklistOpen);
+    arr.textContent = checklistOpen ? '▼' : '▶';
+    localStorage.setItem('kd_checklist_open', checklistOpen);
+};
+
+// ===================== SHIFT DETECTION =====================
+function getCurrentShift() {
+    const h = new Date().getHours();
+    // Day shift: 07:35 – 19:35 → hours 8..19 (rough)
+    return (h >= 8 && h < 20) ? 'day' : 'night';
 }
-applySectionStates();
+
+function updateShiftBadge() {
+    const shift = getCurrentShift();
+    const icon = document.getElementById('cl-shift-icon');
+    const badge = document.getElementById('cl-shift-badge-label');
+    if (shift === 'day') {
+        icon.textContent = '☀️';
+        badge.textContent = 'Day Shift  07:35–19:35';
+    } else {
+        icon.textContent = '🌙';
+        badge.textContent = 'Night Shift  19:35–07:35';
+    }
+}
 
 // ===================== USER MANAGEMENT =====================
 const DEFAULT_PRESET_USERS = [
@@ -820,7 +929,7 @@ function addToTrash(noteData, dayId, dayDate, noteId) {
 }
 
 function renderTrash() {
-    const list = document.getElementById('trash-list');
+    const list = document.getElementById('trash-panel-list');
     const badge = document.getElementById('trash-count-badge');
     badge.textContent = trash.length ? `(${trash.length})` : '';
     if (!trash.length) { list.innerHTML = '<div class="trash-empty">Trash is empty</div>'; return; }
@@ -920,59 +1029,80 @@ function saveChecklistState(state) {
 }
 
 function renderChecklist() {
-    const container = document.getElementById('checklist-container');
+    const grid = document.getElementById('checklist-shifts-grid');
     const items = loadChecklistItems();
     const state = loadChecklistState();
-    container.innerHTML = '';
+    const currentShift = getCurrentShift();
+    grid.innerHTML = '';
 
     ['day', 'night'].forEach(shift => {
         const isDay = shift === 'day';
-        const shiftLabel = isDay ? '☀️ Day' : '🌙 Night';
-        const shiftTime = isDay ? '7:35 – 19:35' : '19:35 – 7:35';
+        const isCurrent = shift === currentShift;
         const shiftItems = items[shift] || [];
         const checked = shiftItems.filter((_, i) => state[shift][i]).length;
 
-        const sec = document.createElement('div');
-        sec.className = 'checklist-shift';
-        sec.innerHTML = `
-            <div class="checklist-shift-header">
-                <span>${shiftLabel} <span>${shiftTime}</span></span>
-                <span>${checked}/${shiftItems.length}</span>
-            </div>
-            <div id="cl-items-${shift}"></div>
-            <div class="checklist-progress">
-                <div class="checklist-bar"><div class="checklist-bar-fill" id="cl-bar-${shift}" style="width:${shiftItems.length ? checked/shiftItems.length*100 : 0}%"></div></div>
-                <span id="cl-pct-${shift}">${shiftItems.length ? Math.round(checked/shiftItems.length*100) : 0}%</span>
-            </div>
-            <div class="checklist-add-row">
-                <input type="text" id="cl-new-${shift}" placeholder="Add item..." onkeydown="if(event.key==='Enter')window.addChecklistItem('${shift}')">
-                <button onclick="window.addChecklistItem('${shift}')">+</button>
-            </div>
-            <button class="checklist-reset-btn" onclick="window.resetChecklist('${shift}')">↺ Reset ${isDay ? 'Day' : 'Night'} Checks</button>`;
+        const col = document.createElement('div');
+        col.className = 'checklist-shift-col' + (isCurrent ? ' cl-current-highlight' : '');
 
-        container.appendChild(sec);
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'checklist-shift-label';
+        labelDiv.innerHTML = `
+            <span>${isDay ? '☀️ Day' : '🌙 Night'} ${isCurrent ? '<b style="color:var(--accent-color);font-size:0.65rem;">● NOW</b>' : ''}</span>
+            <span class="cl-time">${isDay ? '07:35–19:35' : '19:35–07:35'} &nbsp; ${checked}/${shiftItems.length}</span>`;
+        col.appendChild(labelDiv);
 
-        const itemsDiv = document.getElementById(`cl-items-${shift}`);
+        // Progress bar
+        const progDiv = document.createElement('div');
+        progDiv.className = 'checklist-progress';
+        const pct = shiftItems.length ? Math.round(checked/shiftItems.length*100) : 0;
+        progDiv.innerHTML = `<div class="checklist-bar"><div class="checklist-bar-fill" id="cl-bar-${shift}" style="width:${pct}%"></div></div><span id="cl-pct-${shift}">${pct}%</span>`;
+        col.appendChild(progDiv);
+
+        const itemsDiv = document.createElement('div');
+        itemsDiv.style.marginTop = '6px';
         shiftItems.forEach((text, i) => {
             const isChecked = !!state[shift][i];
             const div = document.createElement('div');
             div.className = `checklist-item${isChecked ? ' checked' : ''}`;
-            div.id = `cl-item-${shift}-${i}`;
             div.innerHTML = `
                 <input type="checkbox" id="cl-cb-${shift}-${i}" ${isChecked ? 'checked' : ''}>
                 <label for="cl-cb-${shift}-${i}">${escapeHTML(text)}</label>
                 <div class="checklist-item-actions">
-                    <button class="cl-act-btn del" onclick="window.deleteChecklistItem('${shift}',${i})" title="Remove">✕</button>
+                    <button class="cl-act-btn del" title="Remove" data-shift="${shift}" data-idx="${i}">✕</button>
                 </div>`;
             div.querySelector('input').onchange = (e) => {
                 const s = loadChecklistState();
+                if (!s[shift]) s[shift] = {};
                 s[shift][i] = e.target.checked;
                 saveChecklistState(s);
                 div.classList.toggle('checked', e.target.checked);
                 updateChecklistProgress(shift);
             };
+            div.querySelector('.cl-act-btn.del').onclick = (e) => {
+                e.stopPropagation();
+                window.deleteChecklistItem(shift, i);
+            };
             itemsDiv.appendChild(div);
         });
+        col.appendChild(itemsDiv);
+
+        // Add row
+        const addRow = document.createElement('div');
+        addRow.className = 'checklist-add-row';
+        addRow.innerHTML = `
+            <input type="text" id="cl-new-${shift}" placeholder="Add item...">
+            <button>+</button>`;
+        addRow.querySelector('button').onclick = () => window.addChecklistItem(shift);
+        addRow.querySelector('input').onkeydown = (e) => { if (e.key === 'Enter') window.addChecklistItem(shift); };
+        col.appendChild(addRow);
+
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'checklist-reset-btn';
+        resetBtn.textContent = `↺ Reset ${isDay ? 'Day' : 'Night'} Checks`;
+        resetBtn.onclick = () => window.resetChecklist(shift);
+        col.appendChild(resetBtn);
+
+        grid.appendChild(col);
     });
 }
 
@@ -990,7 +1120,7 @@ function updateChecklistProgress(shift) {
 
 window.addChecklistItem = function(shift) {
     const input = document.getElementById(`cl-new-${shift}`);
-    const text = input.value.trim();
+    const text = (input ? input.value : '').trim();
     if (!text) return;
     const items = loadChecklistItems();
     items[shift].push(text);
@@ -1003,8 +1133,8 @@ window.deleteChecklistItem = function(shift, idx) {
     const items = loadChecklistItems();
     items[shift].splice(idx, 1);
     saveChecklistItems(items);
-    // Shift state indices
     const state = loadChecklistState();
+    if (!state[shift]) state[shift] = {};
     const newState = {};
     Object.keys(state[shift]).forEach(k => {
         const ki = parseInt(k);
@@ -1023,7 +1153,156 @@ window.resetChecklist = function(shift) {
     renderChecklist();
 };
 
+// Init checklist
+updateShiftBadge();
 renderChecklist();
+document.getElementById('checklist-body').classList.toggle('open', checklistOpen);
+document.getElementById('cl-toggle-arr').textContent = checklistOpen ? '▼' : '▶';
+
+// ===================== INFO BOARDS =====================
+function saveInfoFolders() { localStorage.setItem('kd_info_folders', JSON.stringify(infoFolders)); }
+function saveInfoNotes() { localStorage.setItem('kd_info_notes', JSON.stringify(infoNotes)); }
+function saveInfoExpanded() { localStorage.setItem('kd_info_expanded', JSON.stringify([...expandedInfoFolders])); }
+
+function renderInfoPanel() {
+    const container = document.getElementById('info-panel-content');
+    container.innerHTML = '';
+    if (!infoFolders.length) {
+        container.innerHTML = '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px 5px;">No boards yet.<br>Click "+ New Info Board" to create one.</div>';
+        return;
+    }
+    infoFolders.forEach((folder, fi) => {
+        const isOpen = expandedInfoFolders.has(folder.id);
+        const folderNotes = infoNotes.filter(n => n.folderId === folder.id);
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = '6px';
+
+        const header = document.createElement('div');
+        header.className = 'info-folder-header';
+        header.innerHTML = `
+            <span style="display:flex;align-items:center;gap:6px;">${isOpen ? '📂' : '📁'} <span>${escapeHTML(folder.name)}</span></span>
+            <div class="info-folder-actions">
+                <button class="info-folder-act-btn" title="Rename" data-fi="${fi}">✎</button>
+                <button class="info-folder-act-btn" title="Delete" style="color:#e74c3c;" data-del="${fi}">🗑</button>
+            </div>`;
+        header.querySelector('[data-fi]').onclick = (e) => { e.stopPropagation(); renameInfoFolder(fi); };
+        header.querySelector('[data-del]').onclick = (e) => { e.stopPropagation(); deleteInfoFolder(fi); };
+        header.onclick = () => {
+            if (expandedInfoFolders.has(folder.id)) expandedInfoFolders.delete(folder.id);
+            else expandedInfoFolders.add(folder.id);
+            saveInfoExpanded();
+            renderInfoPanel();
+        };
+        wrapper.appendChild(header);
+
+        const content = document.createElement('div');
+        content.className = 'info-folder-content' + (isOpen ? ' open' : '');
+
+        folderNotes.forEach((note, ni) => {
+            const noteEl = document.createElement('div');
+            noteEl.className = 'info-note-item';
+            noteEl.innerHTML = `
+                <div style="flex:1;min-width:0;">
+                    <div class="info-note-title">${escapeHTML(note.title || 'Untitled')}</div>
+                    <div class="info-note-preview">${escapeHTML((note.body || '').slice(0, 60))}</div>
+                </div>
+                <button class="info-del-btn" title="Delete note">✕</button>`;
+            noteEl.onclick = () => openInfoNoteModal(folder.id, note.id);
+            noteEl.querySelector('.info-del-btn').onclick = (e) => { e.stopPropagation(); deleteInfoNote(note.id); };
+            content.appendChild(noteEl);
+        });
+
+        // Add note row
+        const addRow = document.createElement('div');
+        addRow.className = 'info-add-row';
+        addRow.innerHTML = `<button style="width:100%;background:none;border:1px dashed var(--accent-color);color:var(--accent-color);border-radius:5px;padding:5px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add Note</button>`;
+        addRow.querySelector('button').onclick = () => openInfoNoteModal(folder.id, null);
+        content.appendChild(addRow);
+
+        wrapper.appendChild(content);
+        container.appendChild(wrapper);
+    });
+}
+
+function renameInfoFolder(fi) {
+    const folder = infoFolders[fi];
+    const n = prompt('Rename board:', folder.name);
+    if (n && n.trim() && n !== folder.name) {
+        infoFolders[fi].name = n.trim();
+        saveInfoFolders();
+        renderInfoPanel();
+    }
+}
+
+function deleteInfoFolder(fi) {
+    const folder = infoFolders[fi];
+    if (!confirm(`Delete board "${folder.name}" and all its notes?`)) return;
+    infoNotes = infoNotes.filter(n => n.folderId !== folder.id);
+    infoFolders.splice(fi, 1);
+    expandedInfoFolders.delete(folder.id);
+    saveInfoFolders(); saveInfoNotes(); saveInfoExpanded();
+    renderInfoPanel();
+}
+
+function deleteInfoNote(noteId) {
+    if (!confirm('Delete this note?')) return;
+    infoNotes = infoNotes.filter(n => n.id !== noteId);
+    saveInfoNotes();
+    renderInfoPanel();
+}
+
+function openInfoNoteModal(folderId, noteId) {
+    editingInfoFolderId = folderId;
+    editingInfoNoteId = noteId;
+    const modal = document.getElementById('info-note-modal');
+    const titleInput = document.getElementById('info-note-title-input');
+    const bodyInput = document.getElementById('info-note-body-input');
+    const modalTitle = document.getElementById('info-note-modal-title');
+    if (noteId) {
+        const note = infoNotes.find(n => n.id === noteId);
+        if (note) {
+            titleInput.value = note.title || '';
+            bodyInput.value = note.body || '';
+            modalTitle.textContent = 'Edit Info Note';
+        }
+    } else {
+        titleInput.value = '';
+        bodyInput.value = '';
+        modalTitle.textContent = 'New Info Note';
+    }
+    modal.style.display = 'flex';
+    setTimeout(() => titleInput.focus(), 80);
+}
+
+document.getElementById('info-note-save-btn').onclick = () => {
+    const titleVal = document.getElementById('info-note-title-input').value.trim();
+    const bodyVal = document.getElementById('info-note-body-input').value.trim();
+    if (!titleVal && !bodyVal) { alert('Please enter a title or content.'); return; }
+    if (editingInfoNoteId) {
+        const note = infoNotes.find(n => n.id === editingInfoNoteId);
+        if (note) { note.title = titleVal; note.body = bodyVal; note.updatedAt = Date.now(); }
+    } else {
+        infoNotes.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), folderId: editingInfoFolderId, title: titleVal, body: bodyVal, createdAt: Date.now() });
+    }
+    saveInfoNotes();
+    document.getElementById('info-note-modal').style.display = 'none';
+    expandedInfoFolders.add(editingInfoFolderId);
+    saveInfoExpanded();
+    renderInfoPanel();
+};
+
+document.getElementById('add-info-folder-btn').onclick = () => {
+    const name = prompt('Board name (e.g. Parking Info, VIP Procedures):');
+    if (!name || !name.trim()) return;
+    const id = Date.now().toString(36);
+    infoFolders.push({ id, name: name.trim(), createdAt: Date.now() });
+    expandedInfoFolders.add(id);
+    saveInfoFolders(); saveInfoExpanded();
+    renderInfoPanel();
+    addNotification('📌 Info board created: ' + name.trim(), '', 'info');
+};
+
+renderInfoPanel();
 
 // ===================== NOTIFICATIONS =====================
 function addNotification(title, sub, type = 'info') {
@@ -1118,7 +1397,7 @@ function buildStats() {
 document.getElementById('gsearch-btn').onclick = openGSearch;
 document.addEventListener('keydown', e => {
     if ((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openGSearch();}
-    if (e.key==='Escape') closeGSearch();
+    if (e.key==='Escape') { closeGSearch(); }
 });
 
 function openGSearch() {
@@ -1252,7 +1531,7 @@ function renderSidebar() {
     renderFolder('unsorted','Unsorted');
 }
 
-// ===================== DRAG & DROP (sidebar folders/days) =====================
+// ===================== DRAG & DROP (sidebar) =====================
 let draggedItem = null;
 document.addEventListener('dragstart', e => {
     const el = e.target.closest('.folder-container, .day-item');
@@ -1333,7 +1612,7 @@ window.selectDay = (id, date) => {
     activeDayId=id; activeDayDate=date;
     document.getElementById('day-label').textContent=date;
     document.getElementById('print-date-label').textContent='Date: '+date+' | Printed: '+new Date().toLocaleString();
-    document.getElementById('new-note-trigger').style.display='block';
+    document.getElementById('new-note-trigger').style.display='inline-block';
     document.getElementById('tmpl-open-btn').style.display='block';
     document.getElementById('print-btn').style.display='block';
     document.querySelectorAll('.day-item').forEach(el=>el.classList.toggle('active',el.dataset.id===id));
@@ -1350,9 +1629,6 @@ window.deleteDay = async id => {
 };
 
 // NOTE DRAG & DROP (within grid)
-let noteDragId = null;
-let noteDragOverId = null;
-
 function attachNoteDragEvents(card, noteId) {
     card.draggable = true;
     card.addEventListener('dragstart', e => {
@@ -1378,7 +1654,6 @@ function attachNoteDragEvents(card, noteId) {
         e.preventDefault(); e.stopPropagation();
         card.classList.remove('note-drag-over');
         if (!noteDragId || noteDragId === noteId) return;
-        // Swap orders
         const grid = document.getElementById('notes-grid');
         const cards = Array.from(grid.querySelectorAll('.note-card'));
         const fromIdx = cards.findIndex(c=>c.dataset.noteId===noteDragId);
@@ -1387,7 +1662,6 @@ function attachNoteDragEvents(card, noteId) {
         const fromCard = cards[fromIdx];
         if (fromIdx < toIdx) grid.insertBefore(fromCard, card.nextSibling);
         else grid.insertBefore(fromCard, card);
-        // Persist order
         const newCards = Array.from(grid.querySelectorAll('.note-card'));
         newCards.forEach(async(c,i)=>{
             if(c.dataset.noteId) {
@@ -1403,7 +1677,6 @@ function loadNotes(dayId) {
         const grid=document.getElementById('notes-grid');
         grid.innerHTML='';
         const term=document.getElementById('search').value.toLowerCase();
-        // Sort by order if available
         let notesArr = [];
         snap.forEach(nDoc=>notesArr.push({id:nDoc.id,...nDoc.data()}));
         notesArr.sort((a,b)=>(a.order!==undefined&&b.order!==undefined)?a.order-b.order:b.createdAt-a.createdAt);
@@ -1564,6 +1837,7 @@ document.getElementById('stats-modal').onclick=e=>{if(e.target===document.getEle
 document.getElementById('tmpl-modal').onclick=e=>{if(e.target===document.getElementById('tmpl-modal'))document.getElementById('tmpl-modal').style.display='none';};
 document.getElementById('modal').onclick=e=>{if(e.target===document.getElementById('modal'))document.getElementById('modal').style.display='none';};
 document.getElementById('login-modal').onclick=e=>{if(e.target===document.getElementById('login-modal')&&currentUser)document.getElementById('login-modal').style.display='none';};
+document.getElementById('info-note-modal').onclick=e=>{if(e.target===document.getElementById('info-note-modal'))document.getElementById('info-note-modal').style.display='none';};
 document.addEventListener('click',e=>{
     const panel=document.getElementById('notif-panel');
     if(panel.style.display==='block'&&!panel.contains(e.target)&&e.target!==document.getElementById('notif-btn')&&!document.getElementById('notif-btn').contains(e.target))
