@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KD Handover | Cloud Handover</title>
-
     <link rel="icon" href="./favicon.ico">
-    
     <style>
         :root {
             --bg-color: #f4f7f6; --sidebar-bg: #ffffff; --header-bg: #1a1a1a;
@@ -20,6 +18,12 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s, color 0.3s; }
 
+        /* GOLDEN SPINNER */
+        #global-spinner { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        #global-spinner.active { display: flex; }
+        .spinner-ring { width: 52px; height: 52px; border: 5px solid rgba(197,160,89,0.25); border-top-color: var(--accent-color); border-radius: 50%; animation: spinRing 0.75s linear infinite; }
+        @keyframes spinRing { to { transform: rotate(360deg); } }
+
         /* HEADER */
         header { background-color: var(--header-bg); color: var(--header-text); padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 10px; flex: 1; }
@@ -31,7 +35,7 @@
         .tool-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; }
         .notif-bell { position: relative; cursor: pointer; background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; padding: 5px 10px; color: var(--header-text); font-size: 1rem; transition: 0.2s; }
         .notif-bell:hover { background: rgba(255,255,255,0.15); }
-        .notif-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: bold; display: none; }
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: none; align-items: center; justify-content: center; font-weight: bold; }
 
         /* LAYOUT */
         .container { display: flex; flex: 1; overflow: hidden; }
@@ -42,12 +46,20 @@
         .add-day-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         #day-list { flex: 1; margin-bottom: 12px; }
 
-        /* USER BADGE in sidebar */
+        /* USER BADGE */
         .user-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); }
         .user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; }
         .user-name-badge { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
         .user-change-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: #999; font-size: 0.75rem; }
         .user-change-btn:hover { color: var(--accent-color); }
+
+        /* SIDEBAR SECTION HEADERS (Month, Trash, Checklist) */
+        .sidebar-section { margin-bottom: 6px; }
+        .sidebar-section-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; cursor: pointer; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); border-radius: 6px; transition: 0.2s; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 4px; }
+        .sidebar-section-header:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .sidebar-section-header .sec-icon { font-size: 1rem; }
+        .sidebar-section-content { display: none; padding-left: 4px; }
+        .sidebar-section-content.open { display: block; }
 
         /* FOLDERS */
         .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 5px; margin-bottom: 4px; cursor: pointer; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: 0.2s; font-size: 0.92rem; }
@@ -72,6 +84,45 @@
         .drag-over-folder { background: rgba(197,160,89,0.1); border: 2px dashed var(--accent-color); border-radius: 6px; }
         .sidebar-footer { text-align: center; font-size: 0.7rem; color: #888; padding-top: 12px; border-top: 1px solid var(--border-color); letter-spacing: 0.5px; font-weight: 600; margin-top: auto; }
 
+        /* TRASH */
+        .trash-item { padding: 9px 10px; margin-bottom: 6px; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--bg-color); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+        .trash-item-info { flex: 1; overflow: hidden; }
+        .trash-item-date { font-size: 0.68rem; color: var(--accent-color); font-weight: bold; }
+        .trash-item-room { font-weight: 600; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trash-item-text { font-size: 0.72rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trash-actions { display: flex; gap: 4px; }
+        .trash-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; padding: 3px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; transition: 0.2s; white-space: nowrap; }
+        .trash-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .trash-btn.del { border-color: #ffcdd2; color: #e74c3c; }
+        .trash-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
+        .trash-empty { font-size: 0.8rem; color: #aaa; padding: 10px 5px; text-align: center; }
+        .trash-clear-all { width: 100%; padding: 7px; background: none; border: 1px dashed #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: 0.2s; margin-top: 6px; }
+        .trash-clear-all:hover { background: #e74c3c; color: white; }
+
+        /* CHECKLIST */
+        .checklist-shift { margin-bottom: 10px; }
+        .checklist-shift-header { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .checklist-shift-header span { font-size: 0.65rem; font-weight: normal; color: #999; }
+        .checklist-item { display: flex; align-items: center; gap: 7px; padding: 5px 4px; border-radius: 5px; transition: 0.15s; }
+        .checklist-item:hover { background: rgba(197,160,89,0.07); }
+        .checklist-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
+        .checklist-item label { font-size: 0.82rem; flex: 1; cursor: pointer; transition: 0.15s; line-height: 1.3; }
+        .checklist-item.checked label { text-decoration: line-through; color: #999; }
+        .checklist-item-actions { display: flex; gap: 3px; opacity: 0; transition: 0.15s; }
+        .checklist-item:hover .checklist-item-actions { opacity: 1; }
+        .cl-act-btn { background: none; border: none; cursor: pointer; color: #bbb; font-size: 0.8rem; padding: 1px 3px; transition: 0.15s; }
+        .cl-act-btn:hover { color: var(--accent-color); }
+        .cl-act-btn.del:hover { color: #e74c3c; }
+        .checklist-add-row { display: flex; gap: 5px; margin-top: 6px; }
+        .checklist-add-row input { flex: 1; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 0.8rem; }
+        .checklist-add-row button { background: var(--accent-color); color: white; border: none; border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 0.82rem; font-weight: bold; transition: 0.2s; }
+        .checklist-add-row button:hover { filter: brightness(1.15); }
+        .checklist-reset-btn { width: 100%; padding: 5px; background: none; border: 1px solid var(--border-color); color: #888; border-radius: 5px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: 0.2s; margin-top: 6px; }
+        .checklist-reset-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .checklist-progress { font-size: 0.68rem; color: #999; display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+        .checklist-bar { flex: 1; height: 3px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
+        .checklist-bar-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
+
         /* MAIN */
         main { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 10px; }
@@ -86,6 +137,8 @@
         @keyframes cardIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .note-card.done { opacity: 0.55; filter: grayscale(0.5); }
         .note-card.urgent-card { border-left: 4px solid var(--tag-urgent); }
+        .note-card.note-dragging { opacity: 0.4; border: 2px dashed var(--accent-color); }
+        .note-card.note-drag-over { border: 2px dashed var(--accent-color); background: rgba(197,160,89,0.06); transform: scale(1.01); }
         .note-time { font-size: 0.72rem; color: #999; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .note-author { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; color: white; font-weight: bold; }
         .note-room { font-weight: bold; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 4px; }
@@ -98,6 +151,8 @@
         .action-link { font-size: 0.78rem; cursor: pointer; border: none; background: none; color: #777; font-weight: 600; transition: 0.2s; }
         .action-link:hover { color: var(--accent-color); }
         .note-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; }
+        .note-drag-handle { cursor: grab; color: #ccc; font-size: 1rem; padding: 0 4px 0 0; transition: 0.15s; }
+        .note-drag-handle:hover { color: var(--accent-color); }
 
         /* MODALS BASE */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(3px); }
@@ -202,18 +257,14 @@
         .tmpl-new-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 8px; }
         .tmpl-new-form input, .tmpl-new-form textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; margin-bottom: 8px; resize: vertical; font-family: inherit; }
 
-        /* ===================== LOGIN / USER MANAGEMENT MODAL ===================== */
+        /* LOGIN / USER MANAGEMENT MODAL */
         .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(6px); }
         .login-content { background: var(--card-bg); padding: 2rem; border-radius: 14px; width: 400px; max-width: 96vw; box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; animation: modalIn 0.22s ease; max-height: 90vh; overflow-y: auto; }
         .login-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 0.5rem; letter-spacing: 2px; }
         .login-sub { font-size: 0.82rem; color: #888; margin-bottom: 1rem; }
-
-        /* Tab switcher */
         .login-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
         .login-tab { flex: 1; padding: 8px; background: var(--bg-color); border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-main); transition: 0.2s; }
         .login-tab.active { background: var(--accent-color); color: white; }
-
-        /* User list in manage tab */
         .user-manage-list { text-align: left; }
         .user-manage-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; background: var(--bg-color); transition: 0.2s; }
         .user-manage-item:hover { border-color: var(--accent-color); }
@@ -230,34 +281,22 @@
         .uman-btn.del { border-color: #ffcdd2; color: #e74c3c; }
         .uman-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
         .uman-btn.select { background: var(--accent-color); color: white; border-color: var(--accent-color); }
-
-        /* Add new user form */
         .add-user-form { background: var(--bg-color); border-radius: 8px; padding: 12px; border: 1px dashed var(--border-color); margin-top: 10px; text-align: left; }
         .add-user-form-title { font-size: 0.78rem; font-weight: bold; color: var(--accent-color); margin-bottom: 8px; }
         .add-user-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .add-user-row input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; }
-        .add-user-color-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.72rem; color: #888; }
-        .color-picker-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.15s; }
-        .color-picker-swatch.selected { border-color: var(--text-main); transform: scale(1.15); }
         .add-user-btn { width: 100%; padding: 8px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.88rem; transition: 0.2s; }
         .add-user-btn:hover { filter: brightness(1.1); }
-
-        /* Edit user inline form */
         .user-edit-row { display: none; flex-direction: column; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-color); border: 1px solid var(--border-color); margin-top: -3px; margin-bottom: 7px; animation: fadeSlideIn 0.18s ease; }
         .user-edit-row.open { display: flex; }
         .user-edit-row input { padding: 6px 10px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.86rem; }
-        .user-edit-colors { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
         .user-edit-save { padding: 6px 14px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.82rem; align-self: flex-end; transition: 0.2s; }
         .user-edit-save:hover { filter: brightness(1.1); }
-
-        /* Select tab - the old style list */
         .user-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 7px; cursor: pointer; transition: 0.2s; background: var(--bg-color); text-align: left; }
         .user-option:hover { border-color: var(--accent-color); background: rgba(197,160,89,0.1); }
         .user-option-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.88rem; flex-shrink: 0; }
         .user-option-name { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
         .user-option-role { font-size: 0.7rem; color: #999; }
-
-        /* Color input type in modal */
         input[type="color"] { width: 34px; height: 34px; padding: 2px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: var(--card-bg); }
 
         /* PRINT STYLES */
@@ -277,6 +316,9 @@
     </style>
 </head>
 <body>
+
+<!-- GLOBAL SPINNER -->
+<div id="global-spinner"><div class="spinner-ring"></div></div>
 
 <header>
     <div class="header-left">
@@ -305,8 +347,41 @@
         </div>
         <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search folders & dates...">
         <button class="add-day-btn" id="new-folder-trigger">+ Add Folder</button>
-        <div id="day-list"></div>
-        <div class="sidebar-footer">Powered by Danylevskij v3.1.0</div>
+
+        <!-- MONTHS SECTION -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="sec-months-header" onclick="toggleSection('months')">
+                <span><span class="sec-icon">📅</span> Months</span>
+                <span id="sec-months-arrow">▼</span>
+            </div>
+            <div class="sidebar-section-content open" id="sec-months-content">
+                <div id="day-list"></div>
+            </div>
+        </div>
+
+        <!-- CHECKLIST SECTION -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="sec-checklist-header" onclick="toggleSection('checklist')">
+                <span><span class="sec-icon">✅</span> Checklist</span>
+                <span id="sec-checklist-arrow">▼</span>
+            </div>
+            <div class="sidebar-section-content open" id="sec-checklist-content">
+                <div id="checklist-container"></div>
+            </div>
+        </div>
+
+        <!-- TRASH SECTION -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="sec-trash-header" onclick="toggleSection('trash')">
+                <span><span class="sec-icon">🗑</span> Trash <span id="trash-count-badge" style="font-size:0.68rem;color:#e74c3c;font-weight:bold;"></span></span>
+                <span id="sec-trash-arrow">▼</span>
+            </div>
+            <div class="sidebar-section-content" id="sec-trash-content">
+                <div id="trash-list"></div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">Powered by Danylevskij v3.2.0</div>
     </aside>
 
     <main>
@@ -472,23 +547,15 @@
     <div class="login-content">
         <div class="login-title">KING DAVID</div>
         <div class="login-sub" id="login-sub">Select or manage your profile</div>
-
-        <!-- Tab switcher -->
         <div class="login-tabs">
             <button class="login-tab active" id="tab-select" onclick="switchLoginTab('select')">Select</button>
             <button class="login-tab" id="tab-manage" onclick="switchLoginTab('manage')">Manage</button>
         </div>
-
-        <!-- SELECT TAB -->
         <div id="tab-select-content">
             <div id="preset-users"></div>
         </div>
-
-        <!-- MANAGE TAB -->
         <div id="tab-manage-content" style="display:none;">
             <div class="user-manage-list" id="manage-user-list"></div>
-
-            <!-- Add new user form -->
             <div class="add-user-form">
                 <div class="add-user-form-title">+ Add New Member</div>
                 <div class="add-user-row">
@@ -517,6 +584,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ===================== SPINNER =====================
+function showSpinner() { document.getElementById('global-spinner').classList.add('active'); }
+function hideSpinner() { document.getElementById('global-spinner').classList.remove('active'); }
+
 // ===================== STATE =====================
 let activeDayId = null;
 let activeDayDate = '';
@@ -529,6 +600,10 @@ let expandedFolders = new Set(['unsorted']);
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
 let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
+let trash = JSON.parse(localStorage.getItem('kd_trash') || '[]');
+
+// Sidebar sections open/closed
+let sectionStates = JSON.parse(localStorage.getItem('kd_sections') || '{"months":true,"checklist":true,"trash":false}');
 
 // Calendar state
 let calTarget = null;
@@ -537,8 +612,30 @@ let calMonth = new Date().getMonth();
 let calSelected = null;
 const existingDatesSet = new Set();
 
+// Note drag state
+let draggedNoteId = null;
+let draggedNoteEl = null;
+let noteOrderCache = {}; // dayId -> [noteId, ...]
+
+// ===================== SECTION TOGGLE =====================
+window.toggleSection = function(name) {
+    sectionStates[name] = !sectionStates[name];
+    localStorage.setItem('kd_sections', JSON.stringify(sectionStates));
+    applySectionStates();
+};
+
+function applySectionStates() {
+    ['months','checklist','trash'].forEach(name => {
+        const content = document.getElementById(`sec-${name}-content`);
+        const arrow = document.getElementById(`sec-${name}-arrow`);
+        if (!content || !arrow) return;
+        if (sectionStates[name]) { content.classList.add('open'); arrow.textContent = '▼'; }
+        else { content.classList.remove('open'); arrow.textContent = '▶'; }
+    });
+}
+applySectionStates();
+
 // ===================== USER MANAGEMENT =====================
-// Default preset users — stored in localStorage so they can be edited/deleted
 const DEFAULT_PRESET_USERS = [
     { name: 'Martin', color: '#3498db' },
     { name: 'Stepan', color: '#9b59b6' },
@@ -556,16 +653,9 @@ function loadUsers() {
     localStorage.setItem('kd_users', JSON.stringify(DEFAULT_PRESET_USERS));
     return DEFAULT_PRESET_USERS;
 }
+function saveUsers(users) { localStorage.setItem('kd_users', JSON.stringify(users)); }
+function getInitials(name) { return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
 
-function saveUsers(users) {
-    localStorage.setItem('kd_users', JSON.stringify(users));
-}
-
-function getInitials(name) {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-}
-
-// Make these accessible globally
 window.switchLoginTab = function(tab) {
     document.getElementById('tab-select').classList.toggle('active', tab === 'select');
     document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
@@ -600,14 +690,10 @@ function renderManageTab() {
     users.forEach((u, idx) => {
         const isMe = currentUser && currentUser.name === u.name;
         const wrapper = document.createElement('div');
-
-        // Main item
         const item = document.createElement('div');
         item.className = 'user-manage-item';
         item.innerHTML = `
-            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">
-                ${getInitials(u.name)}
-            </div>
+            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">${getInitials(u.name)}</div>
             <div class="user-manage-info">
                 <div class="user-manage-name">${escapeHTML(u.name)}${isMe ? ' <span style="font-size:0.65rem;color:var(--accent-color);">(you)</span>' : ''}</div>
                 <div class="user-manage-initials">${getInitials(u.name)}</div>
@@ -616,8 +702,6 @@ function renderManageTab() {
                 <button class="uman-btn${isMe ? ' select' : ''}" onclick="window.toggleEditUser(${idx})">✎ Edit</button>
                 ${!isMe ? `<button class="uman-btn del" onclick="window.deleteUser(${idx})">🗑</button>` : ''}
             </div>`;
-
-        // Edit row (hidden by default)
         const editRow = document.createElement('div');
         editRow.className = 'user-edit-row';
         editRow.id = `edit-row-${idx}`;
@@ -628,7 +712,6 @@ function renderManageTab() {
                 <input type="color" id="edit-color-${idx}" value="${u.color}" style="width:34px;height:34px;padding:2px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;">
             </div>
             <button class="user-edit-save" onclick="window.saveEditUser(${idx})">Save</button>`;
-
         wrapper.appendChild(item);
         wrapper.appendChild(editRow);
         list.appendChild(wrapper);
@@ -638,7 +721,6 @@ function renderManageTab() {
 window.toggleEditUser = function(idx) {
     const row = document.getElementById(`edit-row-${idx}`);
     const isOpen = row.classList.contains('open');
-    // Close all
     document.querySelectorAll('.user-edit-row.open').forEach(r => r.classList.remove('open'));
     if (!isOpen) row.classList.add('open');
 };
@@ -651,11 +733,8 @@ window.saveEditUser = function(idx) {
     const oldName = users[idx].name;
     users[idx] = { name: newName, color: newColor };
     saveUsers(users);
-    // Update currentUser if it's the same person
     if (currentUser && currentUser.name === oldName) {
-        currentUser.name = newName;
-        currentUser.color = newColor;
-        currentUser.initials = getInitials(newName);
+        currentUser.name = newName; currentUser.color = newColor; currentUser.initials = getInitials(newName);
         localStorage.setItem('kd_user', JSON.stringify(currentUser));
         updateUserBadge();
     }
@@ -665,9 +744,7 @@ window.saveEditUser = function(idx) {
 window.deleteUser = function(idx) {
     const users = loadUsers();
     if (!confirm(`Delete "${users[idx].name}" from the list?`)) return;
-    users.splice(idx, 1);
-    saveUsers(users);
-    renderManageTab();
+    users.splice(idx, 1); saveUsers(users); renderManageTab();
 };
 
 window.addNewUser = function() {
@@ -678,10 +755,8 @@ window.addNewUser = function() {
     if (!name) { alert('Enter a name'); return; }
     const users = loadUsers();
     if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) { alert('A member with this name already exists'); return; }
-    users.push({ name, color });
-    saveUsers(users);
-    nameInput.value = '';
-    colorInput.value = '#3498db';
+    users.push({ name, color }); saveUsers(users);
+    nameInput.value = ''; colorInput.value = '#3498db';
     renderManageTab();
     addNotification('👤 New member added: ' + name, '', 'info');
 };
@@ -703,56 +778,252 @@ function updateUserBadge() {
 }
 
 document.getElementById('change-user-btn').onclick = () => {
-    renderSelectTab();
-    window.switchLoginTab('select');
+    renderSelectTab(); window.switchLoginTab('select');
     document.getElementById('login-modal').style.display = 'flex';
 };
 
-// Load saved user
 const savedUser = localStorage.getItem('kd_user');
-if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    updateUserBadge();
-} else {
-    renderSelectTab();
-    document.getElementById('login-modal').style.display = 'flex';
-}
+if (savedUser) { currentUser = JSON.parse(savedUser); updateUserBadge(); }
+else { renderSelectTab(); document.getElementById('login-modal').style.display = 'flex'; }
 
 // ===================== HELPERS =====================
 function escapeHTML(str) {
-    return String(str || '').replace(/[&<>'"]/g,
-        t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
+    return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]));
 }
-
 function parseDateToTs(str) {
     const p = str.split('.');
     if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]).getTime();
     return 0;
 }
-
 const compressImg = (file) => new Promise(resolve => {
-    const r = new FileReader();
-    r.readAsDataURL(file);
+    const r = new FileReader(); r.readAsDataURL(file);
     r.onload = e => {
-        const img = new Image();
-        img.src = e.target.result;
+        const img = new Image(); img.src = e.target.result;
         img.onload = () => {
-            const c = document.createElement('canvas');
-            const ctx = c.getContext('2d');
+            const c = document.createElement('canvas'), ctx = c.getContext('2d');
             let w = img.width, h = img.height;
             if (w > 800) { h *= 800/w; w = 800; }
-            c.width = w; c.height = h;
-            ctx.drawImage(img, 0, 0, w, h);
+            c.width = w; c.height = h; ctx.drawImage(img, 0, 0, w, h);
             resolve(c.toDataURL('image/jpeg', 0.6));
         };
     };
 });
+function stripHTML(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
 
-function stripHTML(html) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || '';
+// ===================== TRASH =====================
+function saveTrash() { localStorage.setItem('kd_trash', JSON.stringify(trash)); }
+
+function addToTrash(noteData, dayId, dayDate, noteId) {
+    trash.unshift({ ...noteData, _trashId: Date.now(), _origDayId: dayId, _origDayDate: dayDate, _origNoteId: noteId });
+    if (trash.length > 200) trash = trash.slice(0, 200);
+    saveTrash(); renderTrash();
 }
+
+function renderTrash() {
+    const list = document.getElementById('trash-list');
+    const badge = document.getElementById('trash-count-badge');
+    badge.textContent = trash.length ? `(${trash.length})` : '';
+    if (!trash.length) { list.innerHTML = '<div class="trash-empty">Trash is empty</div>'; return; }
+    list.innerHTML = '';
+    trash.slice(0, 50).forEach((item, idx) => {
+        const plain = stripHTML(item.htmlContent || '').slice(0, 60);
+        const div = document.createElement('div');
+        div.className = 'trash-item';
+        div.innerHTML = `
+            <div class="trash-item-info">
+                <div class="trash-item-date">${escapeHTML(item._origDayDate || '—')}</div>
+                ${item.room ? `<div class="trash-item-room">R: ${escapeHTML(item.room)}</div>` : ''}
+                <div class="trash-item-text">${escapeHTML(plain)}</div>
+            </div>
+            <div class="trash-actions">
+                <button class="trash-btn" onclick="window.restoreTrash(${idx})" title="Restore">↩</button>
+                <button class="trash-btn del" onclick="window.deleteTrashItem(${idx})" title="Delete forever">🗑</button>
+            </div>`;
+        list.appendChild(div);
+    });
+    if (trash.length > 1) {
+        const btn = document.createElement('button');
+        btn.className = 'trash-clear-all';
+        btn.textContent = '🗑 Empty Trash (' + trash.length + ')';
+        btn.onclick = () => { if (confirm('Empty trash permanently? This cannot be undone.')) { trash = []; saveTrash(); renderTrash(); } };
+        list.appendChild(btn);
+    }
+}
+
+window.restoreTrash = async function(idx) {
+    const item = trash[idx];
+    if (!item) return;
+    showSpinner();
+    try {
+        const { _trashId, _origDayId, _origDayDate, _origNoteId, ...noteData } = item;
+        if (!_origDayId || !daysMap.has(_origDayId)) { alert('Original day no longer exists.'); hideSpinner(); return; }
+        await addDoc(collection(db, `days/${_origDayId}/notes`), { ...noteData, createdAt: Date.now() });
+        trash.splice(idx, 1); saveTrash(); renderTrash();
+        addNotification('↩ Note restored', _origDayDate || '', 'done');
+    } catch(e) { alert('Error restoring: ' + e.message); }
+    hideSpinner();
+};
+
+window.deleteTrashItem = function(idx) {
+    if (!confirm('Delete permanently?')) return;
+    trash.splice(idx, 1); saveTrash(); renderTrash();
+};
+
+renderTrash();
+
+// ===================== CHECKLIST =====================
+const DEFAULT_CHECKLIST = {
+    day: [
+        'Check arrivals & departures list',
+        'Inspect lobby & public areas',
+        'Confirm housekeeping assignments',
+        'Review maintenance requests',
+        'Check VIP arrivals',
+        'Confirm restaurant reservations',
+        'Update room status board',
+        'Brief incoming shift',
+    ],
+    night: [
+        'Night audit preparation',
+        'Security walkthrough',
+        'Lock all storage areas',
+        'Check all F&B outlets closed',
+        'Prepare morning call list',
+        'Confirm early departures',
+        'Fill handover log',
+        'Check breakfast setup',
+    ]
+};
+
+function getChecklistStorageKey() {
+    const today = new Date();
+    return `kd_cl_${today.getFullYear()}_${today.getMonth()+1}_${today.getDate()}`;
+}
+
+function loadChecklistItems() {
+    const stored = localStorage.getItem('kd_checklist_items');
+    if (stored) return JSON.parse(stored);
+    return { day: [...DEFAULT_CHECKLIST.day], night: [...DEFAULT_CHECKLIST.night] };
+}
+
+function saveChecklistItems(items) { localStorage.setItem('kd_checklist_items', JSON.stringify(items)); }
+
+function loadChecklistState() {
+    const key = getChecklistStorageKey();
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : { day: {}, night: {} };
+}
+
+function saveChecklistState(state) {
+    const key = getChecklistStorageKey();
+    localStorage.setItem(key, JSON.stringify(state));
+}
+
+function renderChecklist() {
+    const container = document.getElementById('checklist-container');
+    const items = loadChecklistItems();
+    const state = loadChecklistState();
+    container.innerHTML = '';
+
+    ['day', 'night'].forEach(shift => {
+        const isDay = shift === 'day';
+        const shiftLabel = isDay ? '☀️ Day' : '🌙 Night';
+        const shiftTime = isDay ? '7:35 – 19:35' : '19:35 – 7:35';
+        const shiftItems = items[shift] || [];
+        const checked = shiftItems.filter((_, i) => state[shift][i]).length;
+
+        const sec = document.createElement('div');
+        sec.className = 'checklist-shift';
+        sec.innerHTML = `
+            <div class="checklist-shift-header">
+                <span>${shiftLabel} <span>${shiftTime}</span></span>
+                <span>${checked}/${shiftItems.length}</span>
+            </div>
+            <div id="cl-items-${shift}"></div>
+            <div class="checklist-progress">
+                <div class="checklist-bar"><div class="checklist-bar-fill" id="cl-bar-${shift}" style="width:${shiftItems.length ? checked/shiftItems.length*100 : 0}%"></div></div>
+                <span id="cl-pct-${shift}">${shiftItems.length ? Math.round(checked/shiftItems.length*100) : 0}%</span>
+            </div>
+            <div class="checklist-add-row">
+                <input type="text" id="cl-new-${shift}" placeholder="Add item..." onkeydown="if(event.key==='Enter')window.addChecklistItem('${shift}')">
+                <button onclick="window.addChecklistItem('${shift}')">+</button>
+            </div>
+            <button class="checklist-reset-btn" onclick="window.resetChecklist('${shift}')">↺ Reset ${isDay ? 'Day' : 'Night'} Checks</button>`;
+
+        container.appendChild(sec);
+
+        const itemsDiv = document.getElementById(`cl-items-${shift}`);
+        shiftItems.forEach((text, i) => {
+            const isChecked = !!state[shift][i];
+            const div = document.createElement('div');
+            div.className = `checklist-item${isChecked ? ' checked' : ''}`;
+            div.id = `cl-item-${shift}-${i}`;
+            div.innerHTML = `
+                <input type="checkbox" id="cl-cb-${shift}-${i}" ${isChecked ? 'checked' : ''}>
+                <label for="cl-cb-${shift}-${i}">${escapeHTML(text)}</label>
+                <div class="checklist-item-actions">
+                    <button class="cl-act-btn del" onclick="window.deleteChecklistItem('${shift}',${i})" title="Remove">✕</button>
+                </div>`;
+            div.querySelector('input').onchange = (e) => {
+                const s = loadChecklistState();
+                s[shift][i] = e.target.checked;
+                saveChecklistState(s);
+                div.classList.toggle('checked', e.target.checked);
+                updateChecklistProgress(shift);
+            };
+            itemsDiv.appendChild(div);
+        });
+    });
+}
+
+function updateChecklistProgress(shift) {
+    const items = loadChecklistItems();
+    const state = loadChecklistState();
+    const shiftItems = items[shift] || [];
+    const checked = shiftItems.filter((_, i) => state[shift][i]).length;
+    const pct = shiftItems.length ? Math.round(checked/shiftItems.length*100) : 0;
+    const bar = document.getElementById(`cl-bar-${shift}`);
+    const pctEl = document.getElementById(`cl-pct-${shift}`);
+    if (bar) bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+}
+
+window.addChecklistItem = function(shift) {
+    const input = document.getElementById(`cl-new-${shift}`);
+    const text = input.value.trim();
+    if (!text) return;
+    const items = loadChecklistItems();
+    items[shift].push(text);
+    saveChecklistItems(items);
+    input.value = '';
+    renderChecklist();
+};
+
+window.deleteChecklistItem = function(shift, idx) {
+    const items = loadChecklistItems();
+    items[shift].splice(idx, 1);
+    saveChecklistItems(items);
+    // Shift state indices
+    const state = loadChecklistState();
+    const newState = {};
+    Object.keys(state[shift]).forEach(k => {
+        const ki = parseInt(k);
+        if (ki < idx) newState[ki] = state[shift][k];
+        else if (ki > idx) newState[ki-1] = state[shift][k];
+    });
+    state[shift] = newState;
+    saveChecklistState(state);
+    renderChecklist();
+};
+
+window.resetChecklist = function(shift) {
+    const state = loadChecklistState();
+    state[shift] = {};
+    saveChecklistState(state);
+    renderChecklist();
+};
+
+renderChecklist();
 
 // ===================== NOTIFICATIONS =====================
 function addNotification(title, sub, type = 'info') {
@@ -771,10 +1042,7 @@ function renderNotifBadge() {
 
 function renderNotifPanel() {
     const list = document.getElementById('notif-list');
-    if (!notifications.length) {
-        list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
-        return;
-    }
+    if (!notifications.length) { list.innerHTML = '<div class="notif-empty">No notifications yet</div>'; return; }
     list.innerHTML = '';
     notifications.slice(0, 20).forEach(n => {
         const colors = { urgent: '#e74c3c', important: '#f39c12', info: '#3498db', done: '#2ecc71' };
@@ -782,8 +1050,7 @@ function renderNotifPanel() {
         div.className = 'notif-item';
         div.innerHTML = `
             <div class="notif-dot" style="background:${colors[n.type]||'#3498db'}"></div>
-            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>
-        `;
+            <div><div class="notif-item-text">${escapeHTML(n.title)}</div><div class="notif-item-sub">${escapeHTML(n.sub)} · ${n.time}</div></div>`;
         list.appendChild(div);
     });
     notifications.forEach(n => n.read = true);
@@ -796,60 +1063,35 @@ document.getElementById('notif-btn').onclick = () => {
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
     renderNotifPanel();
 };
-
 document.getElementById('notif-clear-btn').onclick = () => {
-    notifications = [];
-    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
-    renderNotifPanel();
-    renderNotifBadge();
+    notifications = []; localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    renderNotifPanel(); renderNotifBadge();
 };
-
-document.getElementById('notif-check-btn').onclick = () => {
-    checkUrgentNotes();
-};
+document.getElementById('notif-check-btn').onclick = () => { checkUrgentNotes(); };
 
 function checkUrgentNotes() {
     const urgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done);
-    if (urgent.length === 0) {
-        addNotification('✅ All clear!', 'No open urgent notes found', 'done');
-    } else {
-        urgent.forEach(n => {
-            addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent');
-        });
-    }
+    if (!urgent.length) addNotification('✅ All clear!', 'No open urgent notes found', 'done');
+    else urgent.forEach(n => addNotification(`🚨 URGENT: R: ${n.room || '—'}`, stripHTML(n.htmlContent || n.text || '').slice(0, 60), 'urgent'));
     renderNotifPanel();
 }
-
 renderNotifBadge();
 
 // ===================== STATS =====================
-document.getElementById('stats-btn').onclick = () => {
-    buildStats();
-    document.getElementById('stats-modal').style.display = 'flex';
-};
+document.getElementById('stats-btn').onclick = () => { buildStats(); document.getElementById('stats-modal').style.display = 'flex'; };
 
 function buildStats() {
     const body = document.getElementById('stats-body');
-    const total = allNotesCache.length;
-    const urgent = allNotesCache.filter(n => n.tag === 'urgent').length;
-    const important = allNotesCache.filter(n => n.tag === 'important').length;
-    const info = allNotesCache.filter(n => n.tag === 'info').length;
-    const done = allNotesCache.filter(n => n.done).length;
-    const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
-
+    const total = allNotesCache.length, urgent = allNotesCache.filter(n=>n.tag==='urgent').length;
+    const important = allNotesCache.filter(n=>n.tag==='important').length, info = allNotesCache.filter(n=>n.tag==='info').length;
+    const done = allNotesCache.filter(n=>n.done).length, openUrgent = allNotesCache.filter(n=>n.tag==='urgent'&&!n.done).length;
     const byUser = {};
-    allNotesCache.forEach(n => {
-        const u = n.author || 'Unknown';
-        byUser[u] = (byUser[u] || 0) + 1;
-    });
-
+    allNotesCache.forEach(n => { const u = n.author||'Unknown'; byUser[u]=(byUser[u]||0)+1; });
     const byDay = {};
-    daysMap.forEach(d => { byDay[d.date] = 0; });
-    allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
-
-    const sortedDays = Object.entries(byDay).sort((a,b) => parseDateToTs(a[0]) - parseDateToTs(b[0])).slice(-7);
-    const maxDayCount = Math.max(...sortedDays.map(d => d[1]), 1);
-
+    daysMap.forEach(d => { byDay[d.date]=0; });
+    allNotesCache.forEach(n => { if(n._dayDate) byDay[n._dayDate]=(byDay[n._dayDate]||0)+1; });
+    const sortedDays = Object.entries(byDay).sort((a,b)=>parseDateToTs(a[0])-parseDateToTs(b[0])).slice(-7);
+    const maxDayCount = Math.max(...sortedDays.map(d=>d[1]),1);
     body.innerHTML = `
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total Notes</div></div>
@@ -857,513 +1099,474 @@ function buildStats() {
             <div class="stat-box"><div class="stat-num" style="color:#2ecc71">${done}</div><div class="stat-lbl">Resolved</div></div>
             <div class="stat-box"><div class="stat-num">${daysMap.size}</div><div class="stat-lbl">Days Logged</div></div>
         </div>
-
         <div class="stats-section-title">Note Breakdown</div>
-        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl, col, val]) => `
-        <div class="stat-bar-wrap">
-            <div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total ? Math.round(val/total*100) : 0}%)</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill" style="width:${total ? val/total*100 : 0}%;background:${col}"></div></div>
-        </div>`).join('')}
-
+        ${[['Urgent','#e74c3c',urgent],['Important','#f39c12',important],['Info','#3498db',info],['Done','#2ecc71',done]].map(([lbl,col,val])=>`
+        <div class="stat-bar-wrap"><div class="stat-bar-label"><span>${lbl}</span><span>${val} (${total?Math.round(val/total*100):0}%)</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${total?val/total*100:0}%;background:${col}"></div></div></div>`).join('')}
         <div class="stats-section-title">Activity — Last ${sortedDays.length} Days</div>
-        ${sortedDays.map(([date, cnt]) => `
-        <div class="stat-bar-wrap">
-            <div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div>
-        </div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
-
+        ${sortedDays.map(([date,cnt])=>`
+        <div class="stat-bar-wrap"><div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div></div>`).join('')||'<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
         <div class="stats-section-title">Notes by Staff</div>
-        <table class="stats-table">
-            <thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead>
-            <tbody>
-                ${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c]) => `
-                <tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total ? Math.round(c/total*100) : 0}%</td></tr>`).join('') || '<tr><td colspan="3" style="color:#888">No data</td></tr>'}
-            </tbody>
-        </table>
-    `;
+        <table class="stats-table"><thead><tr><th>Staff Member</th><th>Notes</th><th>Share</th></tr></thead>
+        <tbody>${Object.entries(byUser).sort((a,b)=>b[1]-a[1]).map(([u,c])=>`
+        <tr><td>${escapeHTML(u)}</td><td><b>${c}</b></td><td>${total?Math.round(c/total*100):0}%</td></tr>`).join('')||'<tr><td colspan="3" style="color:#888">No data</td></tr>'}
+        </tbody></table>`;
 }
 
 // ===================== GLOBAL SEARCH =====================
 document.getElementById('gsearch-btn').onclick = openGSearch;
 document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGSearch(); }
-    if (e.key === 'Escape') closeGSearch();
+    if ((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openGSearch();}
+    if (e.key==='Escape') closeGSearch();
 });
 
 function openGSearch() {
-    document.getElementById('gsearch-modal').style.display = 'flex';
-    document.getElementById('gsearch-input').value = '';
-    document.getElementById('gsearch-results').innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
-    document.getElementById('gsearch-count').textContent = '';
-    setTimeout(() => document.getElementById('gsearch-input').focus(), 50);
+    document.getElementById('gsearch-modal').style.display='flex';
+    document.getElementById('gsearch-input').value='';
+    document.getElementById('gsearch-results').innerHTML='<div class="gsearch-empty">Start typing to search...</div>';
+    document.getElementById('gsearch-count').textContent='';
+    setTimeout(()=>document.getElementById('gsearch-input').focus(),50);
 }
-window.closeGSearch = () => { document.getElementById('gsearch-modal').style.display = 'none'; };
-document.getElementById('gsearch-modal').onclick = (e) => { if (e.target === document.getElementById('gsearch-modal')) closeGSearch(); };
+window.closeGSearch = () => { document.getElementById('gsearch-modal').style.display='none'; };
+document.getElementById('gsearch-modal').onclick = e => { if(e.target===document.getElementById('gsearch-modal'))closeGSearch(); };
 
 document.getElementById('gsearch-input').oninput = function() {
     const term = this.value.trim().toLowerCase();
     const results = document.getElementById('gsearch-results');
     const countEl = document.getElementById('gsearch-count');
-    if (!term) {
-        results.innerHTML = '<div class="gsearch-empty">Start typing to search...</div>';
-        countEl.textContent = '';
-        return;
-    }
-    const matched = allNotesCache.filter(n =>
-        (stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'')).toLowerCase().includes(term)
-    );
-    countEl.textContent = matched.length + ' results';
-    if (!matched.length) { results.innerHTML = '<div class="gsearch-empty">Nothing found</div>'; return; }
-
-    function hl(str) {
-        const s = escapeHTML(str);
-        const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
-        return s.replace(re, '<mark>$1</mark>');
-    }
-
-    results.innerHTML = '';
-    matched.slice(0, 40).forEach(n => {
+    if (!term) { results.innerHTML='<div class="gsearch-empty">Start typing to search...</div>'; countEl.textContent=''; return; }
+    const matched = allNotesCache.filter(n=>(stripHTML(n.htmlContent||'')+' '+(n.text||'')+' '+(n.room||'')).toLowerCase().includes(term));
+    countEl.textContent = matched.length+' results';
+    if (!matched.length) { results.innerHTML='<div class="gsearch-empty">Nothing found</div>'; return; }
+    function hl(str) { return escapeHTML(str).replace(new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); }
+    results.innerHTML='';
+    matched.slice(0,40).forEach(n => {
         const div = document.createElement('div');
-        div.className = 'gsearch-item';
-        const plain = stripHTML(n.htmlContent || '').slice(0, 100);
-        div.innerHTML = `
-            <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
-            ${n.room ? `<div class="gsearch-item-room">R: ${hl(n.room)}</div>` : ''}
-            <div class="gsearch-item-text">${hl(plain)}</div>
-        `;
-        div.onclick = () => {
-            closeGSearch();
-            if (n._dayId) window.selectDay(n._dayId, n._dayDate || n._dayId);
-        };
+        div.className='gsearch-item';
+        const plain = stripHTML(n.htmlContent||'').slice(0,100);
+        div.innerHTML=`<div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>${n.room?`<div class="gsearch-item-room">R: ${hl(n.room)}</div>`:''}<div class="gsearch-item-text">${hl(plain)}</div>`;
+        div.onclick=()=>{ closeGSearch(); if(n._dayId) window.selectDay(n._dayId,n._dayDate||n._dayId); };
         results.appendChild(div);
     });
 };
 
 // ===================== SIDEBAR =====================
-document.getElementById('sidebar-toggle').onclick = () =>
-    document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+document.getElementById('sidebar-toggle').onclick = () => document.getElementById('sidebar').classList.toggle('sidebar-hidden');
 
 document.getElementById('new-folder-trigger').onclick = async () => {
     const name = prompt("Enter Folder Name (e.g. April 2026):");
     if (name) {
-        const ref = await addDoc(collection(db, "folders"), { name, createdAt: Date.now() });
+        showSpinner();
+        const ref = await addDoc(collection(db,"folders"),{name,createdAt:Date.now()});
         expandedFolders.add(ref.id);
-        addNotification('📁 Folder created: ' + name, '', 'info');
+        addNotification('📁 Folder created: '+name,'','info');
+        hideSpinner();
     }
 };
 
 window.toggleFolder = id => {
-    if (expandedFolders.has(id)) expandedFolders.delete(id);
-    else expandedFolders.add(id);
+    if (expandedFolders.has(id)) expandedFolders.delete(id); else expandedFolders.add(id);
     renderSidebar();
 };
-
 window.addDayToFolder = folderId => openCalendar(folderId);
-
 window.renameFolder = async (id, oldName) => {
     const n = prompt("New folder name:", oldName);
-    if (n && n.trim() && n !== oldName) await updateDoc(doc(db, "folders", id), { name: n.trim() });
+    if (n&&n.trim()&&n!==oldName) { showSpinner(); await updateDoc(doc(db,"folders",id),{name:n.trim()}); hideSpinner(); }
 };
-
 window.deleteFolder = async id => {
     if (!confirm("Delete folder? Days will move to Unsorted.")) return;
-    const days = Array.from(daysMap.values()).filter(d => d.folderId === id);
-    for (const d of days) await updateDoc(doc(db, "days", d.id), { folderId: null });
-    await deleteDoc(doc(db, "folders", id));
+    showSpinner();
+    const days = Array.from(daysMap.values()).filter(d=>d.folderId===id);
+    for(const d of days) await updateDoc(doc(db,"days",d.id),{folderId:null});
+    await deleteDoc(doc(db,"folders",id));
+    hideSpinner();
 };
 
 document.getElementById('sidebar-search').oninput = () => renderSidebar();
 
-onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap => {
+onSnapshot(query(collection(db,"folders"),orderBy("createdAt","desc")), snap => {
     foldersMap.clear();
-    snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
+    snap.forEach(f=>foldersMap.set(f.id,{id:f.id,...f.data()}));
     renderSidebar();
 });
 
-onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
-    daysMap.clear();
-    existingDatesSet.clear();
-    snap.forEach(d => {
-        const data = { id: d.id, ...d.data() };
-        daysMap.set(d.id, data);
-        existingDatesSet.add(data.date);
-    });
+onSnapshot(query(collection(db,"days"),orderBy("createdAt","desc")), snap => {
+    daysMap.clear(); existingDatesSet.clear();
+    snap.forEach(d => { const data={id:d.id,...d.data()}; daysMap.set(d.id,data); existingDatesSet.add(data.date); });
     renderSidebar();
     loadAllNotesForCache();
 });
 
 async function loadAllNotesForCache() {
-    allNotesCache = [];
-    for (const [dayId, dayData] of daysMap) {
-        const snap = await getDocs(collection(db, `days/${dayId}/notes`));
-        snap.forEach(n => {
-            allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date });
-        });
+    allNotesCache=[];
+    for (const [dayId,dayData] of daysMap) {
+        const snap = await getDocs(collection(db,`days/${dayId}/notes`));
+        snap.forEach(n=>allNotesCache.push({...n.data(),_dayId:dayId,_dayDate:dayData.date}));
     }
 }
 
 function renderSidebar() {
     const list = document.getElementById('day-list');
-    list.innerHTML = '';
-    const term = (document.getElementById('sidebar-search')?.value || '').toLowerCase();
-    const grouped = { unsorted: [] };
-    const sortedFolders = Array.from(foldersMap.values()).sort((a,b) => {
-        return (a.order !== undefined ? a.order : -a.createdAt) - (b.order !== undefined ? b.order : -b.createdAt);
-    });
-    sortedFolders.forEach(f => grouped[f.id] = []);
-    daysMap.forEach(day => {
-        const fId = day.folderId || 'unsorted';
-        if (!grouped[fId]) grouped[fId] = [];
-        grouped[fId].push(day);
-    });
+    list.innerHTML='';
+    const term = (document.getElementById('sidebar-search')?.value||'').toLowerCase();
+    const grouped = {unsorted:[]};
+    const sortedFolders = Array.from(foldersMap.values()).sort((a,b)=>(a.order!==undefined?a.order:-a.createdAt)-(b.order!==undefined?b.order:-b.createdAt));
+    sortedFolders.forEach(f=>grouped[f.id]=[]);
+    daysMap.forEach(day=>{const fId=day.folderId||'unsorted'; if(!grouped[fId])grouped[fId]=[]; grouped[fId].push(day);});
 
     const renderFolder = (folderId, folderName) => {
-        let days = (grouped[folderId] || []);
-
-        // Sort: descending by date (newest first: 25, 24, 23...)
-        days = days.sort((a, b) => parseDateToTs(b.date) - parseDateToTs(a.date));
-
-        const filtered = days.filter(d => d.date.toLowerCase().includes(term));
-        if (term && !folderName.toLowerCase().includes(term) && !filtered.length) return;
+        let days = (grouped[folderId]||[]).sort((a,b)=>parseDateToTs(b.date)-parseDateToTs(a.date));
+        const filtered = days.filter(d=>d.date.toLowerCase().includes(term));
+        if (term&&!folderName.toLowerCase().includes(term)&&!filtered.length) return;
         const display = term ? filtered : days;
-        if (folderId === 'unsorted' && !display.length) return;
+        if (folderId==='unsorted'&&!display.length) return;
         const isOpen = term ? true : expandedFolders.has(folderId);
         const fDiv = document.createElement('div');
-        fDiv.className = 'folder-container' + (folderId !== 'unsorted' ? ' draggable' : '');
-        if (folderId !== 'unsorted') fDiv.draggable = true;
-        fDiv.dataset.type = 'folder'; fDiv.dataset.id = folderId;
-
-        const actions = folderId !== 'unsorted' ? `
+        fDiv.className='folder-container'+(folderId!=='unsorted'?' draggable':'');
+        if(folderId!=='unsorted') fDiv.draggable=true;
+        fDiv.dataset.type='folder'; fDiv.dataset.id=folderId;
+        const actions = folderId!=='unsorted' ? `
             <button class="folder-action-btn" onclick="event.stopPropagation();window.renameFolder('${folderId}','${escapeHTML(folderName)}')">✎</button>
             <button class="folder-action-btn" style="color:#e74c3c" onclick="event.stopPropagation();window.deleteFolder('${folderId}')">🗑</button>` : '';
-
-        fDiv.innerHTML = `
+        fDiv.innerHTML=`
             <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
                 <span>${isOpen?'📂':'📁'} ${escapeHTML(folderName)}</span>
                 <div class="folder-actions">${actions}<button class="add-to-folder-btn" onclick="event.stopPropagation();window.addDayToFolder('${folderId}')">+</button></div>
             </div>
             <div class="folder-content ${isOpen?'open':''}" id="folder-${folderId}"></div>`;
-
         const content = fDiv.querySelector('.folder-content');
-        display.forEach(day => {
-            const div = document.createElement('div');
-            div.className = `day-item draggable${activeDayId===day.id?' active':''}`;
-            div.dataset.id = day.id; div.dataset.type = 'day'; div.dataset.folder = folderId;
-            div.draggable = true;
-            div.innerHTML = `<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
-            div.querySelector('.day-text').onclick = () => window.selectDay(day.id, day.date);
-            div.querySelector('.delete-day-btn').onclick = e => { e.stopPropagation(); window.deleteDay(day.id); };
+        display.forEach(day=>{
+            const div=document.createElement('div');
+            div.className=`day-item draggable${activeDayId===day.id?' active':''}`;
+            div.dataset.id=day.id; div.dataset.type='day'; div.dataset.folder=folderId; div.draggable=true;
+            div.innerHTML=`<span class="day-text">${escapeHTML(day.date)}</span><button class="delete-day-btn">✕</button>`;
+            div.querySelector('.day-text').onclick=()=>window.selectDay(day.id,day.date);
+            div.querySelector('.delete-day-btn').onclick=e=>{e.stopPropagation();window.deleteDay(day.id);};
             content.appendChild(div);
         });
         list.appendChild(fDiv);
     };
 
-    sortedFolders.forEach(f => renderFolder(f.id, f.name));
-    renderFolder('unsorted', 'Unsorted');
+    sortedFolders.forEach(f=>renderFolder(f.id,f.name));
+    renderFolder('unsorted','Unsorted');
 }
 
-// ===================== DRAG & DROP =====================
+// ===================== DRAG & DROP (sidebar folders/days) =====================
 let draggedItem = null;
 document.addEventListener('dragstart', e => {
     const el = e.target.closest('.folder-container, .day-item');
-    if (el) { draggedItem = el; setTimeout(() => el.classList.add('dragging'), 0); }
+    if (el) { draggedItem=el; setTimeout(()=>el.classList.add('dragging'),0); }
 });
 document.addEventListener('dragend', () => {
-    if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; }
-    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
+    if(draggedItem){draggedItem.classList.remove('dragging');draggedItem=null;}
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el=>el.classList.remove('drag-over','drag-over-folder'));
 });
 document.addEventListener('dragover', e => {
-    e.preventDefault();
-    if (!draggedItem) return;
-    const td = e.target.closest('.day-item'), th = e.target.closest('.folder-header');
-    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
-    if (draggedItem.dataset.type === 'day') {
-        if (td && td !== draggedItem) td.classList.add('drag-over');
-        else if (th) th.classList.add('drag-over-folder');
-    } else {
-        const tf = e.target.closest('.folder-container');
-        if (tf && tf !== draggedItem && tf.dataset.id !== 'unsorted') tf.classList.add('drag-over');
-    }
+    e.preventDefault(); if(!draggedItem) return;
+    const td=e.target.closest('.day-item'),th=e.target.closest('.folder-header');
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el=>el.classList.remove('drag-over','drag-over-folder'));
+    if(draggedItem.dataset.type==='day'){if(td&&td!==draggedItem)td.classList.add('drag-over');else if(th)th.classList.add('drag-over-folder');}
+    else{const tf=e.target.closest('.folder-container');if(tf&&tf!==draggedItem&&tf.dataset.id!=='unsorted')tf.classList.add('drag-over');}
 });
 document.addEventListener('drop', async e => {
-    e.preventDefault();
-    if (!draggedItem) return;
-    const { type, id } = draggedItem.dataset;
-    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el => el.classList.remove('drag-over','drag-over-folder'));
-    if (type === 'day') {
-        const td = e.target.closest('.day-item'), th = e.target.closest('.folder-header');
-        if (td && td !== draggedItem) {
-            const c = td.parentNode, rect = td.getBoundingClientRect();
-            c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? td.nextSibling : td);
-            Array.from(c.querySelectorAll('.day-item')).forEach(async(el,i) => await updateDoc(doc(db,'days',el.dataset.id),{order:i}));
-        } else if (th) {
-            const fc = th.closest('.folder-container'), newFId = fc.dataset.id;
-            if (draggedItem.dataset.folder !== newFId)
-                await updateDoc(doc(db,'days',id),{folderId: newFId==='unsorted'?null:newFId});
-        }
+    e.preventDefault(); if(!draggedItem) return;
+    const{type,id}=draggedItem.dataset;
+    document.querySelectorAll('.drag-over,.drag-over-folder').forEach(el=>el.classList.remove('drag-over','drag-over-folder'));
+    if(type==='day'){
+        const td=e.target.closest('.day-item'),th=e.target.closest('.folder-header');
+        if(td&&td!==draggedItem){const c=td.parentNode,rect=td.getBoundingClientRect();c.insertBefore(draggedItem,(e.clientY-rect.top)/(rect.bottom-rect.top)>0.5?td.nextSibling:td);Array.from(c.querySelectorAll('.day-item')).forEach(async(el,i)=>await updateDoc(doc(db,'days',el.dataset.id),{order:i}));}
+        else if(th){const fc=th.closest('.folder-container'),newFId=fc.dataset.id;if(draggedItem.dataset.folder!==newFId)await updateDoc(doc(db,'days',id),{folderId:newFId==='unsorted'?null:newFId});}
     } else {
-        const tf = e.target.closest('.folder-container');
-        if (tf && tf !== draggedItem && tf.dataset.id !== 'unsorted') {
-            const c = tf.parentNode, rect = tf.getBoundingClientRect();
-            c.insertBefore(draggedItem, (e.clientY-rect.top)/(rect.bottom-rect.top)>0.5 ? tf.nextSibling : tf);
-            Array.from(c.querySelectorAll('.folder-container:not([data-id="unsorted"])')).forEach(async(el,i) => await updateDoc(doc(db,'folders',el.dataset.id),{order:i}));
-        }
+        const tf=e.target.closest('.folder-container');
+        if(tf&&tf!==draggedItem&&tf.dataset.id!=='unsorted'){const c=tf.parentNode,rect=tf.getBoundingClientRect();c.insertBefore(draggedItem,(e.clientY-rect.top)/(rect.bottom-rect.top)>0.5?tf.nextSibling:tf);Array.from(c.querySelectorAll('.folder-container:not([data-id="unsorted"])')).forEach(async(el,i)=>await updateDoc(doc(db,'folders',el.dataset.id),{order:i}));}
     }
 });
 
 // ===================== CALENDAR =====================
 function openCalendar(folderId) {
-    calTarget = folderId; calSelected = null;
-    const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
+    calTarget=folderId; calSelected=null;
+    const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
     renderCalendar();
-    document.getElementById('cal-modal').style.display = 'flex';
+    document.getElementById('cal-modal').style.display='flex';
 }
 function renderCalendar() {
-    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    document.getElementById('cal-title').textContent = `${MONTHS[calMonth]} ${calYear}`;
-    const grid = document.getElementById('cal-grid');
-    grid.innerHTML = '';
-    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
-        const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
-    });
-    const firstDow = ((new Date(calYear, calMonth, 1).getDay() + 6) % 7);
-    const dIM = new Date(calYear, calMonth+1, 0).getDate();
-    const dIPrev = new Date(calYear, calMonth, 0).getDate();
-    const today = new Date();
-    for (let i = firstDow-1; i >= 0; i--) {
-        const el = document.createElement('div'); el.className = 'cal-cell other-month'; el.textContent = dIPrev-i; grid.appendChild(el);
-    }
-    for (let d = 1; d <= dIM; d++) {
-        const el = document.createElement('div'); el.className = 'cal-cell';
-        const ds = `${String(d).padStart(2,'0')}.${String(calMonth+1).padStart(2,'0')}.${calYear}`;
-        el.textContent = d;
-        if (d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear()) el.classList.add('today');
-        if (calSelected === ds) el.classList.add('selected');
-        if (existingDatesSet.has(ds)) el.classList.add('has-notes');
-        el.onclick = () => { calSelected = ds; renderCalendar(); };
+    const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('cal-title').textContent=`${MONTHS[calMonth]} ${calYear}`;
+    const grid=document.getElementById('cal-grid');
+    grid.innerHTML='';
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>{const el=document.createElement('div');el.className='cal-day-name';el.textContent=d;grid.appendChild(el);});
+    const firstDow=((new Date(calYear,calMonth,1).getDay()+6)%7);
+    const dIM=new Date(calYear,calMonth+1,0).getDate();
+    const dIPrev=new Date(calYear,calMonth,0).getDate();
+    const today=new Date();
+    for(let i=firstDow-1;i>=0;i--){const el=document.createElement('div');el.className='cal-cell other-month';el.textContent=dIPrev-i;grid.appendChild(el);}
+    for(let d=1;d<=dIM;d++){
+        const el=document.createElement('div');el.className='cal-cell';
+        const ds=`${String(d).padStart(2,'0')}.${String(calMonth+1).padStart(2,'0')}.${calYear}`;
+        el.textContent=d;
+        if(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())el.classList.add('today');
+        if(calSelected===ds)el.classList.add('selected');
+        if(existingDatesSet.has(ds))el.classList.add('has-notes');
+        el.onclick=()=>{calSelected=ds;renderCalendar();};
         grid.appendChild(el);
     }
-    const rem = (firstDow + dIM) % 7;
-    for (let d = 1; d <= (rem ? 7-rem : 0); d++) {
-        const el = document.createElement('div'); el.className = 'cal-cell other-month'; el.textContent = d; grid.appendChild(el);
-    }
+    const rem=(firstDow+dIM)%7;
+    for(let d=1;d<=(rem?7-rem:0);d++){const el=document.createElement('div');el.className='cal-cell other-month';el.textContent=d;grid.appendChild(el);}
 }
-document.getElementById('cal-prev').onclick = () => { calMonth--; if (calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
-document.getElementById('cal-next').onclick = () => { calMonth++; if (calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
-document.getElementById('cal-cancel').onclick = () => document.getElementById('cal-modal').style.display='none';
-document.getElementById('cal-confirm').onclick = async () => {
-    if (!calSelected) { alert("Select a date first."); return; }
-    if (existingDatesSet.has(calSelected)) { alert("This date already exists!"); return; }
-    await addDoc(collection(db,"days"), { date: calSelected, createdAt: parseDateToTs(calSelected), folderId: calTarget==='unsorted'?null:calTarget });
-    if (!expandedFolders.has(calTarget)) expandedFolders.add(calTarget);
+document.getElementById('cal-prev').onclick=()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
+document.getElementById('cal-next').onclick=()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
+document.getElementById('cal-cancel').onclick=()=>document.getElementById('cal-modal').style.display='none';
+document.getElementById('cal-confirm').onclick=async()=>{
+    if(!calSelected){alert("Select a date first.");return;}
+    if(existingDatesSet.has(calSelected)){alert("This date already exists!");return;}
+    showSpinner();
+    await addDoc(collection(db,"days"),{date:calSelected,createdAt:parseDateToTs(calSelected),folderId:calTarget==='unsorted'?null:calTarget});
+    if(!expandedFolders.has(calTarget))expandedFolders.add(calTarget);
     document.getElementById('cal-modal').style.display='none';
-    addNotification('📅 Day added: ' + calSelected, '', 'info');
+    addNotification('📅 Day added: '+calSelected,'','info');
+    hideSpinner();
 };
 
 // ===================== DAYS & NOTES =====================
 window.selectDay = (id, date) => {
-    activeDayId = id; activeDayDate = date;
-    document.getElementById('day-label').textContent = date;
-    document.getElementById('print-date-label').textContent = 'Date: ' + date + ' | Printed: ' + new Date().toLocaleString();
-    document.getElementById('new-note-trigger').style.display = 'block';
-    document.getElementById('tmpl-open-btn').style.display = 'block';
-    document.getElementById('print-btn').style.display = 'block';
-    document.querySelectorAll('.day-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+    activeDayId=id; activeDayDate=date;
+    document.getElementById('day-label').textContent=date;
+    document.getElementById('print-date-label').textContent='Date: '+date+' | Printed: '+new Date().toLocaleString();
+    document.getElementById('new-note-trigger').style.display='block';
+    document.getElementById('tmpl-open-btn').style.display='block';
+    document.getElementById('print-btn').style.display='block';
+    document.querySelectorAll('.day-item').forEach(el=>el.classList.toggle('active',el.dataset.id===id));
     loadNotes(id);
 };
 
 window.deleteDay = async id => {
-    if (!confirm("Delete day and ALL notes?")) return;
-    const notes = await getDocs(collection(db, `days/${id}/notes`));
-    for (const n of notes.docs) await deleteDoc(doc(db, `days/${id}/notes`, n.id));
-    await deleteDoc(doc(db, "days", id));
+    if(!confirm("Delete day and ALL notes?")) return;
+    showSpinner();
+    const notes=await getDocs(collection(db,`days/${id}/notes`));
+    for(const n of notes.docs) await deleteDoc(doc(db,`days/${id}/notes`,n.id));
+    await deleteDoc(doc(db,"days",id));
+    hideSpinner();
 };
 
-function loadNotes(dayId) {
-    onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
-        if (activeDayId !== dayId) return;
+// NOTE DRAG & DROP (within grid)
+let noteDragId = null;
+let noteDragOverId = null;
+
+function attachNoteDragEvents(card, noteId) {
+    card.draggable = true;
+    card.addEventListener('dragstart', e => {
+        noteDragId = noteId;
+        setTimeout(() => card.classList.add('note-dragging'), 0);
+        e.stopPropagation();
+    });
+    card.addEventListener('dragend', () => {
+        card.classList.remove('note-dragging');
+        document.querySelectorAll('.note-drag-over').forEach(c=>c.classList.remove('note-drag-over'));
+        noteDragId = null; noteDragOverId = null;
+    });
+    card.addEventListener('dragover', e => {
+        e.preventDefault(); e.stopPropagation();
+        if (noteDragId && noteId !== noteDragId) {
+            document.querySelectorAll('.note-drag-over').forEach(c=>c.classList.remove('note-drag-over'));
+            card.classList.add('note-drag-over');
+            noteDragOverId = noteId;
+        }
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('note-drag-over'));
+    card.addEventListener('drop', async e => {
+        e.preventDefault(); e.stopPropagation();
+        card.classList.remove('note-drag-over');
+        if (!noteDragId || noteDragId === noteId) return;
+        // Swap orders
         const grid = document.getElementById('notes-grid');
-        grid.innerHTML = '';
-        const term = document.getElementById('search').value.toLowerCase();
-        snap.forEach(nDoc => {
-            const n = nDoc.data();
-            const plainText = stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'');
-            if (!plainText.toLowerCase().includes(term)) return;
-            const card = document.createElement('div');
-            card.className = `note-card${n.done?' done':''}${n.tag==='urgent'?' urgent-card':''}`;
-            const noteContent = n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>');
-            const authorColor = n.authorColor || '#3498db';
-            card.innerHTML = `
+        const cards = Array.from(grid.querySelectorAll('.note-card'));
+        const fromIdx = cards.findIndex(c=>c.dataset.noteId===noteDragId);
+        const toIdx = cards.findIndex(c=>c.dataset.noteId===noteId);
+        if (fromIdx<0||toIdx<0) return;
+        const fromCard = cards[fromIdx];
+        if (fromIdx < toIdx) grid.insertBefore(fromCard, card.nextSibling);
+        else grid.insertBefore(fromCard, card);
+        // Persist order
+        const newCards = Array.from(grid.querySelectorAll('.note-card'));
+        newCards.forEach(async(c,i)=>{
+            if(c.dataset.noteId) {
+                try { await updateDoc(doc(db,`days/${activeDayId}/notes`,c.dataset.noteId),{order:i}); } catch(ex){}
+            }
+        });
+    });
+}
+
+function loadNotes(dayId) {
+    onSnapshot(query(collection(db,`days/${dayId}/notes`),orderBy("createdAt","desc")), snap => {
+        if(activeDayId!==dayId) return;
+        const grid=document.getElementById('notes-grid');
+        grid.innerHTML='';
+        const term=document.getElementById('search').value.toLowerCase();
+        // Sort by order if available
+        let notesArr = [];
+        snap.forEach(nDoc=>notesArr.push({id:nDoc.id,...nDoc.data()}));
+        notesArr.sort((a,b)=>(a.order!==undefined&&b.order!==undefined)?a.order-b.order:b.createdAt-a.createdAt);
+        notesArr.forEach(n=>{
+            const plainText=stripHTML(n.htmlContent||'')+' '+(n.text||'')+' '+(n.room||'');
+            if(!plainText.toLowerCase().includes(term)) return;
+            const card=document.createElement('div');
+            card.className=`note-card${n.done?' done':''}${n.tag==='urgent'?' urgent-card':''}`;
+            card.dataset.noteId=n.id;
+            const noteContent=n.htmlContent||escapeHTML(n.text||'').replace(/\n/g,'<br>');
+            const authorColor=n.authorColor||'#3498db';
+            card.innerHTML=`
                 <div class="note-time">
-                    <span>${n.time}</span>
-                    ${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}
+                    <span style="display:flex;align-items:center;gap:6px;"><span class="note-drag-handle" title="Drag to reorder">⠿</span>${n.time}</span>
+                    ${n.author?`<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>`:''}
                 </div>
                 <span class="tag tag-${n.tag}">${n.tag}</span>
-                ${n.room ? `<div class="note-room">R: ${escapeHTML(n.room)}</div>` : ''}
+                ${n.room?`<div class="note-room">R: ${escapeHTML(n.room)}</div>`:''}
                 <div class="note-text${n.tag==='urgent'?' important-style':''}">${noteContent}</div>
-                ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
+                ${n.photoData?`<img src="${n.photoData}" class="note-img">`:''}
                 <div class="card-actions">
-                    <button class="action-link" onclick="window.toggleDone('${nDoc.id}',${n.done})">${n.done?'Undo':'Done'}</button>
-                    <button class="action-link" onclick="window.editNote('${nDoc.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
-                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
+                    <button class="action-link" onclick="window.toggleDone('${n.id}',${n.done})">${n.done?'Undo':'Done'}</button>
+                    <button class="action-link" onclick="window.editNote('${n.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
+                    <button class="action-link" style="color:red" onclick="window.deleteNote('${n.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Delete</button>
                 </div>`;
+            attachNoteDragEvents(card, n.id);
             grid.appendChild(card);
         });
     });
 }
 
 document.getElementById('new-note-trigger').onclick = () => {
-    editingNoteId = null; currentEditingData = null;
-    document.getElementById('m-title').textContent = "Add Shift Note";
-    document.getElementById('m-editor').innerHTML = '';
-    document.getElementById('m-room').value = '';
-    document.getElementById('m-file').value = '';
-    document.getElementById('m-tag').value = 'info';
-    document.getElementById('modal').style.display = 'flex';
-    setTimeout(() => document.getElementById('m-editor').focus(), 100);
+    editingNoteId=null; currentEditingData=null;
+    document.getElementById('m-title').textContent="Add Shift Note";
+    document.getElementById('m-editor').innerHTML='';
+    document.getElementById('m-room').value='';
+    document.getElementById('m-file').value='';
+    document.getElementById('m-tag').value='info';
+    document.getElementById('modal').style.display='flex';
+    setTimeout(()=>document.getElementById('m-editor').focus(),100);
 };
 
-document.getElementById('m-cancel').onclick = () => document.getElementById('modal').style.display='none';
+document.getElementById('m-cancel').onclick=()=>document.getElementById('modal').style.display='none';
 
-document.getElementById('m-save').onclick = async () => {
-    const html = document.getElementById('m-editor').innerHTML;
-    const text = document.getElementById('m-editor').innerText;
-    const room = document.getElementById('m-room').value;
-    const tag = document.getElementById('m-tag').value;
-    const file = document.getElementById('m-file').files[0];
-    const btn = document.getElementById('m-save');
-    btn.textContent = "Saving..."; btn.disabled = true;
-    let photoData = currentEditingData?.photoData || null;
-    if (file) photoData = await compressImg(file);
-    const payload = {
-        text, htmlContent: html, room, tag, photoData,
-        author: currentUser?.name || null,
-        authorColor: currentUser?.color || '#3498db',
-        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
-        createdAt: editingNoteId ? currentEditingData.createdAt : Date.now(),
-        done: false
+document.getElementById('m-save').onclick=async()=>{
+    const html=document.getElementById('m-editor').innerHTML;
+    const text=document.getElementById('m-editor').innerText;
+    const room=document.getElementById('m-room').value;
+    const tag=document.getElementById('m-tag').value;
+    const file=document.getElementById('m-file').files[0];
+    const btn=document.getElementById('m-save');
+    btn.textContent="Saving..."; btn.disabled=true;
+    showSpinner();
+    let photoData=currentEditingData?.photoData||null;
+    if(file) photoData=await compressImg(file);
+    const payload={
+        text,htmlContent:html,room,tag,photoData,
+        author:currentUser?.name||null,
+        authorColor:currentUser?.color||'#3498db',
+        time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+        createdAt:editingNoteId?currentEditingData.createdAt:Date.now(),
+        done:false
     };
-    if (editingNoteId) {
-        await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
-    } else {
-        await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
-        if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
+    if(editingNoteId) await updateDoc(doc(db,`days/${activeDayId}/notes`,editingNoteId),payload);
+    else {
+        await addDoc(collection(db,`days/${activeDayId}/notes`),payload);
+        if(tag==='urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`,text.slice(0,60),'urgent');
     }
     document.getElementById('modal').style.display='none';
-    btn.textContent = "Save Data"; btn.disabled = false;
+    btn.textContent="Save Data"; btn.disabled=false;
+    hideSpinner();
     loadAllNotesForCache();
 };
 
-window.editNote = (id, data) => {
-    editingNoteId = id; currentEditingData = data;
-    document.getElementById('m-title').textContent = "Edit Note";
-    document.getElementById('m-editor').innerHTML = data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>');
-    document.getElementById('m-room').value = data.room || '';
-    document.getElementById('m-tag').value = data.tag;
+window.editNote=(id,data)=>{
+    editingNoteId=id; currentEditingData=data;
+    document.getElementById('m-title').textContent="Edit Note";
+    document.getElementById('m-editor').innerHTML=data.htmlContent||escapeHTML(data.text||'').replace(/\n/g,'<br>');
+    document.getElementById('m-room').value=data.room||'';
+    document.getElementById('m-tag').value=data.tag;
     document.getElementById('modal').style.display='flex';
 };
 
-window.deleteNote = async id => {
-    if (confirm("Delete?")) { await deleteDoc(doc(db, `days/${activeDayId}/notes`, id)); loadAllNotesForCache(); }
+window.deleteNote=async(id, noteData)=>{
+    if(confirm("Move to Trash?")){
+        showSpinner();
+        addToTrash(noteData, activeDayId, activeDayDate, id);
+        await deleteDoc(doc(db,`days/${activeDayId}/notes`,id));
+        loadAllNotesForCache();
+        hideSpinner();
+    }
 };
 
-window.toggleDone = async (id, s) => {
-    await updateDoc(doc(db, `days/${activeDayId}/notes`, id), {done:!s, tag:!s?'done':'info'});
-    if (!s) addNotification('✅ Note marked as done', '', 'done');
+window.toggleDone=async(id,s)=>{
+    showSpinner();
+    await updateDoc(doc(db,`days/${activeDayId}/notes`,id),{done:!s,tag:!s?'done':'info'});
+    if(!s) addNotification('✅ Note marked as done','','done');
     loadAllNotesForCache();
+    hideSpinner();
 };
 
-document.getElementById('search').oninput = () => { if(activeDayId) loadNotes(activeDayId); };
-document.getElementById('theme-selector').onchange = e => document.body.setAttribute('data-theme', e.target.value);
+document.getElementById('search').oninput=()=>{if(activeDayId)loadNotes(activeDayId);};
+document.getElementById('theme-selector').onchange=e=>document.body.setAttribute('data-theme',e.target.value);
 
 // ===================== RICH TEXT =====================
-window.execFmt = (cmd, val) => {
-    document.getElementById('m-editor').focus();
-    document.execCommand(cmd, false, val||null);
-};
-document.getElementById('ed-font').onchange = function() { if(this.value) window.execFmt('fontName',this.value); this.value=''; };
-document.getElementById('ed-size').onchange = function() { if(this.value) window.execFmt('fontSize',this.value); this.value=''; };
-document.querySelectorAll('.color-strip .color-dot[data-color]').forEach(d => {
-    d.onclick = () => { document.getElementById('m-editor').focus(); document.execCommand('foreColor',false,d.dataset.color); };
-});
-document.querySelectorAll('.color-strip .color-dot[data-hl]').forEach(d => {
-    d.onclick = () => { document.getElementById('m-editor').focus(); document.execCommand('hiliteColor',false,d.dataset.hl); };
-});
-document.getElementById('m-editor').addEventListener('mouseup', () => {
-    document.getElementById('ed-bold').classList.toggle('active', document.queryCommandState('bold'));
-    document.getElementById('ed-italic').classList.toggle('active', document.queryCommandState('italic'));
-    document.getElementById('ed-underline').classList.toggle('active', document.queryCommandState('underline'));
-    document.getElementById('ed-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
+window.execFmt=(cmd,val)=>{document.getElementById('m-editor').focus();document.execCommand(cmd,false,val||null);};
+document.getElementById('ed-font').onchange=function(){if(this.value)window.execFmt('fontName',this.value);this.value='';};
+document.getElementById('ed-size').onchange=function(){if(this.value)window.execFmt('fontSize',this.value);this.value='';};
+document.querySelectorAll('.color-strip .color-dot[data-color]').forEach(d=>{d.onclick=()=>{document.getElementById('m-editor').focus();document.execCommand('foreColor',false,d.dataset.color);};});
+document.querySelectorAll('.color-strip .color-dot[data-hl]').forEach(d=>{d.onclick=()=>{document.getElementById('m-editor').focus();document.execCommand('hiliteColor',false,d.dataset.hl);};});
+document.getElementById('m-editor').addEventListener('mouseup',()=>{
+    document.getElementById('ed-bold').classList.toggle('active',document.queryCommandState('bold'));
+    document.getElementById('ed-italic').classList.toggle('active',document.queryCommandState('italic'));
+    document.getElementById('ed-underline').classList.toggle('active',document.queryCommandState('underline'));
+    document.getElementById('ed-strike').classList.toggle('active',document.queryCommandState('strikeThrough'));
 });
 
-// ===================== PRINT / PDF =====================
-document.getElementById('print-btn').onclick = () => window.print();
+// ===================== PRINT =====================
+document.getElementById('print-btn').onclick=()=>window.print();
 
 // ===================== TEMPLATES =====================
-function renderTemplates() {
-    const list = document.getElementById('tmpl-list');
-    list.innerHTML = '';
-    if (!templates.length) {
-        list.innerHTML = '<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>';
-        return;
-    }
-    templates.forEach((t, i) => {
-        const card = document.createElement('div');
-        card.className = 'tmpl-card';
-        card.innerHTML = `
-            <div class="tmpl-card-name">${escapeHTML(t.name)}</div>
-            <div class="tmpl-card-preview">${escapeHTML(t.text)}</div>
-            <button class="tmpl-del" onclick="event.stopPropagation();deleteTemplate(${i})">🗑</button>`;
-        card.onclick = () => {
-            document.getElementById('m-editor').innerHTML += escapeHTML(t.text).replace(/\n/g,'<br>');
-            document.getElementById('tmpl-modal').style.display='none';
-            document.getElementById('modal').style.display='flex';
-        };
+function renderTemplates(){
+    const list=document.getElementById('tmpl-list');
+    list.innerHTML='';
+    if(!templates.length){list.innerHTML='<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>';return;}
+    templates.forEach((t,i)=>{
+        const card=document.createElement('div'); card.className='tmpl-card';
+        card.innerHTML=`<div class="tmpl-card-name">${escapeHTML(t.name)}</div><div class="tmpl-card-preview">${escapeHTML(t.text)}</div><button class="tmpl-del" onclick="event.stopPropagation();deleteTemplate(${i})">🗑</button>`;
+        card.onclick=()=>{document.getElementById('m-editor').innerHTML+=escapeHTML(t.text).replace(/\n/g,'<br>');document.getElementById('tmpl-modal').style.display='none';document.getElementById('modal').style.display='flex';};
         list.appendChild(card);
     });
 }
 
-window.saveTemplate = () => {
-    const name = document.getElementById('tmpl-name').value.trim();
-    const text = document.getElementById('tmpl-text').value.trim();
-    if (!name || !text) { alert("Enter name and text."); return; }
-    templates.push({ name, text });
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
-    document.getElementById('tmpl-name').value = '';
-    document.getElementById('tmpl-text').value = '';
+window.saveTemplate=()=>{
+    const name=document.getElementById('tmpl-name').value.trim();
+    const text=document.getElementById('tmpl-text').value.trim();
+    if(!name||!text){alert("Enter name and text.");return;}
+    templates.push({name,text}); localStorage.setItem('kd_templates',JSON.stringify(templates));
+    document.getElementById('tmpl-name').value=''; document.getElementById('tmpl-text').value='';
     renderTemplates();
 };
+window.deleteTemplate=i=>{templates.splice(i,1);localStorage.setItem('kd_templates',JSON.stringify(templates));renderTemplates();};
+document.getElementById('tmpl-open-btn').onclick=()=>{renderTemplates();document.getElementById('tmpl-modal').style.display='flex';};
 
-window.deleteTemplate = i => {
-    templates.splice(i, 1);
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
-    renderTemplates();
-};
-
-document.getElementById('tmpl-open-btn').onclick = () => {
-    renderTemplates();
-    document.getElementById('tmpl-modal').style.display='flex';
-};
-
-if (!templates.length) {
-    templates = [
-        { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
-        { name: 'Maintenance Request', text: 'Maintenance needed in room ___\nIssue: \nReported to maintenance: YES / NO\nEst. resolution: ' },
-        { name: 'Late Checkout', text: 'Room ___ requested late checkout until ___\nApproved by: \nCharge applied: YES / NO' },
-        { name: 'VIP Arrival', text: 'VIP guest arriving: \nRoom: \nSpecial requests: \nAmenities prepared: ' },
+if(!templates.length){
+    templates=[
+        {name:'Room Complaint',text:'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO'},
+        {name:'Maintenance Request',text:'Maintenance needed in room ___\nIssue: \nReported to maintenance: YES / NO\nEst. resolution: '},
+        {name:'Late Checkout',text:'Room ___ requested late checkout until ___\nApproved by: \nCharge applied: YES / NO'},
+        {name:'VIP Arrival',text:'VIP guest arriving: \nRoom: \nSpecial requests: \nAmenities prepared: '},
     ];
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    localStorage.setItem('kd_templates',JSON.stringify(templates));
 }
 
 // ===================== CLOSE MODALS ON OUTSIDE CLICK =====================
-document.getElementById('cal-modal').onclick = e => { if(e.target===document.getElementById('cal-modal')) document.getElementById('cal-modal').style.display='none'; };
-document.getElementById('stats-modal').onclick = e => { if(e.target===document.getElementById('stats-modal')) document.getElementById('stats-modal').style.display='none'; };
-document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
-document.getElementById('modal').onclick = e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; };
-document.getElementById('login-modal').onclick = e => { if(e.target===document.getElementById('login-modal') && currentUser) document.getElementById('login-modal').style.display='none'; };
-document.addEventListener('click', e => {
-    const panel = document.getElementById('notif-panel');
-    if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
+document.getElementById('cal-modal').onclick=e=>{if(e.target===document.getElementById('cal-modal'))document.getElementById('cal-modal').style.display='none';};
+document.getElementById('stats-modal').onclick=e=>{if(e.target===document.getElementById('stats-modal'))document.getElementById('stats-modal').style.display='none';};
+document.getElementById('tmpl-modal').onclick=e=>{if(e.target===document.getElementById('tmpl-modal'))document.getElementById('tmpl-modal').style.display='none';};
+document.getElementById('modal').onclick=e=>{if(e.target===document.getElementById('modal'))document.getElementById('modal').style.display='none';};
+document.getElementById('login-modal').onclick=e=>{if(e.target===document.getElementById('login-modal')&&currentUser)document.getElementById('login-modal').style.display='none';};
+document.addEventListener('click',e=>{
+    const panel=document.getElementById('notif-panel');
+    if(panel.style.display==='block'&&!panel.contains(e.target)&&e.target!==document.getElementById('notif-btn')&&!document.getElementById('notif-btn').contains(e.target))
         panel.style.display='none';
 });
 </script>
