@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bootstrap stage: only the verified owner UID of King David.
+    // Do not replace this with a general request.auth != null check.
+    function isKingDavidOwner() {
+      return request.auth != null
+        && request.auth.uid == 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
+    }
+
+    function isKingDavidMember() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.hotelId == 'kingdavid'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
+    }
+
+    function canUseKingDavid() {
+      return isKingDavidOwner() || isKingDavidMember();
+    }
+
+    match /users/{userId} {
+      // A member can read only their own profile. The owner manages the team.
+      allow read: if isKingDavidOwner() || (request.auth != null && request.auth.uid == userId);
+      allow create, update, delete: if isKingDavidOwner();
+    }
+
+    match /folders/{folderId} {
+      allow read, write: if canUseKingDavid();
+    }
+    match /days/{dayId} {
+      allow read, write: if canUseKingDavid();
+      match /notes/{noteId} {
+        allow read, write: if canUseKingDavid();
+      }
+    }
+    // All other paths remain denied by default.
+  }
+}

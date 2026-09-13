@@ -206,6 +206,36 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 .empty-state span { font-size:12px; }
 .workspace-footer { display:flex; justify-content:space-between; max-width:1160px; padding-top:26px; margin:30px auto 0; color:var(--text-soft); border-top:1px solid var(--border-color); font-size:10px; }
 
+/* Team access */
+.team-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,18,23,.57); backdrop-filter:blur(8px); z-index:120; animation:fadeIn .2s ease; }
+.team-content { width:min(100%,720px); max-height:min(92vh,780px); overflow:auto; padding:27px; border:1px solid rgba(255,255,255,.42); border-radius:19px; background:var(--surface); box-shadow:var(--shadow-md); animation:modalIn .32s var(--ease); }
+.team-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:15px; margin-bottom:7px; }
+.team-title { margin-top:6px; color:var(--text-main); font-size:25px; line-height:1.1; letter-spacing:-.04em; }
+.team-intro { margin-bottom:18px; color:var(--text-muted); font-size:12px; }
+.team-list { display:grid; gap:8px; max-height:260px; overflow:auto; margin-bottom:18px; }
+.team-empty { padding:20px; border:1px dashed var(--border-strong); border-radius:12px; color:var(--text-muted); text-align:center; font-size:12px; }
+.team-member { display:flex; align-items:center; gap:11px; padding:10px 11px; border:1px solid var(--border-color); border-radius:12px; background:var(--surface-2); }
+.team-member-avatar { width:35px; height:35px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:11px 11px 11px 4px; color:#fff; font-size:11px; font-weight:850; }
+.team-member-info { min-width:0; flex:1; }
+.team-member-name { overflow:hidden; color:var(--text-main); text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:800; }
+.team-member-meta { margin-top:2px; color:var(--text-muted); font-size:10px; }
+.team-member-status { margin-right:4px; color:var(--tag-done); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+.team-member-status.off { color:var(--tag-urgent); }
+.team-member-actions { display:flex; gap:3px; }
+.team-member-actions .icon-button { width:30px; height:30px; }
+.team-form { padding:16px; border:1px solid var(--border-color); border-radius:13px; background:var(--surface-2); }
+.team-form-title { margin-bottom:12px; color:var(--text-main); font-size:12px; font-weight:850; }
+.team-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.team-form-grid label { display:grid; gap:5px; color:var(--text-muted); font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }
+.team-form-grid input { width:100%; min-height:36px; padding:0 10px; border:1px solid var(--border-color); border-radius:9px; color:var(--text-main); background:var(--surface); font-size:12px; }
+.team-form-grid input:focus { border-color:var(--accent-color); outline:0; box-shadow:0 0 0 4px rgba(196,154,85,.13); }
+.team-color-field { display:flex!important; align-items:center; grid-template-columns:1fr auto; }
+.team-color-field input[type=color] { width:44px; padding:3px; cursor:pointer; }
+.team-form-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:13px; }
+.team-form-actions .main-act-btn { min-height:36px; }
+.team-note { margin-top:10px; color:var(--text-soft); font-size:10px; line-height:1.5; }
+@media (max-width:560px) { .team-content { padding:20px; } .team-form-grid { grid-template-columns:1fr; } .team-member-actions .icon-button { width:27px; height:27px; } }
+
 /* Modals and editor */
 .modal,.cal-modal,.stats-modal,.gsearch-modal,.tmpl-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,18,23,.57); backdrop-filter:blur(8px); z-index:100; animation:fadeIn .2s ease; }
 .modal-content,.cal-content,.stats-content,.tmpl-content,.gsearch-content { width:min(100%,620px); max-height:min(92vh,760px); overflow:auto; padding:26px; border:1px solid rgba(255,255,255,.42); border-radius:19px; background:var(--surface); box-shadow:var(--shadow-md); animation:modalIn .32s var(--ease); }
@@ -255,11 +285,11 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 .toast-region { position:fixed; right:20px; bottom:20px; z-index:900; display:flex; flex-direction:column; align-items:flex-end; gap:8px; pointer-events:none; } .toast { display:flex; align-items:center; gap:9px; max-width:330px; padding:12px 14px; border:1px solid var(--border-color); border-radius:11px; color:var(--text-main); background:var(--surface); box-shadow:var(--shadow-md); font-size:11px; font-weight:700; animation:toastIn .3s var(--ease) both; } .toast.out { animation:toastOut .28s ease forwards; }
 
 /* Print */
-#print-header { display:none; } @media print { body { height:auto; overflow:visible; background:#fff; } header,#sidebar,#sidebar-backdrop,.main-actions,.notes-toolbar,.day-overview,.workspace-footer,.card-actions,.toast-region { display:none!important; } .container { display:block; } main { padding:0; overflow:visible; } .notes-grid { display:block; max-width:none; } .note-card { break-inside:avoid; margin-bottom:12px; border:1px solid #ccc; box-shadow:none; } #print-header { display:block; padding:10px 0 20px; margin-bottom:20px; border-bottom:2px solid #333; } #print-header h1 { font-size:21px; } #print-header p { margin-top:4px; color:#666; font-size:11px; } .modal,.cal-modal,.stats-modal,.gsearch-modal,.notif-panel,.tmpl-modal,.login-modal { display:none!important; } }
+#print-header { display:none; } @media print { body { height:auto; overflow:visible; background:#fff; } header,#sidebar,#sidebar-backdrop,.main-actions,.notes-toolbar,.day-overview,.workspace-footer,.card-actions,.toast-region { display:none!important; } .container { display:block; } main { padding:0; overflow:visible; } .notes-grid { display:block; max-width:none; } .note-card { break-inside:avoid; margin-bottom:12px; border:1px solid #ccc; box-shadow:none; } #print-header { display:block; padding:10px 0 20px; margin-bottom:20px; border-bottom:2px solid #333; } #print-header h1 { font-size:21px; } #print-header p { margin-top:4px; color:#666; font-size:11px; } .modal,.cal-modal,.stats-modal,.gsearch-modal,.notif-panel,.tmpl-modal,.team-modal,.login-modal { display:none!important; } }
 
 @media (max-width:900px) { header { padding:0 17px; } .header-center { display:none; } .header-left,.header-right { flex:1; } main { padding:32px 25px 25px; } .login-content { grid-template-columns:1fr; max-width:560px; } .auth-story { min-height:250px; padding:28px 30px; } .auth-story-copy { margin-top:25px; } .auth-story-copy h2 { font-size:36px; } .auth-notebook { position:absolute; right:45px; bottom:28px; transform:scale(.72) rotate(-5deg); transform-origin:right bottom; } .auth-story-footer { margin-top:28px; } .auth-form-panel { padding:35px 38px 31px; } }
 @media (max-width:700px) { .connection-status span { display:none; } .header-right { gap:4px; } #theme-selector { width:39px; font-size:0; } #theme-selector option { font-size:11px; } #sidebar { position:fixed; top:70px; bottom:0; left:0; z-index:80; width:min(292px,88vw); transform:translateX(0); box-shadow:18px 0 35px rgba(22,25,30,.15); } #sidebar.sidebar-hidden { transform:translateX(-105%); margin-left:0!important; } #sidebar-backdrop { position:fixed; inset:70px 0 0; z-index:70; border:0; background:rgba(18,21,27,.36); } body.sidebar-open #sidebar-backdrop { display:block; } main { padding:28px 16px 23px; } .main-header { align-items:flex-start; flex-direction:column; gap:18px; margin-bottom:22px; } .main-actions { width:100%; justify-content:flex-end; } .heading-copy h1 { font-size:31px; } .day-overview { gap:8px; } .overview-card { padding:11px 9px; column-gap:7px; } .overview-icon { width:30px; height:30px; } .overview-card strong { font-size:20px; } .overview-card small { font-size:9px; } .overview-caption { display:none; } .notes-toolbar { align-items:stretch; flex-direction:column; gap:9px; padding:8px; } .filter-tabs { width:100%; } .toolbar-tools { width:100%; } .toolbar-tools .input-with-icon { flex:1; } .search-bar { width:100%; } #note-sort { max-width:120px; } .notes-grid { grid-template-columns:1fr; } .notes-grid.list-view .note-card { display:block; } .notes-grid.list-view .card-actions { padding-top:11px; margin-top:3px; border-top:1px solid var(--border-color); } .workspace-footer { flex-direction:column; gap:4px; } .toast-region { right:12px; bottom:12px; left:12px; align-items:stretch; } .toast { max-width:none; } }
-@media (max-width:480px) { header { height:62px; } #sidebar { top:62px; } #sidebar-backdrop { inset:62px 0 0; } .brand-sub { display:none; } .brand-mark { width:29px; height:29px; } .dannote-title { font-size:14px; } .icon-only { width:34px; height:34px; } .connection-status { display:none; } main { padding:22px 12px; } .heading-copy h1 { font-size:28px; } .day-overview { grid-template-columns:1fr; } .overview-card { grid-template-columns:auto 1fr auto; } .overview-caption { display:block; grid-column:auto; margin:0; } .main-actions { justify-content:space-between; } .primary-btn { flex:1; } .notes-grid { gap:11px; } .note-card { padding:16px; } .modal,.cal-modal,.stats-modal,.gsearch-modal,.tmpl-modal { padding:10px; } .modal-content,.stats-content,.tmpl-content { padding:18px; border-radius:15px; } .editor-footer { flex-wrap:wrap; } #draft-hint { width:100%; margin-bottom:3px; } .auth-story { min-height:215px; padding:25px 23px; } .auth-notebook { display:none; } .auth-story-copy h2 { font-size:31px; } .auth-form-panel { padding:29px 23px 24px; } .auth-form-panel h1 { font-size:28px; } }
+@media (max-width:480px) { header { height:62px; } #sidebar { top:62px; } #sidebar-backdrop { inset:62px 0 0; } .brand-sub { display:none; } .brand-mark { width:29px; height:29px; } .dannote-title { font-size:14px; } .icon-only { width:34px; height:34px; } .connection-status { display:none; } main { padding:22px 12px; } .heading-copy h1 { font-size:28px; } .day-overview { grid-template-columns:1fr; } .overview-card { grid-template-columns:auto 1fr auto; } .overview-caption { display:block; grid-column:auto; margin:0; } .main-actions { justify-content:space-between; } .primary-btn { flex:1; } .notes-grid { gap:11px; } .note-card { padding:16px; } .modal,.cal-modal,.stats-modal,.gsearch-modal,.tmpl-modal,.team-modal { padding:10px; } .modal-content,.stats-content,.tmpl-content,.team-content { padding:18px; border-radius:15px; } .editor-footer { flex-wrap:wrap; } #draft-hint { width:100%; margin-bottom:3px; } .auth-story { min-height:215px; padding:25px 23px; } .auth-notebook { display:none; } .auth-story-copy h2 { font-size:31px; } .auth-form-panel { padding:29px 23px 24px; } .auth-form-panel h1 { font-size:28px; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition-duration:.01ms!important; } }
 @keyframes cardIn { from { opacity:0; transform:translateY(10px) scale(.985); } to { opacity:1; transform:none; } }
 @keyframes slideIn { from { opacity:0; transform:translateX(-7px); } to { opacity:1; transform:none; } }
@@ -286,6 +316,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
         <button class="notif-bell icon-only" id="notif-btn" aria-label="Notifications" title="Notifications"><span data-icon="bell"></span><span class="notif-badge" id="notif-badge"></span></button>
         <button class="tool-btn icon-only" id="backup-btn" aria-label="Download backup" title="Download backup"><span data-icon="download"></span></button>
         <button class="tool-btn icon-only" id="stats-btn" aria-label="Statistics" title="Statistics"><span data-icon="chart"></span></button>
+        <button class="tool-btn icon-only" id="team-btn" aria-label="Manage team" title="Manage team" style="display:none"><span data-icon="users"></span></button>
         <select id="theme-selector" aria-label="Colour theme"><option value="light">Light</option><option value="cream">Cream</option><option value="dark">Dark</option></select>
     </div>
 </header>
@@ -299,7 +330,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
         <div id="day-list"></div>
         <div class="user-badge" id="user-badge">
             <div class="user-avatar" id="user-avatar-badge">?</div>
-            <div class="user-caption"><span class="user-name-badge" id="user-name-badge">Not signed in</span><small>King David · Owner</small></div>
+            <div class="user-caption"><span class="user-name-badge" id="user-name-badge">Not signed in</span><small id="user-role-badge">King David · Owner</small></div>
             <button class="user-change-btn icon-button" id="change-user-btn" aria-label="Sign out" title="Sign out"><span data-icon="logout"></span></button>
         </div>
         <div class="sidebar-footer">DANNOTE <span>Made for your team.</span></div>
@@ -470,6 +501,28 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     </div>
 </div>
 
+<!-- TEAM ACCESS MODAL -->
+<div id="team-modal" class="team-modal">
+  <div class="team-content" role="dialog" aria-modal="true" aria-labelledby="team-title">
+    <div class="team-heading"><div><span class="eyebrow">TEAM ACCESS</span><h2 class="team-title" id="team-title">Team members</h2></div><button class="icon-button" id="team-close" aria-label="Close team manager"><span data-icon="x"></span></button></div>
+    <p class="team-intro">Add staff accounts with their own login, password, name, role and colour. They will share this hotel’s handover notes across computers.</p>
+    <div class="team-list" id="team-list"></div>
+    <form class="team-form" id="team-form">
+      <div class="team-form-title" id="team-form-title">Add a team member</div>
+      <input id="team-edit-uid" type="hidden" value="">
+      <div class="team-form-grid">
+        <label>Login<input id="team-login" required pattern="[a-zA-Z0-9_-]+" autocomplete="off" placeholder="anna"></label>
+        <label>Full name<input id="team-name" required maxlength="60" autocomplete="off" placeholder="Anna Smith"></label>
+        <label>Role<input id="team-role" required maxlength="60" autocomplete="off" placeholder="Front desk"></label>
+        <label>Password<input id="team-password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></label>
+        <label class="team-color-field">Avatar colour<input id="team-color" type="color" value="#4b89c9" aria-label="Avatar colour"></label>
+      </div>
+      <div class="team-form-actions"><button type="button" class="main-act-btn" id="team-cancel-edit" hidden>Cancel edit</button><button type="submit" class="primary-btn" id="team-save">Add member</button></div>
+      <p class="team-note">The login is custom: staff enter the hotel code and this login, not an email address. Passwords are never displayed again; keep the initial password safe.</p>
+    </form>
+  </div>
+</div>
+
 <!-- Authentication is checked before any database subscriptions start. -->
 <div id="login-modal" class="login-modal" style="display:flex" role="dialog" aria-modal="true" aria-labelledby="auth-title">
   <div class="login-content">
@@ -487,8 +540,8 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -503,6 +556,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const OWNER_UID = 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
+const HOTEL_ID = 'kingdavid';
+let creatorAuth = null;
 const authReady = setPersistence(auth, browserSessionPersistence);
 
 const ICONS = {
@@ -514,7 +569,7 @@ const ICONS = {
     logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>', layers:'<path d="m12 3 9 5-9 5-9-5 9-5Z M3 12l9 5 9-5M3 16l9 5 9-5"/>',
     printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/>',
     note:'<path d="M5 3h10l4 4v14H5zM15 3v5h5M8 12h8M8 16h6"/>', flag:'<path d="M5 21V4m0 0c5-3 9 3 14 0v9c-5 3-9-3-14 0"/>', check:'<path d="m5 12 4 4L19 6"/>', list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>', x:'<path d="m6 6 12 12M18 6 6 18"/>',
-    user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>', lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>', eye:'<path d="M2.5 12s3.2-5 9.5-5 9.5 5 9.5 5-3.2 5-9.5 5-9.5-5-9.5-5Z"/><circle cx="12" cy="12" r="2"/>'
+    user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>', users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M17 14a5 5 0 0 1 4 6"/>', lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>', eye:'<path d="M2.5 12s3.2-5 9.5-5 9.5 5 9.5 5-3.2 5-9.5 5-9.5-5-9.5-5Z"/><circle cx="12" cy="12" r="2"/>'
 };
 function renderIcons(root=document) {
     root.querySelectorAll('[data-icon]').forEach(slot => {
@@ -561,6 +616,7 @@ let daysMap = new Map();
 let allNotesCache = [];
 let expandedFolders = new Set(['unsorted']);
 let currentUser = null;
+let teamUsers = new Map();
 let currentDayNotes = [];
 let activeFilter = 'all';
 let viewMode = 'grid';
@@ -579,7 +635,46 @@ const existingDatesSet = new Set();
 
 // ===================== AUTHENTICATION =====================
 function getInitials(name) {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    return String(name || '').trim().split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'U';
+}
+function authEmailForLogin(hotel, login) {
+    const safeHotel = String(hotel || '').trim().toLowerCase();
+    const safeLogin = String(login || '').trim().toLowerCase();
+    // Keep the original owner account while giving new members custom logins.
+    return safeHotel === HOTEL_ID && safeLogin === 'danila'
+        ? 'kingdavidfo@gmail.com'
+        : `${safeLogin}@${safeHotel}.invalid`;
+}
+function normalizeProfile(uid, data = {}) {
+    const name = String(data.displayName || data.name || data.login || 'Team member').trim() || 'Team member';
+    return {
+        uid,
+        hotelId: String(data.hotelId || HOTEL_ID).toLowerCase(),
+        login: String(data.login || '').trim().toLowerCase(),
+        name,
+        role: String(data.role || 'Team member').trim() || 'Team member',
+        color: safeColor(data.color),
+        active: data.active !== false,
+        initials: getInitials(name),
+        createdAt: Number(data.createdAt) || 0
+    };
+}
+async function loadUserProfile(user) {
+    const profileRef = doc(db, 'users', user.uid);
+    const profileSnapshot = await getDoc(profileRef);
+    if (profileSnapshot.exists()) return normalizeProfile(user.uid, profileSnapshot.data());
+    if (user.uid !== OWNER_UID) return null;
+    const ownerProfile = { hotelId: HOTEL_ID, login: 'danila', displayName: 'Danylo', role: 'Owner', color: '#c49a55', active: true, createdAt: Date.now() };
+    await setDoc(profileRef, ownerProfile, { merge: true });
+    return normalizeProfile(user.uid, ownerProfile);
+}
+function applyUserProfile(profile) {
+    currentUser = { ...profile, isOwner: profile.uid === OWNER_UID };
+    document.getElementById('user-avatar-badge').textContent = currentUser.initials;
+    document.getElementById('user-avatar-badge').style.background = currentUser.color;
+    document.getElementById('user-name-badge').textContent = currentUser.name;
+    document.getElementById('user-role-badge').textContent = `King David · ${currentUser.role}`;
+    document.getElementById('team-btn').style.display = currentUser.isOwner ? 'inline-flex' : 'none';
 }
 function resetPrivateView() {
     sessionVersion++;
@@ -589,6 +684,7 @@ function resetPrivateView() {
     if (noteSubscription) noteSubscription();
     noteSubscription = null;
     currentUser = null;
+    teamUsers.clear();
     activeDayId = null;
     activeDayDate = '';
     editingNoteId = null;
@@ -613,9 +709,10 @@ function resetPrivateView() {
     currentDayNotes = [];
     activeFilter = 'all';
     document.getElementById('user-name-badge').textContent = 'Not logged in';
+    document.getElementById('user-role-badge').textContent = 'King David · —';
     document.getElementById('user-avatar-badge').textContent = '?';
-    document.querySelectorAll('.modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal').forEach(el => el.style.display = 'none');
-    for (const id of ['new-note-trigger', 'tmpl-open-btn', 'print-btn']) document.getElementById(id).style.display = 'none';
+    document.querySelectorAll('.modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal, .team-modal').forEach(el => el.style.display = 'none');
+    for (const id of ['new-note-trigger', 'tmpl-open-btn', 'print-btn', 'team-btn']) document.getElementById(id).style.display = 'none';
     renderNotifBadge();
     setConnectionStatus('offline', 'Sign in');
     setLocked(true);
@@ -637,8 +734,7 @@ document.getElementById('auth-form').onsubmit = async event => {
     error.textContent = '';
     try {
         await authReady;
-        const email = hotel === 'kingdavid' && login === 'danila'
-            ? 'kingdavidfo@gmail.com' : `${login}@${hotel}.invalid`;
+        const email = authEmailForLogin(hotel, login);
         await signInWithEmailAndPassword(auth, email, document.getElementById('auth-password').value);
     } catch (e) {
         error.textContent = e.code === 'auth/too-many-requests'
@@ -658,26 +754,180 @@ document.getElementById('change-user-btn').onclick = async () => {
     try { await signOut(auth); } catch { location.reload(); }
 };
 // SDK authentication is required before even starting database listeners.
-// The UID check here is UX only; firestore.rules is the security boundary.
+// Firestore rules remain the security boundary; this profile check controls the UI.
 authReady.then(() => onAuthStateChanged(auth, async user => {
     resetPrivateView();
     if (!user) return;
-    if (user.uid !== OWNER_UID) {
+    let profile;
+    try {
+        profile = await loadUserProfile(user);
+    } catch {
+        document.getElementById('auth-error').textContent = 'Cannot load your team profile. Publish the secure Firestore rules first.';
+        await signOut(auth);
+        return;
+    }
+    if (!profile || profile.hotelId !== HOTEL_ID || !profile.active) {
         document.getElementById('auth-error').textContent = 'This account has not been granted access to King David.';
         await signOut(auth);
         return;
     }
-    currentUser = { uid: user.uid, name: 'Danylo', color: '#c5a059', initials: 'D' };
-    document.getElementById('user-avatar-badge').textContent = currentUser.initials;
-    document.getElementById('user-avatar-badge').style.background = currentUser.color;
-    document.getElementById('user-name-badge').textContent = currentUser.name;
+    applyUserProfile(profile);
     document.getElementById('auth-error').textContent = '';
     setLocked(false);
     setConnectionStatus('connecting', 'Connecting');
+    startTeamProfileListener();
     startDataListeners();
 })).catch(() => {
     document.getElementById('auth-error').textContent = 'Sign-in storage is unavailable. Allow browser storage and reload.';
 });
+
+// ===================== TEAM ACCESS =====================
+function getCreatorAuth() {
+    if (!creatorAuth) creatorAuth = getAuth(initializeApp(firebaseConfig, 'dannote-account-creator'));
+    return creatorAuth;
+}
+function resetTeamForm() {
+    document.getElementById('team-edit-uid').value = '';
+    document.getElementById('team-form-title').textContent = 'Add a team member';
+    document.getElementById('team-login').value = '';
+    document.getElementById('team-login').disabled = false;
+    document.getElementById('team-name').value = '';
+    document.getElementById('team-role').value = '';
+    document.getElementById('team-password').value = '';
+    document.getElementById('team-password').required = true;
+    document.getElementById('team-password').placeholder = 'At least 6 characters';
+    document.getElementById('team-color').value = '#4b89c9';
+    document.getElementById('team-save').textContent = 'Add member';
+    document.getElementById('team-cancel-edit').hidden = true;
+}
+function editTeamMember(uid) {
+    if (!currentUser?.isOwner) return;
+    const profile = teamUsers.get(uid);
+    if (!profile) return;
+    document.getElementById('team-edit-uid').value = uid;
+    document.getElementById('team-form-title').textContent = `Edit ${profile.name}`;
+    document.getElementById('team-login').value = profile.login;
+    document.getElementById('team-login').disabled = true;
+    document.getElementById('team-name').value = profile.name;
+    document.getElementById('team-role').value = profile.role;
+    document.getElementById('team-password').value = '';
+    document.getElementById('team-password').required = false;
+    document.getElementById('team-password').placeholder = 'Leave blank to keep current password';
+    document.getElementById('team-color').value = safeColor(profile.color);
+    document.getElementById('team-save').textContent = 'Save changes';
+    document.getElementById('team-cancel-edit').hidden = false;
+    document.getElementById('team-name').focus();
+}
+window.toggleTeamMember = async uid => {
+    if (!currentUser?.isOwner || uid === OWNER_UID) return;
+    const profile = teamUsers.get(uid);
+    if (!profile) return;
+    try {
+        const nextActive = !profile.active;
+        await updateDoc(doc(db, 'users', uid), { active: nextActive, updatedAt: Date.now() });
+        profile.active = nextActive;
+        teamUsers.set(uid, profile);
+        renderTeamList();
+        showToast(nextActive ? `${profile.name} access restored` : `${profile.name} access paused`, 'success');
+    } catch { showToast('Could not update team access', 'error'); }
+};
+function renderTeamList() {
+    const list = document.getElementById('team-list');
+    if (!list) return;
+    const profiles = Array.from(teamUsers.values()).sort((a,b) => {
+        if (a.uid === OWNER_UID) return -1;
+        if (b.uid === OWNER_UID) return 1;
+        return a.name.localeCompare(b.name);
+    });
+    list.replaceChildren();
+    if (!profiles.length) {
+        list.innerHTML = '<div class="team-empty">No team members yet. Add the first account below.</div>';
+        return;
+    }
+    profiles.forEach(profile => {
+        const row = document.createElement('div');
+        row.className = 'team-member';
+        const status = profile.active ? 'Active' : 'Paused';
+        row.innerHTML = `<div class="team-member-avatar" style="background:${safeColor(profile.color)}">${escapeHTML(profile.initials || getInitials(profile.name))}</div><div class="team-member-info"><div class="team-member-name">${escapeHTML(profile.name)}${profile.uid === OWNER_UID ? ' <span class="team-member-status">Owner</span>' : ''}</div><div class="team-member-meta">@${escapeHTML(profile.login || '—')} · ${escapeHTML(profile.role)} · <span class="team-member-status${profile.active ? '' : ' off'}">${status}</span></div></div><div class="team-member-actions"><button type="button" class="icon-button" data-action="edit" aria-label="Edit ${escapeHTML(profile.name)}" title="Edit profile">✎</button>${profile.uid === OWNER_UID ? '' : `<button type="button" class="icon-button" data-action="toggle" aria-label="${profile.active ? 'Pause' : 'Restore'} ${escapeHTML(profile.name)}" title="${profile.active ? 'Pause access' : 'Restore access'}">${profile.active ? '◌' : '●'}</button>`}</div>`;
+        row.querySelector('[data-action="edit"]').onclick = () => editTeamMember(profile.uid);
+        row.querySelector('[data-action="toggle"]')?.addEventListener('click', () => window.toggleTeamMember(profile.uid));
+        list.appendChild(row);
+    });
+}
+function openTeamModal() {
+    if (!currentUser?.isOwner) return;
+    resetTeamForm();
+    document.getElementById('team-list').innerHTML = '<div class="team-empty">Loading team members…</div>';
+    document.getElementById('team-modal').style.display = 'flex';
+    refreshTeamUsers();
+}
+function closeTeamModal() {
+    document.getElementById('team-modal').style.display = 'none';
+    resetTeamForm();
+}
+document.getElementById('team-btn').onclick = openTeamModal;
+document.getElementById('team-close').onclick = closeTeamModal;
+document.getElementById('team-cancel-edit').onclick = resetTeamForm;
+document.getElementById('team-modal').onclick = event => { if (event.target === document.getElementById('team-modal')) closeTeamModal(); };
+document.getElementById('team-form').onsubmit = async event => {
+    event.preventDefault();
+    if (!currentUser?.isOwner) return;
+    const uid = document.getElementById('team-edit-uid').value;
+    const login = document.getElementById('team-login').value.trim().toLowerCase();
+    const name = document.getElementById('team-name').value.trim();
+    const role = document.getElementById('team-role').value.trim();
+    const password = document.getElementById('team-password').value;
+    const color = safeColor(document.getElementById('team-color').value);
+    const saveButton = document.getElementById('team-save');
+    if (!uid && (!/^[a-z0-9_-]{2,32}$/.test(login) || login === 'danila')) { showToast('Choose another login (2–32 letters, numbers, _ or -)', 'error'); return; }
+    if (!name || !role) { showToast('Enter a name and role', 'error'); return; }
+    if (!uid && password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+    if (!uid && Array.from(teamUsers.values()).some(profile => profile.login === login)) { showToast('This login is already in use', 'error'); return; }
+    saveButton.disabled = true;
+    try {
+        if (uid) {
+            await updateDoc(doc(db, 'users', uid), { displayName: name, role, color, updatedAt: Date.now() });
+            const updatedProfile = normalizeProfile(uid, { ...teamUsers.get(uid), displayName: name, role, color });
+            teamUsers.set(uid, updatedProfile);
+            if (uid === OWNER_UID) applyUserProfile(updatedProfile);
+            renderTeamList();
+            showToast('Team profile updated', 'success');
+        } else {
+            const secondaryAuth = getCreatorAuth();
+            const credential = await createUserWithEmailAndPassword(secondaryAuth, authEmailForLogin(HOTEL_ID, login), password);
+            const profileData = { hotelId: HOTEL_ID, login, displayName: name, role, color, active: true, createdAt: Date.now(), createdByUid: OWNER_UID };
+            await setDoc(doc(db, 'users', credential.user.uid), profileData);
+            await signOut(secondaryAuth);
+            teamUsers.set(credential.user.uid, normalizeProfile(credential.user.uid, profileData));
+            renderTeamList();
+            showToast(`${name} can now sign in as @${login}`, 'success');
+        }
+        resetTeamForm();
+    } catch (error) {
+        const message = error?.code === 'auth/email-already-in-use' ? 'This login already has an account.' : error?.code === 'auth/weak-password' ? 'Password must be at least 6 characters.' : 'Could not save the team member. Check Firebase Rules and connection.';
+        showToast(message, 'error');
+    } finally { saveButton.disabled = false; }
+};
+function startTeamProfileListener() {
+    if (!currentUser) return;
+    if (!currentUser.isOwner) {
+        dataSubscriptions.push(onSnapshot(doc(db, 'users', currentUser.uid), snap => {
+            if (!snap.exists()) { handleDataError(); return; }
+            const profile = normalizeProfile(currentUser.uid, snap.data());
+            if (profile.hotelId !== HOTEL_ID || !profile.active) { resetPrivateView(); signOut(auth).catch(() => {}); return; }
+            applyUserProfile(profile);
+        }, handleDataError));
+    }
+}
+async function refreshTeamUsers() {
+    if (!currentUser?.isOwner) return;
+    try {
+        const snapshot = await getDocs(collection(db, 'users'));
+        teamUsers.clear();
+        snapshot.forEach(userDoc => teamUsers.set(userDoc.id, normalizeProfile(userDoc.id, userDoc.data())));
+        renderTeamList();
+    } catch { showToast('Could not load team members. Check the published Firestore rules.', 'error'); }
+}
 
 // Read-only export of the existing folders, days and nested notes, including
 // inline images. No source documents are changed by exporting.
