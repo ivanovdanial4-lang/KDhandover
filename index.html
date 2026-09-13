@@ -274,6 +274,8 @@
         #print-header { display: none; padding: 10px 0 20px; border-bottom: 2px solid #333; margin-bottom: 20px; }
         #print-header h1 { font-size: 1.4rem; letter-spacing: 2px; }
         #print-header p { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        body.auth-locked header, body.auth-locked .container { visibility: hidden; }
+        @media print { body.auth-locked { display: none !important; } }
     </style>
 </head>
 <body>
@@ -287,6 +289,7 @@
     <div class="header-center">KING DAVID</div>
     <div class="header-right">
         <button class="notif-bell" id="notif-btn" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
+        <button class="tool-btn" id="backup-btn" title="Download a private backup">Backup</button>
         <button class="tool-btn" id="stats-btn">📊 Stats</button>
         <select id="theme-selector" style="padding:5px; border-radius:5px; border:none; background:#333; color:white; font-size:0.8rem;">
             <option value="light">Light</option>
@@ -467,42 +470,24 @@
     </div>
 </div>
 
-<!-- LOGIN / USER MANAGEMENT MODAL -->
-<div id="login-modal" class="login-modal">
-    <div class="login-content">
-        <div class="login-title">KING DAVID</div>
-        <div class="login-sub" id="login-sub">Select or manage your profile</div>
-
-        <!-- Tab switcher -->
-        <div class="login-tabs">
-            <button class="login-tab active" id="tab-select" onclick="switchLoginTab('select')">Select</button>
-            <button class="login-tab" id="tab-manage" onclick="switchLoginTab('manage')">Manage</button>
-        </div>
-
-        <!-- SELECT TAB -->
-        <div id="tab-select-content">
-            <div id="preset-users"></div>
-        </div>
-
-        <!-- MANAGE TAB -->
-        <div id="tab-manage-content" style="display:none;">
-            <div class="user-manage-list" id="manage-user-list"></div>
-
-            <!-- Add new user form -->
-            <div class="add-user-form">
-                <div class="add-user-form-title">+ Add New Member</div>
-                <div class="add-user-row">
-                    <input type="text" id="new-user-name" placeholder="Full name (e.g. Anna)">
-                    <input type="color" id="new-user-color" value="#3498db" title="Pick color">
-                </div>
-                <button class="add-user-btn" onclick="addNewUser()">Add Member</button>
-            </div>
-        </div>
-    </div>
+<!-- Authentication gate: data access is additionally enforced by Firestore Rules. -->
+<div id="login-modal" class="login-modal" style="display:flex" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="login-content">
+    <div class="login-title" id="auth-title">DANNOTE · KING DAVID</div>
+    <p class="login-sub">Sign in to your hotel workspace</p>
+    <form id="auth-form" style="display:grid;gap:12px;text-align:left">
+      <label>Hotel code<input id="auth-hotel" value="kingdavid" required autocomplete="organization" pattern="[a-zA-Z0-9_-]+" style="display:block;width:100%;padding:10px"></label>
+      <label>Username<input id="auth-login" value="danila" required autocomplete="username" pattern="[a-zA-Z0-9_-]+" style="display:block;width:100%;padding:10px"></label>
+      <label>Password<input id="auth-password" type="password" required autocomplete="current-password" style="display:block;width:100%;padding:10px"></label>
+      <p id="auth-error" role="alert" style="color:#c0392b;min-height:1.5em"></p>
+      <button id="auth-submit" class="add-user-btn" type="submit">Sign in</button>
+    </form>
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -516,6 +501,21 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const OWNER_UID = 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
+const authReady = setPersistence(auth, browserSessionPersistence);
+let dataSubscriptions = [];
+let noteSubscription = null;
+let sessionVersion = 0;
+let cacheVersion = 0;
+// Immediately block application controls, including keyboard/print access.
+function setLocked(locked) {
+    document.querySelector('header').inert = locked;
+    document.querySelector('.container').inert = locked;
+    document.body.classList.toggle('auth-locked', locked);
+    document.getElementById('login-modal').style.display = locked ? 'flex' : 'none';
+}
+setLocked(true);
 
 // ===================== STATE =====================
 let activeDayId = null;
@@ -527,7 +527,10 @@ let daysMap = new Map();
 let allNotesCache = [];
 let expandedFolders = new Set(['unsorted']);
 let currentUser = null;
-let notifications = JSON.parse(localStorage.getItem('kd_notifs') || '[]');
+let notifications = [];
+localStorage.removeItem('kd_notifs');
+localStorage.removeItem('kd_user');
+localStorage.removeItem('kd_users');
 let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
 
 // Calendar state
@@ -537,186 +540,125 @@ let calMonth = new Date().getMonth();
 let calSelected = null;
 const existingDatesSet = new Set();
 
-// ===================== USER MANAGEMENT =====================
-// Default preset users — stored in localStorage so they can be edited/deleted
-const DEFAULT_PRESET_USERS = [
-    { name: 'Martin', color: '#3498db' },
-    { name: 'Stepan', color: '#9b59b6' },
-    { name: 'Danylo', color: '#c5a059' },
-    { name: 'Kuba', color: '#27D3F5' },
-    { name: 'Sumeet', color: '#002EFC' },
-    { name: 'Jana', color: '#E427F5' },
-    { name: 'Kirill', color: '#e67e33' },
-    { name: 'Basem', color: '#DAFC00' },
-];
-
-function loadUsers() {
-    const stored = localStorage.getItem('kd_users');
-    if (stored) return JSON.parse(stored);
-    localStorage.setItem('kd_users', JSON.stringify(DEFAULT_PRESET_USERS));
-    return DEFAULT_PRESET_USERS;
-}
-
-function saveUsers(users) {
-    localStorage.setItem('kd_users', JSON.stringify(users));
-}
-
+// ===================== AUTHENTICATION =====================
 function getInitials(name) {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
-
-// Make these accessible globally
-window.switchLoginTab = function(tab) {
-    document.getElementById('tab-select').classList.toggle('active', tab === 'select');
-    document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
-    document.getElementById('tab-select-content').style.display = tab === 'select' ? 'block' : 'none';
-    document.getElementById('tab-manage-content').style.display = tab === 'manage' ? 'block' : 'none';
-    if (tab === 'select') renderSelectTab();
-    else renderManageTab();
-};
-
-function renderSelectTab() {
-    const users = loadUsers();
-    const container = document.getElementById('preset-users');
-    container.innerHTML = '';
-    users.forEach(u => {
-        const el = document.createElement('div');
-        el.className = 'user-option';
-        el.innerHTML = `
-            <div class="user-option-avatar" style="background:${u.color}">${getInitials(u.name)}</div>
-            <div>
-                <div class="user-option-name">${escapeHTML(u.name)}</div>
-                <div class="user-option-role">Tap to select</div>
-            </div>`;
-        el.onclick = () => loginAs(u.name, u.color);
-        container.appendChild(el);
-    });
-}
-
-function renderManageTab() {
-    const users = loadUsers();
-    const list = document.getElementById('manage-user-list');
-    list.innerHTML = '';
-    users.forEach((u, idx) => {
-        const isMe = currentUser && currentUser.name === u.name;
-        const wrapper = document.createElement('div');
-
-        // Main item
-        const item = document.createElement('div');
-        item.className = 'user-manage-item';
-        item.innerHTML = `
-            <div class="user-manage-avatar" style="background:${u.color}" title="Click to change color" data-idx="${idx}">
-                ${getInitials(u.name)}
-            </div>
-            <div class="user-manage-info">
-                <div class="user-manage-name">${escapeHTML(u.name)}${isMe ? ' <span style="font-size:0.65rem;color:var(--accent-color);">(you)</span>' : ''}</div>
-                <div class="user-manage-initials">${getInitials(u.name)}</div>
-            </div>
-            <div class="user-manage-actions">
-                <button class="uman-btn${isMe ? ' select' : ''}" onclick="window.toggleEditUser(${idx})">✎ Edit</button>
-                ${!isMe ? `<button class="uman-btn del" onclick="window.deleteUser(${idx})">🗑</button>` : ''}
-            </div>`;
-
-        // Edit row (hidden by default)
-        const editRow = document.createElement('div');
-        editRow.className = 'user-edit-row';
-        editRow.id = `edit-row-${idx}`;
-        editRow.innerHTML = `
-            <input type="text" id="edit-name-${idx}" value="${escapeHTML(u.name)}" placeholder="Name">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:0.75rem;color:#888;">Color:</span>
-                <input type="color" id="edit-color-${idx}" value="${u.color}" style="width:34px;height:34px;padding:2px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;">
-            </div>
-            <button class="user-edit-save" onclick="window.saveEditUser(${idx})">Save</button>`;
-
-        wrapper.appendChild(item);
-        wrapper.appendChild(editRow);
-        list.appendChild(wrapper);
-    });
-}
-
-window.toggleEditUser = function(idx) {
-    const row = document.getElementById(`edit-row-${idx}`);
-    const isOpen = row.classList.contains('open');
-    // Close all
-    document.querySelectorAll('.user-edit-row.open').forEach(r => r.classList.remove('open'));
-    if (!isOpen) row.classList.add('open');
-};
-
-window.saveEditUser = function(idx) {
-    const users = loadUsers();
-    const newName = document.getElementById(`edit-name-${idx}`).value.trim();
-    const newColor = document.getElementById(`edit-color-${idx}`).value;
-    if (!newName) { alert('Name cannot be empty'); return; }
-    const oldName = users[idx].name;
-    users[idx] = { name: newName, color: newColor };
-    saveUsers(users);
-    // Update currentUser if it's the same person
-    if (currentUser && currentUser.name === oldName) {
-        currentUser.name = newName;
-        currentUser.color = newColor;
-        currentUser.initials = getInitials(newName);
-        localStorage.setItem('kd_user', JSON.stringify(currentUser));
-        updateUserBadge();
+function resetPrivateView() {
+    sessionVersion++;
+    cacheVersion++;
+    dataSubscriptions.forEach(stop => stop());
+    dataSubscriptions = [];
+    if (noteSubscription) noteSubscription();
+    noteSubscription = null;
+    currentUser = null;
+    activeDayId = null;
+    activeDayDate = '';
+    editingNoteId = null;
+    currentEditingData = null;
+    foldersMap.clear();
+    daysMap.clear();
+    existingDatesSet.clear();
+    allNotesCache = [];
+    notifications = [];
+    for (const id of ['day-list', 'notes-grid', 'gsearch-results', 'notif-list', 'm-editor', 'stats-body', 'gsearch-count']) {
+        document.getElementById(id).replaceChildren();
     }
-    renderManageTab();
-};
-
-window.deleteUser = function(idx) {
-    const users = loadUsers();
-    if (!confirm(`Delete "${users[idx].name}" from the list?`)) return;
-    users.splice(idx, 1);
-    saveUsers(users);
-    renderManageTab();
-};
-
-window.addNewUser = function() {
-    const nameInput = document.getElementById('new-user-name');
-    const colorInput = document.getElementById('new-user-color');
-    const name = nameInput.value.trim();
-    const color = colorInput.value;
-    if (!name) { alert('Enter a name'); return; }
-    const users = loadUsers();
-    if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) { alert('A member with this name already exists'); return; }
-    users.push({ name, color });
-    saveUsers(users);
-    nameInput.value = '';
-    colorInput.value = '#3498db';
-    renderManageTab();
-    addNotification('👤 New member added: ' + name, '', 'info');
-};
-
-function loginAs(name, color) {
-    const initials = getInitials(name);
-    currentUser = { name, color, initials };
-    localStorage.setItem('kd_user', JSON.stringify(currentUser));
-    document.getElementById('login-modal').style.display = 'none';
-    updateUserBadge();
-    addNotification('👋 Welcome back, ' + name + '!', 'Logged in successfully', 'info');
+    for (const id of ['m-room', 'search', 'sidebar-search', 'gsearch-input']) document.getElementById(id).value = '';
+    document.getElementById('m-file').value = '';
+    document.getElementById('day-label').textContent = 'Select a day';
+    document.getElementById('print-date-label').textContent = '';
+    document.getElementById('user-name-badge').textContent = 'Not logged in';
+    document.getElementById('user-avatar-badge').textContent = '?';
+    document.querySelectorAll('.modal, .cal-modal, .stats-modal, .gsearch-modal, .notif-panel, .tmpl-modal').forEach(el => el.style.display = 'none');
+    for (const id of ['new-note-trigger', 'tmpl-open-btn', 'print-btn']) document.getElementById(id).style.display = 'none';
+    renderNotifBadge();
+    setLocked(true);
 }
-
-function updateUserBadge() {
-    if (!currentUser) return;
-    document.getElementById('user-avatar-badge').textContent = currentUser.initials || getInitials(currentUser.name);
+function handleDataError() {
+    resetPrivateView();
+    document.getElementById('auth-error').textContent = 'Cannot access hotel data. Check the published Firestore rules and your connection.';
+    signOut(auth).catch(() => {});
+}
+document.getElementById('auth-form').onsubmit = async event => {
+    event.preventDefault();
+    const button = document.getElementById('auth-submit');
+    const error = document.getElementById('auth-error');
+    const hotel = document.getElementById('auth-hotel').value.trim().toLowerCase();
+    const login = document.getElementById('auth-login').value.trim().toLowerCase();
+    if (!/^[a-z0-9_-]+$/.test(hotel) || !/^[a-z0-9_-]+$/.test(login)) return;
+    button.disabled = true;
+    error.textContent = '';
+    try {
+        await authReady;
+        await signInWithEmailAndPassword(auth, `${login}@${hotel}.invalid`, document.getElementById('auth-password').value);
+    } catch (e) {
+        error.textContent = e.code === 'auth/too-many-requests'
+            ? 'Too many attempts. Try again later.'
+            : e.code === 'auth/network-request-failed'
+                ? 'Connection failed. Check your internet connection.'
+                : 'Sign-in failed. Check your hotel code, username and password.';
+    } finally {
+        document.getElementById('auth-password').value = '';
+        button.disabled = false;
+    }
+};
+document.getElementById('change-user-btn').title = 'Sign out';
+document.getElementById('change-user-btn').textContent = 'Exit';
+document.getElementById('change-user-btn').onclick = async () => {
+    resetPrivateView();
+    try { await signOut(auth); } catch { location.reload(); }
+};
+// SDK authentication is required before even starting database listeners.
+// The UID check here is UX only; firestore.rules is the security boundary.
+authReady.then(() => onAuthStateChanged(auth, async user => {
+    resetPrivateView();
+    if (!user) return;
+    if (user.uid !== OWNER_UID) {
+        document.getElementById('auth-error').textContent = 'This account has not been granted access to King David.';
+        await signOut(auth);
+        return;
+    }
+    currentUser = { uid: user.uid, name: 'Danylo', color: '#c5a059', initials: 'D' };
+    document.getElementById('user-avatar-badge').textContent = currentUser.initials;
     document.getElementById('user-avatar-badge').style.background = currentUser.color;
     document.getElementById('user-name-badge').textContent = currentUser.name;
-}
+    document.getElementById('auth-error').textContent = '';
+    setLocked(false);
+    startDataListeners();
+})).catch(() => {
+    document.getElementById('auth-error').textContent = 'Sign-in storage is unavailable. Allow browser storage and reload.';
+});
 
-document.getElementById('change-user-btn').onclick = () => {
-    renderSelectTab();
-    window.switchLoginTab('select');
-    document.getElementById('login-modal').style.display = 'flex';
+// Read-only export of the existing folders, days and nested notes, including
+// inline images. No source documents are changed by exporting.
+document.getElementById('backup-btn').onclick = async () => {
+    const button = document.getElementById('backup-btn');
+    const version = sessionVersion;
+    if (auth.currentUser?.uid !== OWNER_UID || !currentUser) return;
+    button.disabled = true;
+    try {
+        const folderSnapshot = await getDocs(collection(db, 'folders'));
+        const daySnapshot = await getDocs(collection(db, 'days'));
+        const backup = { format: 'dannote-firestore-v1', hotel: 'kingdavid', project: 'kd-handover', exportedAt: new Date().toISOString(), documents: [] };
+        folderSnapshot.forEach(d => backup.documents.push({ path: d.ref.path, data: d.data() }));
+        for (const day of daySnapshot.docs) {
+            if (version !== sessionVersion || !currentUser) return;
+            backup.documents.push({ path: day.ref.path, data: day.data() });
+            const notes = await getDocs(collection(db, `days/${day.id}/notes`));
+            notes.forEach(d => backup.documents.push({ path: d.ref.path, data: d.data() }));
+        }
+        if (version !== sessionVersion || !currentUser) return;
+        const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'}));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `dannote-backup-${new Date().toISOString().slice(0,10)}.json`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+        alert('Backup failed. Check access and connection, then try again.');
+    } finally { button.disabled = false; }
 };
-
-// Load saved user
-const savedUser = localStorage.getItem('kd_user');
-if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    updateUserBadge();
-} else {
-    renderSelectTab();
-    document.getElementById('login-modal').style.display = 'flex';
-}
 
 // ===================== HELPERS =====================
 function escapeHTML(str) {
@@ -748,9 +690,49 @@ const compressImg = (file) => new Promise(resolve => {
     };
 });
 
+function safePhoto(value) {
+    return typeof value === 'string' && /^data:image\/(?:png|jpeg|gif|webp);base64,[a-z0-9+/=\s]+$/i.test(value) ? value : '';
+}
+function safeColor(value) { return /^#[a-f0-9]{6}$/i.test(value || '') ? value : '#3498db'; }
+function safeTag(value) { return ['info', 'urgent', 'important', 'done'].includes(value) ? value : 'info'; }
+function safeRichHTML(value) {
+    const template = document.createElement('template');
+    template.innerHTML = String(value || '');
+    const allowed = new Set(['B','STRONG','I','EM','U','S','STRIKE','BR','P','DIV','SPAN','UL','OL','LI','BLOCKQUOTE','PRE','CODE','FONT','H1','H2','H3']);
+    const output = document.createElement('div');
+    function copy(node, parent) {
+        if (node.nodeType === Node.TEXT_NODE) { parent.append(document.createTextNode(node.textContent)); return; }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        if (['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','LINK','META','TEMPLATE'].includes(node.tagName)) return;
+        if (node.tagName === 'IMG') {
+            const src = safePhoto(node.getAttribute('src'));
+            if (src) { const img = document.createElement('img'); img.src = src; parent.append(img); }
+            return;
+        }
+        let target = parent;
+        if (allowed.has(node.tagName)) {
+            target = document.createElement(node.tagName.toLowerCase());
+            for (const prop of ['color','background-color','font-size','font-family','font-weight','font-style','text-decoration','text-align']) {
+                const val = node.style.getPropertyValue(prop);
+                if (val && !/url\s*\(|expression|[<>]/i.test(val)) target.style.setProperty(prop, val);
+            }
+            if (node.tagName === 'FONT') {
+                const color = node.getAttribute('color');
+                if (/^#[a-f0-9]{3,8}$/i.test(color || '')) target.setAttribute('color', color);
+                const size = node.getAttribute('size');
+                if (/^[1-7]$/.test(size || '')) target.setAttribute('size', size);
+            }
+            parent.append(target);
+        }
+        for (const child of node.childNodes) copy(child, target);
+    }
+    for (const node of template.content.childNodes) copy(node, output);
+    return output.innerHTML;
+}
+
 function stripHTML(html) {
     const div = document.createElement('div');
-    div.innerHTML = html;
+    div.innerHTML = safeRichHTML(html);
     return div.textContent || '';
 }
 
@@ -758,7 +740,7 @@ function stripHTML(html) {
 function addNotification(title, sub, type = 'info') {
     notifications.unshift({ title, sub, type, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), id: Date.now() });
     if (notifications.length > 50) notifications = notifications.slice(0, 50);
-    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    // Notifications remain in memory for this session only.
     renderNotifBadge();
 }
 
@@ -787,7 +769,7 @@ function renderNotifPanel() {
         list.appendChild(div);
     });
     notifications.forEach(n => n.read = true);
-    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    // Notifications remain in memory for this session only.
     renderNotifBadge();
 }
 
@@ -799,7 +781,7 @@ document.getElementById('notif-btn').onclick = () => {
 
 document.getElementById('notif-clear-btn').onclick = () => {
     notifications = [];
-    localStorage.setItem('kd_notifs', JSON.stringify(notifications));
+    // Notifications remain in memory for this session only.
     renderNotifPanel();
     renderNotifBadge();
 };
@@ -837,13 +819,13 @@ function buildStats() {
     const done = allNotesCache.filter(n => n.done).length;
     const openUrgent = allNotesCache.filter(n => n.tag === 'urgent' && !n.done).length;
 
-    const byUser = {};
+    const byUser = Object.create(null);
     allNotesCache.forEach(n => {
         const u = n.author || 'Unknown';
         byUser[u] = (byUser[u] || 0) + 1;
     });
 
-    const byDay = {};
+    const byDay = Object.create(null);
     daysMap.forEach(d => { byDay[d.date] = 0; });
     allNotesCache.forEach(n => { if (n._dayDate) byDay[n._dayDate] = (byDay[n._dayDate] || 0) + 1; });
 
@@ -868,7 +850,7 @@ function buildStats() {
         <div class="stats-section-title">Activity — Last ${sortedDays.length} Days</div>
         ${sortedDays.map(([date, cnt]) => `
         <div class="stat-bar-wrap">
-            <div class="stat-bar-label"><span>${date}</span><span>${cnt} notes</span></div>
+            <div class="stat-bar-label"><span>${escapeHTML(date)}</span><span>${cnt} notes</span></div>
             <div class="stat-bar"><div class="stat-bar-fill" style="width:${cnt/maxDayCount*100}%;background:var(--accent-color)"></div></div>
         </div>`).join('') || '<p style="color:#888;font-size:0.85rem;">No data yet</p>'}
 
@@ -886,6 +868,7 @@ function buildStats() {
 // ===================== GLOBAL SEARCH =====================
 document.getElementById('gsearch-btn').onclick = openGSearch;
 document.addEventListener('keydown', e => {
+    if (!currentUser) return;
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGSearch(); }
     if (e.key === 'Escape') closeGSearch();
 });
@@ -927,7 +910,7 @@ document.getElementById('gsearch-input').oninput = function() {
         div.className = 'gsearch-item';
         const plain = stripHTML(n.htmlContent || '').slice(0, 100);
         div.innerHTML = `
-            <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${n.tag}" style="vertical-align:middle">${n.tag}</span></div>
+            <div class="gsearch-item-date">${escapeHTML(n._dayDate||'')} <span class="tag tag-${safeTag(n.tag)}" style="vertical-align:middle">${safeTag(n.tag)}</span></div>
             ${n.room ? `<div class="gsearch-item-room">R: ${hl(n.room)}</div>` : ''}
             <div class="gsearch-item-text">${hl(plain)}</div>
         `;
@@ -974,32 +957,40 @@ window.deleteFolder = async id => {
 
 document.getElementById('sidebar-search').oninput = () => renderSidebar();
 
-onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap => {
+function startDataListeners() {
+dataSubscriptions.push(onSnapshot(query(collection(db, "folders"), orderBy("createdAt", "desc")), snap => {
     foldersMap.clear();
-    snap.forEach(f => foldersMap.set(f.id, { id: f.id, ...f.data() }));
+    snap.forEach(f => foldersMap.set(f.id, { ...f.data(), id: f.id }));
     renderSidebar();
-});
+}, handleDataError));
 
-onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
+dataSubscriptions.push(onSnapshot(query(collection(db, "days"), orderBy("createdAt", "desc")), snap => {
     daysMap.clear();
     existingDatesSet.clear();
     snap.forEach(d => {
-        const data = { id: d.id, ...d.data() };
+        const data = { ...d.data(), id: d.id };
         daysMap.set(d.id, data);
         existingDatesSet.add(data.date);
     });
     renderSidebar();
     loadAllNotesForCache();
-});
+}, handleDataError));
+
+}
 
 async function loadAllNotesForCache() {
-    allNotesCache = [];
-    for (const [dayId, dayData] of daysMap) {
-        const snap = await getDocs(collection(db, `days/${dayId}/notes`));
-        snap.forEach(n => {
-            allNotesCache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date });
-        });
-    }
+    const version = sessionVersion;
+    const request = ++cacheVersion;
+    if (!currentUser) return;
+    const cache = [];
+    try {
+        for (const [dayId, dayData] of daysMap) {
+            const snap = await getDocs(collection(db, `days/${dayId}/notes`));
+            if (version !== sessionVersion || request !== cacheVersion || !currentUser) return;
+            snap.forEach(n => cache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date }));
+        }
+        if (version === sessionVersion && request === cacheVersion && currentUser) allNotesCache = cache;
+    } catch { if (version === sessionVersion && currentUser) handleDataError(); }
 }
 
 function renderSidebar() {
@@ -1034,17 +1025,24 @@ function renderSidebar() {
         fDiv.dataset.type = 'folder'; fDiv.dataset.id = folderId;
 
         const actions = folderId !== 'unsorted' ? `
-            <button class="folder-action-btn" onclick="event.stopPropagation();window.renameFolder('${folderId}','${escapeHTML(folderName)}')">✎</button>
-            <button class="folder-action-btn" style="color:#e74c3c" onclick="event.stopPropagation();window.deleteFolder('${folderId}')">🗑</button>` : '';
-
+            <button class="folder-action-btn" data-action="rename">✎</button>
+            <button class="folder-action-btn" data-action="delete" style="color:#e74c3c">🗑</button>` : '';
         fDiv.innerHTML = `
-            <div class="folder-header" onclick="window.toggleFolder('${folderId}')">
+            <div class="folder-header">
                 <span>${isOpen?'📂':'📁'} ${escapeHTML(folderName)}</span>
-                <div class="folder-actions">${actions}<button class="add-to-folder-btn" onclick="event.stopPropagation();window.addDayToFolder('${folderId}')">+</button></div>
+                <div class="folder-actions">${actions}<button class="add-to-folder-btn">+</button></div>
             </div>
-            <div class="folder-content ${isOpen?'open':''}" id="folder-${folderId}"></div>`;
-
+            <div class="folder-content ${isOpen?'open':''}"></div>`;
+        fDiv.querySelector('.folder-header').onclick = () => window.toggleFolder(folderId);
+        const bind = (selector, fn) => {
+            const button = fDiv.querySelector(selector);
+            if (button) button.onclick = event => { event.stopPropagation(); fn(); };
+        };
+        bind('[data-action="rename"]', () => window.renameFolder(folderId, folderName));
+        bind('[data-action="delete"]', () => window.deleteFolder(folderId));
+        bind('.add-to-folder-btn', () => window.addDayToFolder(folderId));
         const content = fDiv.querySelector('.folder-content');
+        content.id = `folder-${folderId}`;
         display.forEach(day => {
             const div = document.createElement('div');
             div.className = `day-item draggable${activeDayId===day.id?' active':''}`;
@@ -1180,36 +1178,43 @@ window.deleteDay = async id => {
 };
 
 function loadNotes(dayId) {
-    onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
-        if (activeDayId !== dayId) return;
+    if (noteSubscription) noteSubscription();
+    if (!currentUser) return;
+    const version = sessionVersion;
+    noteSubscription = onSnapshot(query(collection(db, `days/${dayId}/notes`), orderBy("createdAt","desc")), snap => {
+        if (activeDayId !== dayId || version !== sessionVersion || !currentUser) return;
         const grid = document.getElementById('notes-grid');
         grid.innerHTML = '';
         const term = document.getElementById('search').value.toLowerCase();
         snap.forEach(nDoc => {
             const n = nDoc.data();
+            const tag = safeTag(n.tag);
             const plainText = stripHTML(n.htmlContent || '') + ' ' + (n.text||'') + ' ' + (n.room||'');
             if (!plainText.toLowerCase().includes(term)) return;
             const card = document.createElement('div');
             card.className = `note-card${n.done?' done':''}${n.tag==='urgent'?' urgent-card':''}`;
-            const noteContent = n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>');
-            const authorColor = n.authorColor || '#3498db';
+            const noteContent = safeRichHTML(n.htmlContent || escapeHTML(n.text||'').replace(/\n/g,'<br>'));
+            const authorColor = safeColor(n.authorColor);
             card.innerHTML = `
                 <div class="note-time">
-                    <span>${n.time}</span>
+                    <span>${escapeHTML(n.time)}</span>
                     ${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}
                 </div>
-                <span class="tag tag-${n.tag}">${n.tag}</span>
+                <span class="tag tag-${tag}">${tag}</span>
                 ${n.room ? `<div class="note-room">R: ${escapeHTML(n.room)}</div>` : ''}
                 <div class="note-text${n.tag==='urgent'?' important-style':''}">${noteContent}</div>
-                ${n.photoData ? `<img src="${n.photoData}" class="note-img">` : ''}
+                ${safePhoto(n.photoData) ? `<img src="${safePhoto(n.photoData)}" class="note-img">` : ''}
                 <div class="card-actions">
-                    <button class="action-link" onclick="window.toggleDone('${nDoc.id}',${n.done})">${n.done?'Undo':'Done'}</button>
-                    <button class="action-link" onclick="window.editNote('${nDoc.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">Edit</button>
-                    <button class="action-link" style="color:red" onclick="window.deleteNote('${nDoc.id}')">Delete</button>
+                    <button class="action-link" data-action="done">${n.done?'Undo':'Done'}</button>
+                    <button class="action-link" data-action="edit">Edit</button>
+                    <button class="action-link" data-action="delete" style="color:red">Delete</button>
                 </div>`;
+            card.querySelector('[data-action="done"]').onclick = () => window.toggleDone(nDoc.id, !!n.done);
+            card.querySelector('[data-action="edit"]').onclick = () => window.editNote(nDoc.id, n);
+            card.querySelector('[data-action="delete"]').onclick = () => window.deleteNote(nDoc.id);
             grid.appendChild(card);
         });
-    });
+    }, handleDataError);
 }
 
 document.getElementById('new-note-trigger').onclick = () => {
@@ -1226,22 +1231,25 @@ document.getElementById('new-note-trigger').onclick = () => {
 document.getElementById('m-cancel').onclick = () => document.getElementById('modal').style.display='none';
 
 document.getElementById('m-save').onclick = async () => {
-    const html = document.getElementById('m-editor').innerHTML;
+    if (!currentUser || !activeDayId) return;
+    const html = safeRichHTML(document.getElementById('m-editor').innerHTML);
     const text = document.getElementById('m-editor').innerText;
     const room = document.getElementById('m-room').value;
     const tag = document.getElementById('m-tag').value;
     const file = document.getElementById('m-file').files[0];
     const btn = document.getElementById('m-save');
     btn.textContent = "Saving..."; btn.disabled = true;
+    try {
     let photoData = currentEditingData?.photoData || null;
     if (file) photoData = await compressImg(file);
     const payload = {
         text, htmlContent: html, room, tag, photoData,
-        author: currentUser?.name || null,
-        authorColor: currentUser?.color || '#3498db',
+        author: currentEditingData?.author || currentUser.name,
+        updatedByUid: currentUser.uid,
+        authorColor: currentEditingData?.authorColor || currentUser.color,
         time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
         createdAt: editingNoteId ? currentEditingData.createdAt : Date.now(),
-        done: false
+        done: currentEditingData?.done || false
     };
     if (editingNoteId) {
         await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
@@ -1250,14 +1258,16 @@ document.getElementById('m-save').onclick = async () => {
         if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
     }
     document.getElementById('modal').style.display='none';
-    btn.textContent = "Save Data"; btn.disabled = false;
     loadAllNotesForCache();
+    } catch {
+        alert('Could not save. Your draft is still open. Check your connection and access.');
+    } finally { btn.textContent = 'Save Data'; btn.disabled = false; }
 };
 
 window.editNote = (id, data) => {
     editingNoteId = id; currentEditingData = data;
     document.getElementById('m-title').textContent = "Edit Note";
-    document.getElementById('m-editor').innerHTML = data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>');
+    document.getElementById('m-editor').innerHTML = safeRichHTML(data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>'));
     document.getElementById('m-room').value = data.room || '';
     document.getElementById('m-tag').value = data.tag;
     document.getElementById('modal').style.display='flex';
@@ -1360,7 +1370,7 @@ document.getElementById('cal-modal').onclick = e => { if(e.target===document.get
 document.getElementById('stats-modal').onclick = e => { if(e.target===document.getElementById('stats-modal')) document.getElementById('stats-modal').style.display='none'; };
 document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
 document.getElementById('modal').onclick = e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; };
-document.getElementById('login-modal').onclick = e => { if(e.target===document.getElementById('login-modal') && currentUser) document.getElementById('login-modal').style.display='none'; };
+// The authentication gate cannot be dismissed by clicking outside.
 document.addEventListener('click', e => {
     const panel = document.getElementById('notif-panel');
     if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
