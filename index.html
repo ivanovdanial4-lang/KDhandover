@@ -879,7 +879,7 @@ document.getElementById('team-form').onsubmit = async event => {
     const password = document.getElementById('team-password').value;
     const color = safeColor(document.getElementById('team-color').value);
     const saveButton = document.getElementById('team-save');
-    if (!uid && (!/^[a-z0-9_-]{2,32}$/.test(login) || login === 'danila')) { showToast('Choose another login (2–32 letters, numbers, _ or -)', 'error'); return; }
+    if (!uid && (!/^[a-z0-9_-]{2,32}$/.test(login) || login === '')) { showToast('Choose another login (2–32 letters, numbers, _ or -)', 'error'); return; }
     if (!name || !role) { showToast('Enter a name and role', 'error'); return; }
     if (!uid && password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
     if (!uid && Array.from(teamUsers.values()).some(profile => profile.login === login)) { showToast('This login is already in use', 'error'); return; }
