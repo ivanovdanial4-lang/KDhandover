@@ -40,7 +40,7 @@
 
 * { box-sizing:border-box; margin:0; padding:0; }
 html { min-width:280px; background:var(--bg-color); }
-body { background:radial-gradient(circle at 72% -20%, rgba(196,154,85,.10), transparent 32%), var(--bg-color); color:var(--text-main); height:100vh; display:flex; flex-direction:column; overflow:hidden; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:14px; line-height:1.4; transition:background .35s ease,color .35s ease; }
+body { height:100dvh; background:radial-gradient(circle at 72% -20%, rgba(196,154,85,.10), transparent 32%), var(--bg-color); color:var(--text-main); height:100vh; height:100dvh; display:flex; flex-direction:column; overflow:hidden; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:14px; line-height:1.4; transition:background .35s ease,color .35s ease; }
 button, input, select, textarea { font:inherit; }
 button { color:inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible, [contenteditable="true"]:focus-visible { outline:3px solid rgba(196,154,85,.35); outline-offset:2px; }
@@ -84,7 +84,7 @@ header { height:70px; flex:none; display:flex; align-items:center; gap:18px; pad
 
 /* App layout / sidebar */
 .container { display:flex; flex:1; min-height:0; overflow:hidden; }
-#sidebar { width:292px; flex:0 0 292px; display:flex; flex-direction:column; gap:0; padding:25px 18px 15px; overflow-y:auto; background:linear-gradient(180deg,var(--sidebar-bg),var(--surface-2)); border-right:1px solid var(--border-color); transition:transform .3s var(--ease), margin-left .3s var(--ease); }
+#sidebar { width:292px; flex:0 0 292px; display:flex; flex-direction:column; gap:0; padding:25px 18px 15px; overflow:hidden; background:linear-gradient(180deg,var(--sidebar-bg),var(--surface-2)); border-right:1px solid var(--border-color); transition:transform .3s var(--ease), margin-left .3s var(--ease); }
 .sidebar-hidden { margin-left:-292px!important; }
 .sidebar-heading { display:flex; align-items:center; justify-content:space-between; padding:0 10px; margin-bottom:13px; }
 .sidebar-heading .eyebrow { color:var(--text-muted); }
@@ -96,7 +96,8 @@ header { height:70px; flex:none; display:flex; align-items:center; gap:18px; pad
 .sidebar-input { margin-bottom:15px; }
 .sidebar-search { width:100%; min-width:0; height:38px; padding:0 11px; border:1px solid var(--border-color); border-radius:10px; color:var(--text-main); background:var(--surface); font-size:12px; }
 .sidebar-search::placeholder,.search-bar::placeholder { color:var(--text-soft); }
-#day-list { flex:1; min-height:90px; margin-bottom:14px; }
+#day-list { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; margin-bottom:14px; }
+#sidebar > :not(#day-list) { flex-shrink:0; }
 .folder-container { margin-bottom:12px; border-radius:10px; transition:background .2s ease; }
 .folder-container.drag-over { outline:2px dashed var(--accent-color); outline-offset:2px; background:var(--accent-soft); }
 .folder-header { display:flex; align-items:center; justify-content:space-between; min-height:35px; padding:6px 9px; color:var(--text-main); border-radius:9px; cursor:pointer; font-size:12px; font-weight:800; transition:all .2s var(--ease); }
@@ -122,7 +123,7 @@ header { height:70px; flex:none; display:flex; align-items:center; gap:18px; pad
 .delete-day-btn:hover { color:var(--tag-urgent); background:rgba(220,90,90,.1); }
 .draggable { cursor:grab; } .draggable:active { cursor:grabbing; }
 .dragging { opacity:.35; transform:scale(.98); }
-.user-badge { display:flex; align-items:center; gap:10px; padding:11px 10px; margin-top:auto; border:1px solid var(--border-color); border-radius:13px; background:var(--surface); box-shadow:var(--shadow-sm); }
+.user-badge { position:relative; z-index:2; flex-shrink:0; isolation:isolate; opacity:1; display:flex; align-items:center; gap:10px; padding:11px 10px; margin-top:auto; border:1px solid var(--border-color); border-radius:13px; background:var(--surface); box-shadow:var(--shadow-sm); }
 .user-avatar { width:35px; height:35px; flex:none; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.75); border-radius:12px 12px 12px 4px; color:#fff; background:var(--accent-color); font-size:12px; font-weight:850; box-shadow:0 4px 9px rgba(196,154,85,.23); }
 .user-caption { display:flex; flex-direction:column; min-width:0; flex:1; }
 .user-name-badge { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-main); font-size:12px; font-weight:800; }
@@ -530,7 +531,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     <div class="auth-form-panel"><div class="auth-hotel"><span data-icon="building"></span>KING DAVID</div><h1 id="auth-title">Welcome back.</h1><p class="login-sub">Your next shift starts here.</p>
       <form id="auth-form">
         <label for="auth-hotel">Hotel code</label><div class="auth-input"><span data-icon="building"></span><input id="auth-hotel" value="kingdavid" required autocomplete="organization" pattern="[a-zA-Z0-9_-]+" autocapitalize="none" spellcheck="false"></div>
-        <label for="auth-login">Username</label><div class="auth-input"><span data-icon="user"></span><input id="auth-login" value="danila" required autocomplete="username" pattern="[a-zA-Z0-9_-]+" autocapitalize="none" spellcheck="false"></div>
+        <label for="auth-login">Username</label><div class="auth-input"><span data-icon="user"></span><input id="auth-login" required autocomplete="username" pattern="[a-zA-Z0-9_-]+" autocapitalize="none" spellcheck="false"></div>
         <label for="auth-password">Password</label><div class="auth-input"><span data-icon="lock"></span><input id="auth-password" type="password" required autocomplete="current-password" placeholder="Enter your password"><button type="button" class="icon-button" id="password-toggle" aria-label="Show password" aria-pressed="false"><span data-icon="eye"></span></button></div>
         <p id="auth-error" role="alert"></p><button id="auth-submit" class="primary-btn" type="submit">Sign in <span data-icon="arrow-right"></span></button>
       </form><p class="auth-help">Need access? Ask your hotel administrator.</p><div class="auth-form-footer"><span class="workspace-dot"></span>YOUR TEAM’S WORKSPACE</div>
@@ -540,7 +541,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, deleteUser, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -561,6 +562,7 @@ let creatorAuth = null;
 const authReady = setPersistence(auth, browserSessionPersistence);
 
 const ICONS = {
+    trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
     menu:'<path d="M4 6h16M4 12h16M4 18h16"/>', search:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
     bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
     download:'<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 20h16"/>', chart:'<path d="M4 19V5M4 19h16M8 16v-5M12 16V7M16 16v-3"/>',
@@ -621,10 +623,18 @@ let currentDayNotes = [];
 let activeFilter = 'all';
 let viewMode = 'grid';
 let notifications = [];
-localStorage.removeItem('kd_notifs');
-localStorage.removeItem('kd_user');
-localStorage.removeItem('kd_users');
-let templates = JSON.parse(localStorage.getItem('kd_templates') || '[]');
+const storage = {
+    getItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
+    setItem(key, value) { try { localStorage.setItem(key, value); } catch { showToast('Browser storage unavailable: preferences will not survive a reload.', 'error'); } },
+    removeItem(key) { try { localStorage.removeItem(key); } catch {} }
+};
+storage.removeItem('kd_notifs');
+storage.removeItem('kd_user');
+storage.removeItem('kd_users');
+let templates;
+try { templates = JSON.parse(storage.getItem('kd_templates') || 'null'); } catch { templates = null; }
+if (!Array.isArray(templates)) templates = null;
+else templates = templates.filter(t => t && typeof t.name === 'string' && typeof t.text === 'string');
 
 // Calendar state
 let calTarget = null;
@@ -706,6 +716,9 @@ function resetPrivateView() {
     document.getElementById('day-overview').hidden = true;
     document.getElementById('notes-toolbar').hidden = true;
     document.getElementById('notes-meta').textContent = '';
+    document.getElementById('auth-login').value = '';
+    document.getElementById('auth-password').value = '';
+    resetTeamForm();
     currentDayNotes = [];
     activeFilter = 'all';
     document.getElementById('user-name-badge').textContent = 'Not logged in';
@@ -757,15 +770,18 @@ document.getElementById('change-user-btn').onclick = async () => {
 // Firestore rules remain the security boundary; this profile check controls the UI.
 authReady.then(() => onAuthStateChanged(auth, async user => {
     resetPrivateView();
+    const version = sessionVersion;
     if (!user) return;
     let profile;
     try {
         profile = await loadUserProfile(user);
     } catch {
+        if (version !== sessionVersion || auth.currentUser?.uid !== user.uid) return;
         document.getElementById('auth-error').textContent = 'Cannot load your team profile. Publish the secure Firestore rules first.';
         await signOut(auth);
         return;
     }
+    if (version !== sessionVersion || auth.currentUser?.uid !== user.uid) return;
     if (!profile || profile.hotelId !== HOTEL_ID || !profile.active) {
         document.getElementById('auth-error').textContent = 'This account has not been granted access to King David.';
         await signOut(auth);
@@ -795,6 +811,8 @@ function resetTeamForm() {
     document.getElementById('team-role').value = '';
     document.getElementById('team-password').value = '';
     document.getElementById('team-password').required = true;
+    document.getElementById('team-password').disabled = false;
+    document.getElementById('team-password').closest('label').hidden = false;
     document.getElementById('team-password').placeholder = 'At least 6 characters';
     document.getElementById('team-color').value = '#4b89c9';
     document.getElementById('team-save').textContent = 'Add member';
@@ -812,6 +830,8 @@ function editTeamMember(uid) {
     document.getElementById('team-role').value = profile.role;
     document.getElementById('team-password').value = '';
     document.getElementById('team-password').required = false;
+    document.getElementById('team-password').disabled = true;
+    document.getElementById('team-password').closest('label').hidden = true;
     document.getElementById('team-password').placeholder = 'Leave blank to keep current password';
     document.getElementById('team-color').value = safeColor(profile.color);
     document.getElementById('team-save').textContent = 'Save changes';
@@ -819,17 +839,43 @@ function editTeamMember(uid) {
     document.getElementById('team-name').focus();
 }
 window.toggleTeamMember = async uid => {
-    if (!currentUser?.isOwner || uid === OWNER_UID) return;
+    if (!currentUser?.isOwner || uid === OWNER_UID || pendingTeamActions.has(uid)) return;
     const profile = teamUsers.get(uid);
     if (!profile) return;
+    const version = sessionVersion;
+    pendingTeamActions.add(uid);
+    renderTeamList();
     try {
         const nextActive = !profile.active;
         await updateDoc(doc(db, 'users', uid), { active: nextActive, updatedAt: Date.now() });
+        if (version !== sessionVersion || !currentUser?.isOwner) return;
         profile.active = nextActive;
         teamUsers.set(uid, profile);
         renderTeamList();
         showToast(nextActive ? `${profile.name} access restored` : `${profile.name} access paused`, 'success');
     } catch { showToast('Could not update team access', 'error'); }
+    finally { pendingTeamActions.delete(uid); if (version === sessionVersion && currentUser?.isOwner) renderTeamList(); }
+};
+const pendingTeamActions = new Set();
+window.deleteTeamMember = async uid => {
+    if (!currentUser?.isOwner || uid === OWNER_UID || pendingTeamActions.has(uid)) return;
+    const profile = teamUsers.get(uid);
+    if (!profile || !confirm(`Remove ${profile.name} from the team? Their notes will stay. The login remains reserved until its Firebase Authentication record is removed by an administrator.`)) return;
+    const version = sessionVersion;
+    pendingTeamActions.add(uid);
+    renderTeamList();
+    try {
+        await deleteDoc(doc(db, 'users', uid));
+        if (version !== sessionVersion || !currentUser?.isOwner) return;
+        teamUsers.delete(uid);
+        if (document.getElementById('team-edit-uid').value === uid) resetTeamForm();
+        showToast(`${profile.name} removed from the team`, 'success');
+    } catch {
+        if (version === sessionVersion) showToast('Could not remove this member. Check your connection and Firestore delete permission.', 'error');
+    } finally {
+        pendingTeamActions.delete(uid);
+        if (version === sessionVersion && currentUser?.isOwner) renderTeamList();
+    }
 };
 function renderTeamList() {
     const list = document.getElementById('team-list');
@@ -848,9 +894,12 @@ function renderTeamList() {
         const row = document.createElement('div');
         row.className = 'team-member';
         const status = profile.active ? 'Active' : 'Paused';
-        row.innerHTML = `<div class="team-member-avatar" style="background:${safeColor(profile.color)}">${escapeHTML(profile.initials || getInitials(profile.name))}</div><div class="team-member-info"><div class="team-member-name">${escapeHTML(profile.name)}${profile.uid === OWNER_UID ? ' <span class="team-member-status">Owner</span>' : ''}</div><div class="team-member-meta">@${escapeHTML(profile.login || '—')} · ${escapeHTML(profile.role)} · <span class="team-member-status${profile.active ? '' : ' off'}">${status}</span></div></div><div class="team-member-actions"><button type="button" class="icon-button" data-action="edit" aria-label="Edit ${escapeHTML(profile.name)}" title="Edit profile">✎</button>${profile.uid === OWNER_UID ? '' : `<button type="button" class="icon-button" data-action="toggle" aria-label="${profile.active ? 'Pause' : 'Restore'} ${escapeHTML(profile.name)}" title="${profile.active ? 'Pause access' : 'Restore access'}">${profile.active ? '◌' : '●'}</button>`}</div>`;
+        row.innerHTML = `<div class="team-member-avatar" style="background:${safeColor(profile.color)}">${escapeHTML(profile.initials || getInitials(profile.name))}</div><div class="team-member-info"><div class="team-member-name">${escapeHTML(profile.name)}${profile.uid === OWNER_UID ? ' <span class="team-member-status">Owner</span>' : ''}</div><div class="team-member-meta">@${escapeHTML(profile.login || '—')} · ${escapeHTML(profile.role)} · <span class="team-member-status${profile.active ? '' : ' off'}">${status}</span></div></div><div class="team-member-actions"><button type="button" class="icon-button" data-action="edit" aria-label="Edit ${escapeHTML(profile.name)}" title="Edit profile">✎</button>${profile.uid === OWNER_UID ? '' : `<button type="button" class="icon-button" data-action="toggle" aria-label="${profile.active ? 'Pause' : 'Restore'} ${escapeHTML(profile.name)}" title="${profile.active ? 'Pause access' : 'Restore access'}">${profile.active ? '◌' : '●'}</button><button type="button" class="icon-button" data-action="delete" style="color:var(--tag-urgent)" aria-label="Delete ${escapeHTML(profile.name)}" title="Remove team member"><span data-icon="trash"></span></button>`}</div>`;
         row.querySelector('[data-action="edit"]').onclick = () => editTeamMember(profile.uid);
         row.querySelector('[data-action="toggle"]')?.addEventListener('click', () => window.toggleTeamMember(profile.uid));
+        row.querySelector('[data-action="delete"]')?.addEventListener('click', () => window.deleteTeamMember(profile.uid));
+        row.querySelectorAll('button').forEach(button => button.disabled = pendingTeamActions.has(profile.uid));
+        renderIcons(row);
         list.appendChild(row);
     });
 }
@@ -879,9 +928,12 @@ document.getElementById('team-form').onsubmit = async event => {
     const password = document.getElementById('team-password').value;
     const color = safeColor(document.getElementById('team-color').value);
     const saveButton = document.getElementById('team-save');
+    if (saveButton.disabled) return;
     if (!uid && (!/^[a-z0-9_-]{2,32}$/.test(login) || login === '')) { showToast('Choose another login (2–32 letters, numbers, _ or -)', 'error'); return; }
     if (!name || !role) { showToast('Enter a name and role', 'error'); return; }
     if (!uid && password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+    if (uid && (!teamUsers.has(uid) || pendingTeamActions.has(uid))) return;
+    if (!uid && login === 'danila') { showToast('This login is reserved for the owner', 'error'); return; }
     if (!uid && Array.from(teamUsers.values()).some(profile => profile.login === login)) { showToast('This login is already in use', 'error'); return; }
     saveButton.disabled = true;
     try {
@@ -894,10 +946,16 @@ document.getElementById('team-form').onsubmit = async event => {
             showToast('Team profile updated', 'success');
         } else {
             const secondaryAuth = getCreatorAuth();
+            await setPersistence(secondaryAuth, inMemoryPersistence);
             const credential = await createUserWithEmailAndPassword(secondaryAuth, authEmailForLogin(HOTEL_ID, login), password);
             const profileData = { hotelId: HOTEL_ID, login, displayName: name, role, color, active: true, createdAt: Date.now(), createdByUid: OWNER_UID };
-            await setDoc(doc(db, 'users', credential.user.uid), profileData);
-            await signOut(secondaryAuth);
+            try {
+                await setDoc(doc(db, 'users', credential.user.uid), profileData);
+            } catch (error) {
+                try { await deleteUser(credential.user); }
+                catch { showToast('Profile creation failed; remove the unused login in Firebase Authentication before retrying.', 'error'); }
+                throw error;
+            } finally { await signOut(secondaryAuth).catch(() => {}); }
             teamUsers.set(credential.user.uid, normalizeProfile(credential.user.uid, profileData));
             renderTeamList();
             showToast(`${name} can now sign in as @${login}`, 'success');
@@ -921,8 +979,10 @@ function startTeamProfileListener() {
 }
 async function refreshTeamUsers() {
     if (!currentUser?.isOwner) return;
+    const version = sessionVersion;
     try {
         const snapshot = await getDocs(collection(db, 'users'));
+        if (version !== sessionVersion || !currentUser?.isOwner) return;
         teamUsers.clear();
         snapshot.forEach(userDoc => teamUsers.set(userDoc.id, normalizeProfile(userDoc.id, userDoc.data())));
         renderTeamList();
@@ -971,22 +1031,26 @@ function parseDateToTs(str) {
     return 0;
 }
 
-const compressImg = (file) => new Promise(resolve => {
-    const r = new FileReader();
-    r.readAsDataURL(file);
-    r.onload = e => {
+const compressImg = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read image'));
+    reader.onabort = () => reject(new Error('Image reading cancelled'));
+    reader.onload = () => {
         const img = new Image();
-        img.src = e.target.result;
+        img.onerror = () => reject(new Error('Unsupported or damaged image'));
         img.onload = () => {
-            const c = document.createElement('canvas');
-            const ctx = c.getContext('2d');
-            let w = img.width, h = img.height;
-            if (w > 800) { h *= 800/w; w = 800; }
-            c.width = w; c.height = h;
-            ctx.drawImage(img, 0, 0, w, h);
-            resolve(c.toDataURL('image/jpeg', 0.6));
+            try {
+                const scale = Math.min(1, 800 / Math.max(img.width, img.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(img.width * scale));
+                canvas.height = Math.max(1, Math.round(img.height * scale));
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.6));
+            } catch (error) { reject(error); }
         };
+        img.src = reader.result;
     };
+    reader.readAsDataURL(file);
 });
 
 function safePhoto(value) {
@@ -1290,6 +1354,7 @@ dataSubscriptions.push(onSnapshot(query(collection(db, "days"), orderBy("created
     renderSidebar();
     setConnectionStatus('online', 'Live');
     loadAllNotesForCache();
+    if (activeDayId && !daysMap.has(activeDayId)) clearSelectedDay();
     if (!activeDayId && daysMap.size) {
         const latest = Array.from(daysMap.values()).sort((a,b) => parseDateToTs(b.date) - parseDateToTs(a.date))[0];
         if (latest) window.selectDay(latest.id, latest.date);
@@ -1507,13 +1572,29 @@ window.selectDay = (id, date) => {
     loadNotes(id);
 };
 
+function clearSelectedDay() {
+    if (noteSubscription) noteSubscription();
+    noteSubscription = null;
+    activeDayId = null;
+    activeDayDate = '';
+    currentDayNotes = [];
+    editingNoteId = null;
+    currentEditingData = null;
+    document.getElementById('notes-grid').replaceChildren();
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('day-label').textContent = 'Your shift, in order.';
+    document.getElementById('day-subtitle').textContent = 'Choose or create a handover day.';
+    for (const id of ['notes-meta', 'workspace-date', 'print-date-label']) document.getElementById(id).textContent = '';
+    for (const id of ['day-overview', 'notes-toolbar']) document.getElementById(id).hidden = true;
+    for (const id of ['new-note-trigger', 'tmpl-open-btn', 'print-btn']) document.getElementById(id).style.display = 'none';
+}
 window.deleteDay = async id => {
     if (!confirm("Delete day and ALL notes?")) return;
     try {
         const notes = await getDocs(collection(db, `days/${id}/notes`));
         for (const n of notes.docs) await deleteDoc(doc(db, `days/${id}/notes`, n.id));
         await deleteDoc(doc(db, "days", id));
-        if (activeDayId === id) resetPrivateView();
+        if (activeDayId === id) clearSelectedDay();
         showToast('Day and its notes deleted', 'info');
     } catch { showToast('Could not delete this day', 'error'); }
 };
@@ -1667,6 +1748,10 @@ document.getElementById('m-cancel').onclick = () => document.getElementById('mod
 
 document.getElementById('m-save').onclick = async () => {
     if (!currentUser || !activeDayId) return;
+    if (document.getElementById('m-save').disabled) return;
+    const version = sessionVersion;
+    const targetDayId = activeDayId;
+    const targetNoteId = editingNoteId;
     const html = safeRichHTML(document.getElementById('m-editor').innerHTML);
     const text = document.getElementById('m-editor').innerText;
     const room = document.getElementById('m-room').value;
@@ -1678,6 +1763,7 @@ document.getElementById('m-save').onclick = async () => {
     try {
     let photoData = currentEditingData?.photoData || null;
     if (file) photoData = await compressImg(file);
+    if (version !== sessionVersion || !currentUser || activeDayId !== targetDayId || editingNoteId !== targetNoteId) return;
     const payload = {
         text, htmlContent: html, room, tag, photoData,
         author: currentEditingData?.author || currentUser.name,
@@ -1706,7 +1792,8 @@ window.editNote = (id, data) => {
     document.getElementById('m-title').textContent = "Edit shift note";
     document.getElementById('m-editor').innerHTML = safeRichHTML(data.htmlContent || escapeHTML(data.text||'').replace(/\n/g,'<br>'));
     document.getElementById('m-room').value = data.room || '';
-    document.getElementById('m-tag').value = data.tag;
+    document.getElementById('m-file').value = '';
+    document.getElementById('m-tag').value = safeTag(data.tag);
     document.getElementById('modal').style.display='flex';
 };
 
@@ -1724,8 +1811,8 @@ window.toggleDone = async (id, s) => {
     } catch { showToast('Could not update this note', 'error'); }
 };
 
-document.getElementById('theme-selector').onchange = e => { document.body.setAttribute('data-theme', e.target.value); localStorage.setItem('kd_theme', e.target.value); };
-const savedTheme = localStorage.getItem('kd_theme');
+document.getElementById('theme-selector').onchange = e => { document.body.setAttribute('data-theme', e.target.value); storage.setItem('kd_theme', e.target.value); };
+const savedTheme = storage.getItem('kd_theme');
 if (savedTheme && ['light','cream','dark'].includes(savedTheme)) { document.getElementById('theme-selector').value = savedTheme; document.body.setAttribute('data-theme', savedTheme); }
 
 // ===================== RICH TEXT =====================
@@ -1767,7 +1854,7 @@ document.getElementById('print-btn').onclick = () => window.print();
 function renderTemplates() {
     const list = document.getElementById('tmpl-list');
     list.innerHTML = '';
-    if (!templates.length) {
+    if (templates === null) {
         list.innerHTML = '<p style="color:#888;font-size:0.82rem;grid-column:1/-1">No templates yet. Create one below!</p>';
         return;
     }
@@ -1779,6 +1866,7 @@ function renderTemplates() {
             <div class="tmpl-card-preview">${escapeHTML(t.text)}</div>
             <button class="tmpl-del" onclick="event.stopPropagation();deleteTemplate(${i})">🗑</button>`;
         card.onclick = () => {
+            if (document.getElementById('modal').style.display !== 'flex') document.getElementById('new-note-trigger').click();
             document.getElementById('m-editor').innerHTML += escapeHTML(t.text).replace(/\n/g,'<br>');
             document.getElementById('tmpl-modal').style.display='none';
             document.getElementById('modal').style.display='flex';
@@ -1792,7 +1880,7 @@ window.saveTemplate = () => {
     const text = document.getElementById('tmpl-text').value.trim();
     if (!name || !text) { alert("Enter name and text."); return; }
     templates.push({ name, text });
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    storage.setItem('kd_templates', JSON.stringify(templates));
     document.getElementById('tmpl-name').value = '';
     document.getElementById('tmpl-text').value = '';
     renderTemplates();
@@ -1800,7 +1888,7 @@ window.saveTemplate = () => {
 
 window.deleteTemplate = i => {
     templates.splice(i, 1);
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    storage.setItem('kd_templates', JSON.stringify(templates));
     renderTemplates();
 };
 
@@ -1809,14 +1897,14 @@ document.getElementById('tmpl-open-btn').onclick = () => {
     document.getElementById('tmpl-modal').style.display='flex';
 };
 
-if (!templates.length) {
+if (templates === null) {
     templates = [
         { name: 'Room Complaint', text: 'Guest in room ___ complained about: \nAction taken: \nFollow-up required: YES / NO' },
         { name: 'Maintenance Request', text: 'Maintenance needed in room ___\nIssue: \nReported to maintenance: YES / NO\nEst. resolution: ' },
         { name: 'Late Checkout', text: 'Room ___ requested late checkout until ___\nApproved by: \nCharge applied: YES / NO' },
         { name: 'VIP Arrival', text: 'VIP guest arriving: \nRoom: \nSpecial requests: \nAmenities prepared: ' },
     ];
-    localStorage.setItem('kd_templates', JSON.stringify(templates));
+    storage.setItem('kd_templates', JSON.stringify(templates));
 }
 
 // ===================== CLOSE MODALS ON OUTSIDE CLICK =====================
