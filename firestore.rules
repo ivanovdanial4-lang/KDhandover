@@ -1,39 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Bootstrap stage: only the verified owner UID of King David.
-    // Do not replace this with a general request.auth != null check.
-    function isKingDavidOwner() {
-      return request.auth != null
-        && request.auth.uid == 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
+    function owner() {
+      return request.auth != null && request.auth.uid == 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
     }
-
-    function isKingDavidMember() {
+    function member() {
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.hotelId == 'kingdavid'
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
     }
-
-    function canUseKingDavid() {
-      return isKingDavidOwner() || isKingDavidMember();
+    function access() { return owner() || member(); }
+    function manager() {
+      return owner() || (member() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['Admin', 'Boss']);
     }
-
-    match /users/{userId} {
-      // A member can read only their own profile. The owner manages the team.
-      allow read: if isKingDavidOwner() || (request.auth != null && request.auth.uid == userId);
-      allow create, update, delete: if isKingDavidOwner();
+    match /users/{uid} {
+      allow read: if access() || (request.auth != null && request.auth.uid == uid);
+      allow create: if manager() && request.resource.data.hotelId == 'kingdavid'
+        && request.resource.data.role is string && request.resource.data.active is bool;
+      allow update: if
+        (manager() && (uid != 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2' || owner())
+          && request.resource.data.hotelId == resource.data.hotelId
+          && request.resource.data.login == resource.data.login)
+        || (access() && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['color', 'theme', 'reminderDays'])
+          && (!('color' in request.resource.data) || request.resource.data.color.matches('^#[a-fA-F0-9]{6}$'))
+          && (!('theme' in request.resource.data) || request.resource.data.theme in ['light', 'cream', 'dark'])
+          && (!('reminderDays' in request.resource.data) || request.resource.data.reminderDays in [3, 5]));
+      // Account removal is performed by the authenticated callable function.
+      allow delete: if false;
     }
-
-    match /folders/{folderId} {
-      allow read, write: if canUseKingDavid();
+    match /printTemplates/{templateId} {
+      allow read: if access();
+      allow write: if owner();
     }
+    match /folders/{id} { allow read, write: if access(); }
     match /days/{dayId} {
-      allow read, write: if canUseKingDavid();
+      allow read, write: if access();
       match /notes/{noteId} {
-        allow read, write: if canUseKingDavid();
+        allow read, create, delete: if access();
+        allow update: if access()
+          && (!('author' in resource.data) || request.resource.data.author == resource.data.author)
+          && (!('authorUid' in resource.data) || request.resource.data.authorUid == resource.data.authorUid);
+        match /history/{eventId} {
+          allow read: if access();
+          allow create: if access() && request.resource.data.byUid == request.auth.uid
+            && request.resource.data.action in ['Edited', 'Completed', 'Reopened'];
+          allow update, delete: if false;
+        }
       }
     }
-    // All other paths remain denied by default.
   }
 }
