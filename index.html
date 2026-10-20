@@ -2110,28 +2110,62 @@ document.getElementById('night-checklist').onclick=async()=>{
     } catch {preview.document.body.textContent='The checklist is not available yet. Ask the hotel administrator to upload it.';}
 };
 function openPrintOptions() {
-    const body=panel('Print existing tasks');
-    body.innerHTML='<label>Department <select id="print-department"><option value="all">All departments</option><option>Reception</option><option>Housekeeping</option><option>Maintenance</option><option>Restaurant</option></select></label><label>Period <select id="print-scope"><option value="day">Selected day</option><option value="all">All days</option></select></label><label>Status <select id="print-status"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed tasks</option></select></label><button class="primary-btn" id="print-go">Prepare print preview</button>';
-    body.querySelector('#print-go').onclick=async e=>{
-        e.target.disabled=true;
-        const department=body.querySelector('#print-department').value,scope=body.querySelector('#print-scope').value,status=body.querySelector('#print-status').value;
-        // Open on the click, before async fetching, to preserve browser popup permission.
-        const preview=window.open('','_blank'); if(!preview){showToast('Allow pop-ups for print preview','error');e.target.disabled=false;return;} preview.opener=null;preview.document.body.textContent='Loading tasks…';
-        const version=sessionVersion;
+    const body = panel('Print existing tasks');
+    const departments = ['Reception', 'Housekeeping', 'Maintenance', 'Restaurant'];
+    const choices = departments.map(d => '<label style="display:inline-flex;gap:7px;align-items:center;margin:6px 16px 6px 0"><input type="checkbox" value="' + d + '" checked> ' + d + '</label>').join('');
+    body.innerHTML = '<fieldset id="print-departments" style="border:1px solid var(--border-color);padding:10px;border-radius:9px"><legend>Departments (select multiple)</legend>' + choices +
+        '</fieldset><label>Period <select id="print-scope"><option value="day">Selected day</option><option value="all">All days</option></select></label>' +
+        '<label>Status <select id="print-status"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed tasks</option></select></label>' +
+        '<button class="primary-btn" id="print-go">Prepare print preview</button>';
+    body.querySelector('#print-go').onclick = async e => {
+        const selected = new Set(Array.from(body.querySelectorAll('#print-departments input:checked'), input => input.value));
+        if (!selected.size) { showToast('Select at least one department', 'error'); return; }
+        const scope = body.querySelector('#print-scope').value, status = body.querySelector('#print-status').value;
+        e.target.disabled = true;
+        // Open synchronously before the Firebase request, so pop-up blockers do not suppress the preview.
+        const preview = window.open('', '_blank');
+        if (!preview) { showToast('Allow pop-ups for print preview', 'error'); e.target.disabled = false; return; }
+        preview.opener = null;
+        preview.document.body.textContent = 'Loading tasks…';
+        const version = sessionVersion;
         try {
-            if(scope==='all' && !await loadAllNotesForCache()) throw Error('Refresh failed');
-            if(version!==sessionVersion || !currentUser) {preview.close();return;}
-            let notes=scope==='all'?allNotesCache:currentDayNotes.map(n=>({...n.data,_dayDate:activeDayDate}));
-            notes=notes.filter(n=>(department==='all'||(n.department||'Reception')===department)&&(status==='all'||(status==='done'?n.done:!n.done)));
-            preview.document.head.innerHTML='<meta charset="utf-8"><title>King David tasks</title><style>@page{size:A4;margin:15mm}body{font:11pt Arial;line-height:1.5;color:#111}article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}@media print{button{display:none}}</style>';
-            preview.document.body.innerHTML=`<button onclick="window.print()">Print / Save PDF</button><h1>King David — ${escapeHTML(department==='all'?'All departments':department)}</h1><p>${escapeHTML(scope==='day'?activeDayDate:'All days')} · ${escapeHTML(status)} · ${notes.length} tasks</p>`+notes.map(n=>`<article><strong>${escapeHTML(n._dayDate||'')} · ${escapeHTML(n.room||'—')} · ${escapeHTML(n.department||'Reception')}</strong><p>${escapeHTML(n.text||stripHTML(n.htmlContent||''))}</p><small>${escapeHTML(n.author||'')} · ${escapeHTML(n.tag||'info')} · ${n.done?'Done':'Open'}</small></article>`).join('');
-        }catch{preview.document.body.textContent='Could not load tasks. Close this window and retry.';}finally{e.target.disabled=false;}
+            if (scope === 'all' && !await loadAllNotesForCache()) throw Error('Refresh failed');
+            if (version !== sessionVersion || !currentUser) { preview.close(); return; }
+            let notes = scope === 'all' ? allNotesCache : currentDayNotes.map(n => ({ ...n.data, _dayDate: activeDayDate }));
+            notes = notes.filter(n => selected.has(n.department || 'Reception') && (status === 'all' || (status === 'done' ? !!n.done : !n.done)));
+            const groups = departments.filter(d => selected.has(d)).map(department => {
+                const list = notes.filter(n => (n.department || 'Reception') === department);
+                const rows = list.length ? list.map(n => '<article><strong>' +
+                    escapeHTML(n._dayDate || '') + ' · ' + escapeHTML(n.room || '—') + '</strong><p>' +
+                    escapeHTML(n.text || stripHTML(n.htmlContent || '')) + '</p><small>' +
+                    escapeHTML(n.author || '') + ' · ' + escapeHTML(n.tag || 'info') + ' · ' +
+                    (n.done ? 'Done' : 'Open') + '</small></article>').join('') : '<p>No matching tasks.</p>';
+                return '<section class="department-block"><h2>' + escapeHTML(department) + '</h2>' + rows + '</section>';
+            }).join('');
+            preview.document.head.innerHTML = '<meta charset="utf-8"><title>King David tasks</title>' +
+                '<style>@page{size:A4;margin:15mm}body{font:11pt Arial;line-height:1.5;color:#111}' +
+                'article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}' +
+                '@media print{button{display:none}.department-block + .department-block{break-before:page}}</style>';
+            preview.document.body.innerHTML = '<button onclick="window.print()">Print / Save PDF</button><h1>King David — Department tasks</h1><p>' +
+                escapeHTML(scope === 'day' ? activeDayDate : 'All days') + ' · ' + escapeHTML(status) + ' · ' + notes.length +
+                ' tasks</p>' + groups;
+        } catch { preview.document.body.textContent = 'Could not load tasks. Close this window and retry.'; }
+        finally { e.target.disabled = false; }
     };
 }
 document.getElementById('profile-btn').onclick=()=>{
     if(!currentUser) return;
     const body=panel('My settings');
     body.innerHTML=`<form id="profile-form"><label>Avatar colour <input type="color" id="profile-color" value="${safeColor(currentUser.color)}"></label><label>Default reminder <select id="profile-reminder"><option value="3">3 days</option><option value="5">5 days</option></select></label><button class="primary-btn">Save preferences</button></form><form id="password-form"><label>Current password <input id="old-password" type="password" autocomplete="current-password" required></label><label>New password <input id="new-password" type="password" autocomplete="new-password" minlength="8" required></label><label>Repeat new password <input id="repeat-password" type="password" autocomplete="new-password" minlength="8" required></label><button class="main-act-btn">Change password</button></form>`;
+    if (currentUser.isOwner) {
+        const manageButton = document.createElement('button');
+        manageButton.className = 'main-act-btn';
+        manageButton.type = 'button';
+        manageButton.textContent = 'Manage night checklist';
+        manageButton.style.marginTop = '16px';
+        manageButton.onclick = manageNightChecklist;
+        body.append(manageButton);
+    }
     body.querySelector('#profile-reminder').value=currentUser.reminderDays;
     body.querySelector('#profile-form').onsubmit=async e=>{
         e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
@@ -2144,6 +2178,50 @@ document.getElementById('profile-btn').onclick=()=>{
         try{const user=auth.currentUser;await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,body.querySelector('#old-password').value));await updatePassword(user,password);e.target.reset();showToast('Password changed','success');}catch{showToast('Password change failed. Check your current password and connection.','error');}finally{button.disabled=false;}
     };
 };
+// The night checklist is never embedded in this publicly hosted HTML.
+// Owner pastes the private Word contents here; Firestore stores the lines for authenticated staff.
+async function manageNightChecklist() {
+    if (!currentUser?.isOwner) return;
+    const version = sessionVersion;
+    const body = panel('Manage night checklist');
+    body.innerHTML = '<p>Paste the checklist from Word. Each non-empty line becomes a printable item. It is stored only in the protected Firestore collection, not in GitHub.</p>' +
+        '<label for="night-checklist-text">Checklist text</label>' +
+        '<textarea id="night-checklist-text" rows="14" style="width:100%;padding:10px;background:var(--surface-2);color:var(--text-main);border:1px solid var(--border-color);border-radius:9px"></textarea>' +
+        '<p id="night-checklist-status" role="status" style="margin:8px 0;color:var(--text-muted)">Loading private checklist…</p>' +
+        '<button type="button" class="primary-btn" id="night-checklist-save">Save checklist</button>';
+    const textarea = body.querySelector('#night-checklist-text');
+    const status = body.querySelector('#night-checklist-status');
+    const save = body.querySelector('#night-checklist-save');
+    save.onclick = async () => {
+        if (!currentUser?.isOwner || version !== sessionVersion) return;
+        const paragraphs = textarea.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        if (!paragraphs.length || paragraphs.length > 500 || textarea.value.length > 150000) {
+            status.textContent = 'Enter between 1 and 500 non-empty lines (maximum 150,000 characters).';
+            return;
+        }
+        if (paragraphs.some(s => /\bUBYPORT\b/i.test(s))) {
+            status.textContent = 'Remove the UBYPORT login/password line. Refer to your protected password vault instead.';
+            return;
+        }
+        save.disabled = true;
+        try {
+            await setDoc(doc(db, 'printTemplates', 'nightChecklist'), {
+                paragraphs, updatedAt: Date.now(), updatedByUid: currentUser.uid
+            });
+            status.textContent = 'Checklist saved in Firestore. The moon button now uses this version.';
+            showToast('Night checklist saved', 'success');
+        } catch {
+            status.textContent = 'Could not save. Check the Firestore rules and your owner account.';
+        } finally { save.disabled = false; }
+    };
+    try {
+        const snapshot = await getDoc(doc(db, 'printTemplates', 'nightChecklist'));
+        if (version !== sessionVersion || !currentUser?.isOwner || !body.isConnected) return;
+        const paragraphs = snapshot.exists() ? snapshot.data().paragraphs : null;
+        if (Array.isArray(paragraphs) && !textarea.value) textarea.value = paragraphs.join('\n');
+        status.textContent = Array.isArray(paragraphs) ? 'Existing checklist loaded. You can edit and save it.' : 'No checklist yet. Paste it from the Word document.';
+    } catch { if (version === sessionVersion && body.isConnected) status.textContent = 'Could not load checklist. Check the Firestore rules.'; }
+}
 // Refresh cross-day notifications while the workspace is open; no email or push is sent.
 setInterval(()=>{if(currentUser && !document.hidden) loadAllNotesForCache();},60000);
 
