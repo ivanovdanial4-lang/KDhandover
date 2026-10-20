@@ -321,7 +321,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     </div>
     <div class="header-center"><span class="hotel-emblem" data-icon="building"></span><span>KING DAVID<small>TEAM WORKSPACE</small></span></div>
     <div class="header-right">
-        <button class="tool-btn icon-only" id="blank-handover" title="Blank handover · print and write by hand" aria-label="Print blank handover">☀️</button>
+        <button class="tool-btn icon-only" id="blank-handover" title="Print day-shift handover directly · Shift+click to open PDF" aria-label="Print day-shift handover">☀️</button>
         <button class="tool-btn icon-only" id="night-checklist" title="Night shift checklist" aria-label="Print night shift checklist">☾</button>
         <button class="tool-btn icon-only" id="profile-btn" title="My settings" aria-label="My settings">⚙</button>
         <span class="connection-status" id="connection-status" role="status"><i></i><span>Connecting</span></span>
@@ -2094,7 +2094,36 @@ function printable(title,html,existingWindow=null) {
     win.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHTML(title)}</title><style>@page{size:A4;margin:15mm}body{font:11pt Arial,sans-serif;color:#111;line-height:1.45;max-width:180mm;margin:20px auto}h1{font-size:20pt}article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}.check{display:flex;gap:10px;margin:9px 0;break-inside:avoid}.box{width:12px;height:12px;border:1px solid #555;flex-shrink:0;margin-top:4px}button{padding:10px 20px}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Print / Save PDF</button><h1>${escapeHTML(title)}</h1>${html}</body></html>`);
     win.document.close();
 }
-document.getElementById('blank-handover').onclick=()=>window.open('assets/handover-blank.pdf','_blank','noopener');
+// Directly print the original day-shift PDF without opening the browser's dark PDF viewer.
+let dayHandoverPrintFrame = null;
+document.getElementById('blank-handover').onclick = event => {
+    // Manual fallback for browsers configured to download PDFs instead of displaying them.
+    if (event.shiftKey) {
+        window.open('assets/handover-blank.pdf', '_blank', 'noopener');
+        return;
+    }
+    if (dayHandoverPrintFrame) dayHandoverPrintFrame.remove();
+    const frame = document.createElement('iframe');
+    dayHandoverPrintFrame = frame;
+    frame.title = 'Day shift handover print';
+    frame.setAttribute('aria-hidden', 'true');
+    // Keep the PDF out of sight, but loaded, until the print dialog is closed.
+    frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;pointer-events:none';
+    frame.onload = () => {
+        // The built-in PDF renderer can finish slightly after the iframe load event.
+        setTimeout(() => {
+            if (frame !== dayHandoverPrintFrame || !frame.isConnected) return;
+            try {
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+            } catch {
+                showToast('Direct printing was blocked. Hold Shift and click ☀️ to open the PDF manually.', 'error');
+            }
+        }, 650);
+    };
+    frame.src = 'assets/handover-blank.pdf';
+    document.body.appendChild(frame);
+};
 document.getElementById('night-checklist').onclick=async()=>{
     if(!currentUser) return;
     const preview=window.open('','_blank');
