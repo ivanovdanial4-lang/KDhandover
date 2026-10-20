@@ -301,7 +301,16 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 @keyframes toastOut { to { opacity:0; transform:translateY(8px); } }
 @keyframes floatBook { 0%,100% { transform:rotate(-5deg) translateY(0); } 50% { transform:rotate(-3deg) translateY(-8px); } }
 
-    </style>
+    .extras-dialog { color:var(--text-main); background:var(--surface); border:1px solid var(--border-color); border-radius:19px; padding:26px; width:min(700px,94vw); max-height:88vh; overflow:auto; margin:auto; box-shadow:var(--shadow-md); }
+.extras-dialog::backdrop { background:rgba(15,18,23,.57); backdrop-filter:blur(8px); }
+.extras-dialog label { display:block; margin:15px 0 7px; font-size:12px; }
+.extras-dialog select,.extras-dialog input { padding:9px; border:1px solid var(--border-color); border-radius:9px; background:var(--surface-2); color:var(--text-main); max-width:100%; }
+.extra-row { padding:14px 0; border-bottom:1px solid var(--border-color); }
+.extra-row p { margin:8px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+#pinned-board:empty { display:none; } #pinned-board { margin-bottom:18px; } #pinned-board button { margin:4px; }
+@media(max-width:700px) { .header-right { overflow-x:auto; flex:1; } .header-right > * { flex-shrink:0; } .header-left { flex:0 0 auto; } }
+@media print { .extras-dialog,#pinned-board { display:none!important; } }
+</style>
 </head>
 <body>
 
@@ -312,6 +321,9 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     </div>
     <div class="header-center"><span class="hotel-emblem" data-icon="building"></span><span>KING DAVID<small>TEAM WORKSPACE</small></span></div>
     <div class="header-right">
+        <button class="tool-btn icon-only" id="blank-handover" title="Blank handover · print and write by hand" aria-label="Print blank handover">☀️</button>
+        <button class="tool-btn icon-only" id="night-checklist" title="Night shift checklist" aria-label="Print night shift checklist">☾</button>
+        <button class="tool-btn icon-only" id="profile-btn" title="My settings" aria-label="My settings">⚙</button>
         <span class="connection-status" id="connection-status" role="status"><i></i><span>Connecting</span></span>
         <button class="tool-btn icon-only" id="gsearch-btn" aria-label="Search all notes" title="Search all notes · Ctrl+K"><span data-icon="search"></span></button>
         <button class="notif-bell icon-only" id="notif-btn" aria-label="Notifications" title="Notifications"><span data-icon="bell"></span><span class="notif-badge" id="notif-badge"></span></button>
@@ -326,6 +338,8 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     <aside id="sidebar" aria-label="Notebooks">
         <div class="sidebar-heading"><span class="eyebrow">YOUR WORKSPACE</span><span class="workspace-dot"></span></div>
         <button class="today-nav" id="today-nav"><span data-icon="calendar"></span><span>Today’s handover</span><span data-icon="arrow-right"></span></button>
+        <button class="today-nav" id="check-tasks"><span data-icon="check"></span><span>Check Tasks</span></button>
+        <button class="today-nav" id="archive-btn"><span data-icon="layers"></span><span>Completed archive</span></button>
         <div class="sidebar-section-heading"><span>NOTEBOOKS</span><button class="icon-button" id="new-folder-trigger" title="New notebook" aria-label="New notebook"><span data-icon="plus"></span></button></div>
         <div class="input-with-icon sidebar-input"><span data-icon="search"></span><input type="search" id="sidebar-search" class="sidebar-search" aria-label="Find a notebook or date" placeholder="Find a notebook or date…"></div>
         <div id="day-list"></div>
@@ -352,13 +366,14 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
             <div class="toolbar-tools"><div class="input-with-icon"><span data-icon="search"></span><input type="search" id="search" class="search-bar" aria-label="Search this day" placeholder="Search this day…"></div><select id="note-sort" aria-label="Sort notes"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="priority">Priority first</option></select><button class="icon-button" id="view-toggle" title="Switch to list view" aria-label="Switch to list view" aria-pressed="false"><span data-icon="list"></span></button></div>
         </div>
         <div class="notes-meta" id="notes-meta" role="status"></div>
-        <div class="notes-grid" id="notes-grid"></div>
+        <div id="pinned-board"></div><div class="notes-grid" id="notes-grid"></div>
         <div class="workspace-footer"><span>Good notes. Smoother shifts.</span><span id="workspace-date"></span></div>
     </main>
 </div>
 <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
 <dialog id="action-dialog"><form method="dialog" id="action-form"><div class="dialog-symbol" id="action-symbol"><span data-icon="note"></span></div><h2 id="action-title"></h2><p id="action-message"></p><input id="action-input" type="text" autocomplete="off" hidden><div class="dialog-actions"><button type="button" class="main-act-btn" id="action-cancel">Cancel</button><button type="submit" class="primary-btn" id="action-confirm">Confirm</button></div></form></dialog>
 
+<dialog id="extras-dialog" class="extras-dialog"><div class="team-heading"><h2 id="extras-title"></h2><button class="icon-button" id="extras-close" aria-label="Close">✕</button></div><div id="extras-body"></div></dialog>
 <!-- NOTE MODAL -->
 <div id="modal" class="modal">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="m-title">
@@ -413,11 +428,16 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
         <input type="text" id="m-room" placeholder="Room / Name (101, BOB)">
         <label class="field-label" for="m-file">Attach a photo <span>optional · up to 10 MB</span></label>
         <input type="file" id="m-file" accept="image/*" style="width:100%;margin-bottom:0.9rem;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-main);font-size:0.85rem;">
+        <label class="field-label" for="m-department">Department</label>
+        <select id="m-department"><option>Reception</option><option>Housekeeping</option><option>Maintenance</option><option>Restaurant</option></select>
+        <label class="field-label" for="m-mentions">Mention colleagues <span>select one or more</span></label><select id="m-mentions" multiple size="3"></select>
+        <label class="field-label" for="m-reminder">Remind after</label><select id="m-reminder"><option value="3">3 days</option><option value="5">5 days</option></select>
+        <label class="field-label"><input type="checkbox" id="m-pinned"> Pin as announcement</label>
         <label class="field-label" for="m-tag">Priority</label>
         <select id="m-tag">
             <option value="info">Information</option>
             <option value="important">Important</option>
-            <option value="urgent">Urgent</option>
+            <option value="urgent">Urgent</option><option value="done">Completed (legacy)</option>
         </select>
         <div class="editor-footer"><span id="draft-hint">Ctrl + Enter to save</span>
             <button id="m-cancel" style="background:none;border:none;cursor:pointer;color:var(--text-main);font-weight:bold;">Cancel</button>
@@ -514,7 +534,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
       <div class="team-form-grid">
         <label>Login<input id="team-login" required pattern="[a-zA-Z0-9_-]+" autocomplete="off" placeholder="anna"></label>
         <label>Full name<input id="team-name" required maxlength="60" autocomplete="off" placeholder="Anna Smith"></label>
-        <label>Role<input id="team-role" required maxlength="60" autocomplete="off" placeholder="Front desk"></label>
+        <label>Role<select id="team-role" required><option value="">Choose role</option><option>Team member</option><option>Front desk</option><option>Admin</option><option>Boss</option></select></label>
         <label>Password<input id="team-password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></label>
         <label class="team-color-field">Avatar colour<input id="team-color" type="color" value="#4b89c9" aria-label="Avatar colour"></label>
       </div>
@@ -541,8 +561,8 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, deleteUser, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, getAuth, createUserWithEmailAndPassword, deleteUser, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { runTransaction, getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -553,9 +573,11 @@ const firebaseConfig = {
     appId: "1:964942218152:web:af7e358b48b7ab11ad939d"
 };
 
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const removeMemberAccount = httpsCallable(getFunctions(app, "europe-west1"), "removeTeamMember");
 const OWNER_UID = 'ScFdYFy3Tbc20j2k2caQfNIM7Zu2';
 const HOTEL_ID = 'kingdavid';
 let creatorAuth = null;
@@ -666,6 +688,8 @@ function normalizeProfile(uid, data = {}) {
         color: safeColor(data.color),
         active: data.active !== false,
         initials: getInitials(name),
+        theme: ["light","cream","dark"].includes(data.theme) ? data.theme : "light",
+        reminderDays: data.reminderDays === 5 ? 5 : 3,
         createdAt: Number(data.createdAt) || 0
     };
 }
@@ -679,15 +703,22 @@ async function loadUserProfile(user) {
     return normalizeProfile(user.uid, ownerProfile);
 }
 function applyUserProfile(profile) {
-    currentUser = { ...profile, isOwner: profile.uid === OWNER_UID };
+    currentUser = { ...profile, isOwner: profile.uid === OWNER_UID, canManage: profile.uid === OWNER_UID || ["Admin", "Boss"].includes(profile.role) };
+    document.body.setAttribute('data-theme', profile.theme);
+    document.getElementById('theme-selector').value = profile.theme;
     document.getElementById('user-avatar-badge').textContent = currentUser.initials;
     document.getElementById('user-avatar-badge').style.background = currentUser.color;
     document.getElementById('user-name-badge').textContent = currentUser.name;
     document.getElementById('user-role-badge').textContent = `King David · ${currentUser.role}`;
-    document.getElementById('team-btn').style.display = currentUser.isOwner ? 'inline-flex' : 'none';
+    document.getElementById('team-btn').style.display = currentUser.canManage ? 'inline-flex' : 'none';
 }
 function resetPrivateView() {
     sessionVersion++;
+    document.getElementById("extras-dialog")?.close();
+    document.getElementById("extras-body")?.replaceChildren();
+    document.getElementById("m-mentions")?.replaceChildren();
+    document.getElementById("pinned-board")?.replaceChildren();
+    reminderSeen.clear();
     cacheVersion++;
     dataSubscriptions.forEach(stop => stop());
     dataSubscriptions = [];
@@ -763,6 +794,7 @@ document.getElementById('auth-form').onsubmit = async event => {
 document.getElementById('change-user-btn').title = 'Sign out';
 document.getElementById('change-user-btn').textContent = 'Exit';
 document.getElementById('change-user-btn').onclick = async () => {
+    if(document.getElementById('modal').style.display==='flex' && !closeNoteEditor()) return;
     resetPrivateView();
     try { await signOut(auth); } catch { location.reload(); }
 };
@@ -792,6 +824,7 @@ authReady.then(() => onAuthStateChanged(auth, async user => {
     setLocked(false);
     setConnectionStatus('connecting', 'Connecting');
     startTeamProfileListener();
+    refreshTeamUsers();
     startDataListeners();
 })).catch(() => {
     document.getElementById('auth-error').textContent = 'Sign-in storage is unavailable. Allow browser storage and reload.';
@@ -819,7 +852,7 @@ function resetTeamForm() {
     document.getElementById('team-cancel-edit').hidden = true;
 }
 function editTeamMember(uid) {
-    if (!currentUser?.isOwner) return;
+    if (!currentUser?.canManage) return;
     const profile = teamUsers.get(uid);
     if (!profile) return;
     document.getElementById('team-edit-uid').value = uid;
@@ -839,7 +872,7 @@ function editTeamMember(uid) {
     document.getElementById('team-name').focus();
 }
 window.toggleTeamMember = async uid => {
-    if (!currentUser?.isOwner || uid === OWNER_UID || pendingTeamActions.has(uid)) return;
+    if (!currentUser?.canManage || uid === OWNER_UID || uid === currentUser.uid || pendingTeamActions.has(uid)) return;
     const profile = teamUsers.get(uid);
     if (!profile) return;
     const version = sessionVersion;
@@ -848,33 +881,33 @@ window.toggleTeamMember = async uid => {
     try {
         const nextActive = !profile.active;
         await updateDoc(doc(db, 'users', uid), { active: nextActive, updatedAt: Date.now() });
-        if (version !== sessionVersion || !currentUser?.isOwner) return;
+        if (version !== sessionVersion || !currentUser?.canManage) return;
         profile.active = nextActive;
         teamUsers.set(uid, profile);
         renderTeamList();
         showToast(nextActive ? `${profile.name} access restored` : `${profile.name} access paused`, 'success');
     } catch { showToast('Could not update team access', 'error'); }
-    finally { pendingTeamActions.delete(uid); if (version === sessionVersion && currentUser?.isOwner) renderTeamList(); }
+    finally { pendingTeamActions.delete(uid); if (version === sessionVersion && currentUser?.canManage) renderTeamList(); }
 };
 const pendingTeamActions = new Set();
 window.deleteTeamMember = async uid => {
-    if (!currentUser?.isOwner || uid === OWNER_UID || pendingTeamActions.has(uid)) return;
+    if (!currentUser?.canManage || uid === OWNER_UID || uid === currentUser.uid || pendingTeamActions.has(uid)) return;
     const profile = teamUsers.get(uid);
-    if (!profile || !confirm(`Remove ${profile.name} from the team? Their notes will stay. The login remains reserved until its Firebase Authentication record is removed by an administrator.`)) return;
+    if (!profile || uid === currentUser.uid || !confirm(`Delete ${profile.name} and free their login? Their notes and authorship will stay.`)) return;
     const version = sessionVersion;
     pendingTeamActions.add(uid);
     renderTeamList();
     try {
-        await deleteDoc(doc(db, 'users', uid));
-        if (version !== sessionVersion || !currentUser?.isOwner) return;
+        await removeMemberAccount({ uid });
+        if (version !== sessionVersion || !currentUser?.canManage) return;
         teamUsers.delete(uid);
         if (document.getElementById('team-edit-uid').value === uid) resetTeamForm();
         showToast(`${profile.name} removed from the team`, 'success');
     } catch {
-        if (version === sessionVersion) showToast('Could not remove this member. Check your connection and Firestore delete permission.', 'error');
+        if (version === sessionVersion) showToast('Could not delete the account. Check that the Firebase removeTeamMember function is deployed and you have Admin/Boss access.', 'error');
     } finally {
         pendingTeamActions.delete(uid);
-        if (version === sessionVersion && currentUser?.isOwner) renderTeamList();
+        if (version === sessionVersion && currentUser?.canManage) renderTeamList();
     }
 };
 function renderTeamList() {
@@ -904,7 +937,7 @@ function renderTeamList() {
     });
 }
 function openTeamModal() {
-    if (!currentUser?.isOwner) return;
+    if (!currentUser?.canManage) return;
     resetTeamForm();
     document.getElementById('team-list').innerHTML = '<div class="team-empty">Loading team members…</div>';
     document.getElementById('team-modal').style.display = 'flex';
@@ -920,7 +953,7 @@ document.getElementById('team-cancel-edit').onclick = resetTeamForm;
 document.getElementById('team-modal').onclick = event => { if (event.target === document.getElementById('team-modal')) closeTeamModal(); };
 document.getElementById('team-form').onsubmit = async event => {
     event.preventDefault();
-    if (!currentUser?.isOwner) return;
+    if (!currentUser?.canManage) return;
     const uid = document.getElementById('team-edit-uid').value;
     const login = document.getElementById('team-login').value.trim().toLowerCase();
     const name = document.getElementById('team-name').value.trim();
@@ -948,7 +981,7 @@ document.getElementById('team-form').onsubmit = async event => {
             const secondaryAuth = getCreatorAuth();
             await setPersistence(secondaryAuth, inMemoryPersistence);
             const credential = await createUserWithEmailAndPassword(secondaryAuth, authEmailForLogin(HOTEL_ID, login), password);
-            const profileData = { hotelId: HOTEL_ID, login, displayName: name, role, color, active: true, createdAt: Date.now(), createdByUid: OWNER_UID };
+            const profileData = { hotelId: HOTEL_ID, login, displayName: name, role, color, active: true, createdAt: Date.now(), createdByUid: currentUser.uid };
             try {
                 await setDoc(doc(db, 'users', credential.user.uid), profileData);
             } catch (error) {
@@ -978,11 +1011,11 @@ function startTeamProfileListener() {
     }
 }
 async function refreshTeamUsers() {
-    if (!currentUser?.isOwner) return;
+    if (!currentUser) return;
     const version = sessionVersion;
     try {
         const snapshot = await getDocs(collection(db, 'users'));
-        if (version !== sessionVersion || !currentUser?.isOwner) return;
+        if (version !== sessionVersion || !currentUser) return;
         teamUsers.clear();
         snapshot.forEach(userDoc => teamUsers.set(userDoc.id, normalizeProfile(userDoc.id, userDoc.data())));
         renderTeamList();
@@ -1372,10 +1405,11 @@ async function loadAllNotesForCache() {
         for (const [dayId, dayData] of daysMap) {
             const snap = await getDocs(collection(db, `days/${dayId}/notes`));
             if (version !== sessionVersion || request !== cacheVersion || !currentUser) return;
-            snap.forEach(n => cache.push({ ...n.data(), _dayId: dayId, _dayDate: dayData.date }));
+            snap.forEach(n => cache.push({ ...n.data(), _id: n.id, _dayId: dayId, _dayDate: dayData.date }));
         }
-        if (version === sessionVersion && request === cacheVersion && currentUser) allNotesCache = cache;
-    } catch { if (version === sessionVersion && currentUser) handleDataError(); }
+        if (version === sessionVersion && request === cacheVersion && currentUser) { allNotesCache = cache; renderPinnedBoard(); checkReminders(); return true; }
+        return false;
+    } catch { if (version === sessionVersion && currentUser) showToast('Could not refresh all tasks. Please retry.', 'error'); return false; }
 }
 
 function renderSidebar() {
@@ -1556,6 +1590,7 @@ function resetNoteView() {
 }
 
 window.selectDay = (id, date) => {
+    if (document.getElementById("modal").style.display === "flex" && !closeNoteEditor()) return;
     activeDayId = id; activeDayDate = date;
     resetNoteView();
     document.getElementById('day-label').textContent = date;
@@ -1644,6 +1679,7 @@ function renderCurrentNotes() {
     });
     const sort = document.getElementById('note-sort').value;
     entries.sort((a,b) => {
+        if (!!a.data.pinned !== !!b.data.pinned) return a.data.pinned ? -1 : 1;
         if (sort === 'priority') return notePriority(a.data.tag) - notePriority(b.data.tag) || (Number(b.data.createdAt)||0) - (Number(a.data.createdAt)||0);
         const delta = (Number(a.data.createdAt)||0) - (Number(b.data.createdAt)||0);
         return sort === 'oldest' ? delta : -delta;
@@ -1667,18 +1703,20 @@ function renderCurrentNotes() {
         card.style.animationDelay = `${Math.min(index, 10) * 32}ms`;
         card.innerHTML = `
             <div class="note-time"><span>${escapeHTML(n.time || '—')}</span>${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}</div>
-            <span class="tag tag-${tag}">${tag}</span>
+            <span class="tag tag-${tag}">${tag}</span><span class="tag">${escapeHTML(n.department || 'Reception')}</span>${n.pinned ? '<span class="tag">📌 Pinned</span>' : ''}
+            ${n.mentions?.length ? `<div class="note-time">For: ${n.mentions.map(uid => escapeHTML(teamUsers.get(uid)?.name || 'Former colleague')).join(', ')}</div>` : ''}
             ${n.room ? `<div class="note-room">${escapeHTML(n.room)}</div>` : ''}
             <div class="note-text${tag === 'urgent' ? ' important-style' : ''}">${safeRichHTML(n.htmlContent || escapeHTML(n.text || '').replace(/\n/g,'<br>'))}</div>
             ${photo ? `<img src="${photo}" class="note-img" alt="Attached note image" loading="lazy">` : ''}
             <div class="card-actions">
                 <button class="action-link" data-action="done" aria-label="${n.done ? 'Reopen note' : 'Mark note done'}">${n.done ? 'Reopen' : 'Done'}</button>
                 <button class="action-link" data-action="edit">Edit</button>
-                <button class="action-link" data-action="delete">Delete</button>
+                <button class="action-link" data-action="delete">Delete</button><button class="action-link" data-action="history">History</button>
             </div>`;
         card.querySelector('[data-action="done"]').onclick = () => window.toggleDone(id, !!n.done);
         card.querySelector('[data-action="edit"]').onclick = () => window.editNote(id, n);
         card.querySelector('[data-action="delete"]').onclick = () => window.deleteNote(id);
+        card.querySelector('[data-action="history"]').onclick = () => showHistory(activeDayId, id);
         grid.appendChild(card);
     });
 }
@@ -1740,11 +1778,13 @@ document.getElementById('new-note-trigger').onclick = () => {
     document.getElementById('m-room').value = '';
     document.getElementById('m-file').value = '';
     document.getElementById('m-tag').value = 'info';
+    fillNoteExtras({});
+    editorBaseline = editorState();
     document.getElementById('modal').style.display = 'flex';
     setTimeout(() => document.getElementById('m-editor').focus(), 100);
 };
 
-document.getElementById('m-cancel').onclick = () => document.getElementById('modal').style.display='none';
+document.getElementById('m-cancel').onclick = closeNoteEditor;
 
 document.getElementById('m-save').onclick = async () => {
     if (!currentUser || !activeDayId) return;
@@ -1766,6 +1806,12 @@ document.getElementById('m-save').onclick = async () => {
     if (version !== sessionVersion || !currentUser || activeDayId !== targetDayId || editingNoteId !== targetNoteId) return;
     const payload = {
         text, htmlContent: html, room, tag, photoData,
+        department: document.getElementById('m-department').value,
+        pinned: document.getElementById('m-pinned').checked,
+        reminderDays: Number(document.getElementById('m-reminder').value),
+        mentions: Array.from(document.getElementById('m-mentions').selectedOptions, o => o.value),
+        updatedAt: Date.now(),
+        authorUid: currentEditingData?.authorUid || (editingNoteId ? '' : currentUser.uid),
         author: currentEditingData?.author || currentUser.name,
         updatedByUid: currentUser.uid,
         authorColor: currentEditingData?.authorColor || currentUser.color,
@@ -1774,16 +1820,16 @@ document.getElementById('m-save').onclick = async () => {
         done: currentEditingData?.done || false
     };
     if (editingNoteId) {
-        await updateDoc(doc(db, `days/${activeDayId}/notes`, editingNoteId), payload);
+        await changeNote(targetDayId, targetNoteId, payload, "Edited");
     } else {
-        await addDoc(collection(db, `days/${activeDayId}/notes`), payload);
+        await addDoc(collection(db, `days/${targetDayId}/notes`), { ...payload, revision: 1 });
         if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
     }
     document.getElementById('modal').style.display='none';
     showToast(editingNoteId ? 'Note updated' : 'Note added', 'success');
     loadAllNotesForCache();
-    } catch {
-        alert('Could not save. Your draft is still open. Check your connection and access.');
+    } catch (error) {
+        alert(error.message?.includes('colleague') ? error.message : 'Could not save. Your draft is still open. Check your connection and access.');
     } finally { btn.textContent = 'Save note'; btn.disabled = false; }
 };
 
@@ -1794,6 +1840,8 @@ window.editNote = (id, data) => {
     document.getElementById('m-room').value = data.room || '';
     document.getElementById('m-file').value = '';
     document.getElementById('m-tag').value = safeTag(data.tag);
+    fillNoteExtras(data);
+    editorBaseline = editorState();
     document.getElementById('modal').style.display='flex';
 };
 
@@ -1804,14 +1852,14 @@ window.deleteNote = async id => {
 };
 
 window.toggleDone = async (id, s) => {
-    try { await updateDoc(doc(db, `days/${activeDayId}/notes`, id), {done:!s, tag:!s?'done':'info'});
+    try { await changeNote(activeDayId, id, {done:!s}, s ? "Reopened" : "Completed");
         if (!s) { addNotification('✅ Note marked as done', '', 'done'); showToast('Marked as done', 'success'); }
         else showToast('Note reopened', 'info');
         loadAllNotesForCache();
     } catch { showToast('Could not update this note', 'error'); }
 };
 
-document.getElementById('theme-selector').onchange = e => { document.body.setAttribute('data-theme', e.target.value); storage.setItem('kd_theme', e.target.value); };
+document.getElementById('theme-selector').onchange = async e => { const theme=e.target.value; document.body.setAttribute('data-theme', theme); if(currentUser) try { await updateDoc(doc(db,'users',currentUser.uid), {theme}); } catch { showToast('Could not save theme', 'error'); } };
 const savedTheme = storage.getItem('kd_theme');
 if (savedTheme && ['light','cream','dark'].includes(savedTheme)) { document.getElementById('theme-selector').value = savedTheme; document.body.setAttribute('data-theme', savedTheme); }
 
@@ -1835,7 +1883,7 @@ document.getElementById('m-editor').addEventListener('mouseup', () => {
     document.getElementById('ed-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
 });
 
-document.getElementById('editor-close').onclick = () => document.getElementById('modal').style.display = 'none';
+document.getElementById('editor-close').onclick = closeNoteEditor;
 document.getElementById('password-toggle').onclick = () => {
     const input = document.getElementById('auth-password');
     const button = document.getElementById('password-toggle');
@@ -1848,7 +1896,7 @@ document.getElementById('m-editor').addEventListener('keydown', event => {
 });
 
 // ===================== PRINT / PDF =====================
-document.getElementById('print-btn').onclick = () => window.print();
+document.getElementById('print-btn').onclick = openPrintOptions;
 
 // ===================== TEMPLATES =====================
 function renderTemplates() {
@@ -1911,13 +1959,272 @@ if (templates === null) {
 document.getElementById('cal-modal').onclick = e => { if(e.target===document.getElementById('cal-modal')) document.getElementById('cal-modal').style.display='none'; };
 document.getElementById('stats-modal').onclick = e => { if(e.target===document.getElementById('stats-modal')) document.getElementById('stats-modal').style.display='none'; };
 document.getElementById('tmpl-modal').onclick = e => { if(e.target===document.getElementById('tmpl-modal')) document.getElementById('tmpl-modal').style.display='none'; };
-document.getElementById('modal').onclick = e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; };
+document.getElementById('modal').onclick = () => {}; // Never discard an editor on backdrop click.
 // The authentication gate cannot be dismissed by clicking outside.
 document.addEventListener('click', e => {
     const panel = document.getElementById('notif-panel');
     if (panel.style.display==='block' && !panel.contains(e.target) && e.target!==document.getElementById('notif-btn') && !document.getElementById('notif-btn').contains(e.target))
         panel.style.display='none';
 });
+// Hotel workflow additions: existing layout and data paths are retained.
+let editorBaseline = '';
+const reminderSeen = new Set();
+function editorState() {
+    return JSON.stringify(['m-editor','m-room','m-tag','m-department','m-reminder','m-pinned','m-mentions','m-file'].map(id => {
+        const e=document.getElementById(id);
+        if(e.multiple) return Array.from(e.selectedOptions,o=>o.value);
+        return e.type==='checkbox' ? e.checked : e.isContentEditable ? e.innerHTML : e.value;
+    }));
+}
+function closeNoteEditor() {
+    if(document.getElementById('m-save').disabled) return false;
+    if(editorState()!==editorBaseline && !confirm('Discard unsaved changes? Choose Cancel to keep writing.')) return false;
+    document.getElementById('modal').style.display='none';
+    return true;
+}
+window.addEventListener('beforeunload', e => {
+    if(document.getElementById('modal').style.display==='flex' && editorState()!==editorBaseline) { e.preventDefault(); e.returnValue=''; }
+});
+function fillNoteExtras(n) {
+    document.getElementById('m-department').value=['Reception','Housekeeping','Maintenance','Restaurant'].includes(n.department)?n.department:'Reception';
+    document.getElementById('m-reminder').value=String(n.reminderDays===5?5:n.reminderDays===3?3:currentUser?.reminderDays||3);
+    document.getElementById('m-pinned').checked=!!n.pinned;
+    const select=document.getElementById('m-mentions'); select.replaceChildren();
+    const selected=n.mentions||[];
+    const profiles=new Map(teamUsers);
+    if(currentUser) profiles.set(currentUser.uid,currentUser);
+    for(const uid of selected) if(!profiles.has(uid)) profiles.set(uid,{uid,name:'Former colleague',active:false});
+    for(const p of profiles.values()) {
+        if(!p.active && !selected.includes(p.uid)) continue;
+        const o=new Option(p.name+(p.login?' @'+p.login:''),p.uid); o.selected=selected.includes(p.uid); select.add(o);
+    }
+}
+function panel(title) {
+    document.getElementById('extras-title').textContent=title;
+    const body=document.getElementById('extras-body'); body.replaceChildren();
+    const dialog=document.getElementById('extras-dialog'); if(!dialog.open) dialog.showModal();
+    return body;
+}
+document.getElementById('extras-close').onclick=()=>document.getElementById('extras-dialog').close();
+async function changeNote(dayId,id,patch,action) {
+    if(!currentUser) throw Error('Sign in required');
+    const actor={uid:currentUser.uid,name:currentUser.name};
+    const ref=doc(db,`days/${dayId}/notes`,id);
+    const historyRef=doc(collection(ref,'history'));
+    const expected=editingNoteId===id && action==='Edited' ? Number(currentEditingData?.revision||0) : null;
+    await runTransaction(db,async tx=>{
+        const snap=await tx.get(ref); if(!snap.exists()) throw Error('Note no longer exists');
+        const before=snap.data();
+        if(expected!==null && Number(before.revision||0)!==expected) throw Error('This note was changed by a colleague. Keep your text and reopen the latest note.');
+        const at=Date.now();
+        // Keep prior text and metadata without duplicating large attached images.
+        const snapshot={};
+        for(const key of ['text','htmlContent','room','tag','department','pinned','mentions','done','reminderDays','author']) if(before[key]!==undefined) snapshot[key]=before[key];
+        tx.set(historyRef,{action,at,byUid:actor.uid,byName:actor.name,before:snapshot});
+        tx.update(ref,{...patch,updatedAt:at,updatedByUid:actor.uid,revision:Number(before.revision||0)+1});
+    });
+}
+async function showHistory(dayId,id) {
+    const body=panel('Change history'); body.textContent='Loading…';
+    const version=sessionVersion;
+    try {
+        const snap=await getDocs(query(collection(db,`days/${dayId}/notes/${id}/history`),orderBy('at','desc')));
+        if(version!==sessionVersion) return;
+        body.replaceChildren();
+        if(snap.empty) body.textContent='No recorded changes yet. History starts with this update.';
+        snap.forEach(d=>{
+            const h=d.data(); const row=document.createElement('div'); row.className='extra-row';
+            row.innerHTML=`<strong>${escapeHTML(h.action)} · ${escapeHTML(h.byName)}</strong><p>${escapeHTML(new Date(h.at).toLocaleString())}</p><p>${escapeHTML(h.before?.text||stripHTML(h.before?.htmlContent||''))}</p><small>Previous: ${escapeHTML(h.before?.department||'Reception')} · ${escapeHTML(h.before?.tag||'info')} · ${h.before?.done?'Done':'Open'} · ${h.before?.pinned?'Pinned':'Not pinned'}</small>`;
+            body.append(row);
+        });
+    } catch { if(version===sessionVersion) body.textContent='Could not load history. Check connection and published rules.'; }
+}
+function renderPinnedBoard() {
+    const board=document.getElementById('pinned-board'); board.replaceChildren();
+    for(const n of allNotesCache.filter(n=>n.pinned&&!n.done)) {
+        const b=document.createElement('button'); b.className='main-act-btn';
+        b.textContent='📌 '+(n.room?n.room+' · ':'')+(n.text||stripHTML(n.htmlContent||'')).slice(0,100);
+        b.onclick=()=>window.selectDay(n._dayId,n._dayDate); board.append(b);
+    }
+}
+function checkReminders() {
+    if(!currentUser) return;
+    for(const n of allNotesCache) {
+        if(n.done) continue;
+        const days=n.reminderDays===5?5:3;
+        const age=(Date.now()-(Number(n.createdAt)||parseDateToTs(n._dayDate)))/86400000;
+        const key=n._dayId+'/'+n._id;
+        if(age>=days && !reminderSeen.has('due:'+key)) {
+            reminderSeen.add('due:'+key); addNotification(`Open for ${Math.floor(age)} days · ${n.department||'Reception'}`,`${n._dayDate} · ${n.room||''} · ${(n.text||'').slice(0,70)}`,'important');
+        }
+        const mentionKey='mention:'+key+':'+(n.updatedAt||n.createdAt);
+        if(n.mentions?.includes(currentUser.uid) && !reminderSeen.has(mentionKey)) {
+            reminderSeen.add(mentionKey); addNotification('You were mentioned',`${n._dayDate} · ${n.author||'Colleague'} · ${(n.text||'').slice(0,80)}`);
+        }
+    }
+}
+async function showTaskList(archive=false) {
+    const body=panel(archive?'Completed archive':'Check Tasks'); body.textContent='Loading all days…';
+    const version=sessionVersion; const loaded=await loadAllNotesForCache(); if(version!==sessionVersion || !currentUser) return;
+    if(!loaded){body.textContent='Could not refresh tasks. Close and retry.';return;}
+    body.innerHTML='<label>Department <select id="task-department"><option value="all">All departments</option><option>Reception</option><option>Housekeeping</option><option>Maintenance</option><option>Restaurant</option></select></label><div id="task-results"></div>';
+    const render=()=>{
+        const target=body.querySelector('#task-results'); target.replaceChildren();
+        const department=body.querySelector('#task-department').value;
+        const entries=allNotesCache.filter(n=>!!n.done===archive && (department==='all'||(n.department||'Reception')===department)).sort((a,b)=>notePriority(a.tag)-notePriority(b.tag)||(a.createdAt||0)-(b.createdAt||0));
+        if(!entries.length) target.textContent=archive?'No completed tasks.':'No open tasks.';
+        for(const n of entries) {
+            const row=document.createElement('div'); row.className='extra-row';
+            const age=Math.max(0,Math.floor((Date.now()-(Number(n.createdAt)||parseDateToTs(n._dayDate)))/86400000));
+            row.innerHTML=`<strong>${escapeHTML(n._dayDate)} · ${escapeHTML(n.department||'Reception')} · ${escapeHTML(n.room||'—')}</strong><p>${escapeHTML(n.text||stripHTML(n.htmlContent||''))}</p><small>${escapeHTML(n.author||'')} · ${escapeHTML(n.tag||'info')}${!archive?' · '+age+' days open':''}</small><div class="card-actions"><button class="action-link" data-open>Open day</button><button class="action-link" data-complete>${archive?'Reopen':'Done'}</button><button class="action-link" data-history>History</button></div>`;
+            row.querySelector('[data-open]').onclick=()=>{document.getElementById('extras-dialog').close();window.selectDay(n._dayId,n._dayDate);};
+            row.querySelector('[data-history]').onclick=()=>showHistory(n._dayId,n._id);
+            row.querySelector('[data-complete]').onclick=async e=>{e.target.disabled=true;try{await changeNote(n._dayId,n._id,{done:!archive},archive?'Reopened':'Completed');await showTaskList(archive);}catch{showToast('Could not update task','error');e.target.disabled=false;}};
+            target.append(row);
+        }
+    }; body.querySelector('select').onchange=render; render();
+}
+document.getElementById('check-tasks').onclick=()=>showTaskList();
+document.getElementById('archive-btn').onclick=()=>showTaskList(true);
+document.getElementById('notif-check-btn').onclick=()=>showTaskList();
+function printable(title,html,existingWindow=null) {
+    const win=existingWindow || window.open('','_blank');
+    if(!win) {showToast('Allow pop-ups to open the print preview','error');return;}
+    win.opener=null;
+    win.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHTML(title)}</title><style>@page{size:A4;margin:15mm}body{font:11pt Arial,sans-serif;color:#111;line-height:1.45;max-width:180mm;margin:20px auto}h1{font-size:20pt}article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}.check{display:flex;gap:10px;margin:9px 0;break-inside:avoid}.box{width:12px;height:12px;border:1px solid #555;flex-shrink:0;margin-top:4px}button{padding:10px 20px}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Print / Save PDF</button><h1>${escapeHTML(title)}</h1>${html}</body></html>`);
+    win.document.close();
+}
+document.getElementById('blank-handover').onclick=()=>window.open('assets/handover-blank.pdf','_blank','noopener');
+document.getElementById('night-checklist').onclick=async()=>{
+    if(!currentUser) return;
+    const preview=window.open('','_blank');
+    if(!preview){showToast('Allow pop-ups to print the checklist','error');return;}
+    preview.opener=null; preview.document.body.textContent='Loading checklist…';
+    const version=sessionVersion;
+    try {
+        const snap=await getDoc(doc(db,'printTemplates','nightChecklist'));
+        if(version!==sessionVersion || !currentUser){preview.close();return;}
+        const paragraphs=snap.exists()?snap.data().paragraphs:null;
+        if(!Array.isArray(paragraphs)||!paragraphs.every(t=>typeof t==='string')) throw Error('Checklist unavailable');
+        printable('Night receptionist checklist',paragraphs.map((t,i)=>i<3?`<p>${escapeHTML(t)}</p>`:`<div class="check"><span class="box"></span><span>${escapeHTML(t)}</span></div>`).join(''),preview);
+    } catch {preview.document.body.textContent='The checklist is not available yet. Ask the hotel administrator to upload it.';}
+};
+function openPrintOptions() {
+    const body = panel('Print existing tasks');
+    const departments = ['Reception', 'Housekeeping', 'Maintenance', 'Restaurant'];
+    const choices = departments.map(d => '<label style="display:inline-flex;gap:7px;align-items:center;margin:6px 16px 6px 0"><input type="checkbox" value="' + d + '" checked> ' + d + '</label>').join('');
+    body.innerHTML = '<fieldset id="print-departments" style="border:1px solid var(--border-color);padding:10px;border-radius:9px"><legend>Departments (select multiple)</legend>' + choices +
+        '</fieldset><label>Period <select id="print-scope"><option value="day">Selected day</option><option value="all">All days</option></select></label>' +
+        '<label>Status <select id="print-status"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed tasks</option></select></label>' +
+        '<button class="primary-btn" id="print-go">Prepare print preview</button>';
+    body.querySelector('#print-go').onclick = async e => {
+        const selected = new Set(Array.from(body.querySelectorAll('#print-departments input:checked'), input => input.value));
+        if (!selected.size) { showToast('Select at least one department', 'error'); return; }
+        const scope = body.querySelector('#print-scope').value, status = body.querySelector('#print-status').value;
+        e.target.disabled = true;
+        // Open synchronously before the Firebase request, so pop-up blockers do not suppress the preview.
+        const preview = window.open('', '_blank');
+        if (!preview) { showToast('Allow pop-ups for print preview', 'error'); e.target.disabled = false; return; }
+        preview.opener = null;
+        preview.document.body.textContent = 'Loading tasks…';
+        const version = sessionVersion;
+        try {
+            if (scope === 'all' && !await loadAllNotesForCache()) throw Error('Refresh failed');
+            if (version !== sessionVersion || !currentUser) { preview.close(); return; }
+            let notes = scope === 'all' ? allNotesCache : currentDayNotes.map(n => ({ ...n.data, _dayDate: activeDayDate }));
+            notes = notes.filter(n => selected.has(n.department || 'Reception') && (status === 'all' || (status === 'done' ? !!n.done : !n.done)));
+            const groups = departments.filter(d => selected.has(d)).map(department => {
+                const list = notes.filter(n => (n.department || 'Reception') === department);
+                const rows = list.length ? list.map(n => '<article><strong>' +
+                    escapeHTML(n._dayDate || '') + ' · ' + escapeHTML(n.room || '—') + '</strong><p>' +
+                    escapeHTML(n.text || stripHTML(n.htmlContent || '')) + '</p><small>' +
+                    escapeHTML(n.author || '') + ' · ' + escapeHTML(n.tag || 'info') + ' · ' +
+                    (n.done ? 'Done' : 'Open') + '</small></article>').join('') : '<p>No matching tasks.</p>';
+                return '<section class="department-block"><h2>' + escapeHTML(department) + '</h2>' + rows + '</section>';
+            }).join('');
+            preview.document.head.innerHTML = '<meta charset="utf-8"><title>King David tasks</title>' +
+                '<style>@page{size:A4;margin:15mm}body{font:11pt Arial;line-height:1.5;color:#111}' +
+                'article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}' +
+                '@media print{button{display:none}.department-block + .department-block{break-before:page}}</style>';
+            preview.document.body.innerHTML = '<button onclick="window.print()">Print / Save PDF</button><h1>King David — Department tasks</h1><p>' +
+                escapeHTML(scope === 'day' ? activeDayDate : 'All days') + ' · ' + escapeHTML(status) + ' · ' + notes.length +
+                ' tasks</p>' + groups;
+        } catch { preview.document.body.textContent = 'Could not load tasks. Close this window and retry.'; }
+        finally { e.target.disabled = false; }
+    };
+}
+document.getElementById('profile-btn').onclick=()=>{
+    if(!currentUser) return;
+    const body=panel('My settings');
+    body.innerHTML=`<form id="profile-form"><label>Avatar colour <input type="color" id="profile-color" value="${safeColor(currentUser.color)}"></label><label>Default reminder <select id="profile-reminder"><option value="3">3 days</option><option value="5">5 days</option></select></label><button class="primary-btn">Save preferences</button></form><form id="password-form"><label>Current password <input id="old-password" type="password" autocomplete="current-password" required></label><label>New password <input id="new-password" type="password" autocomplete="new-password" minlength="8" required></label><label>Repeat new password <input id="repeat-password" type="password" autocomplete="new-password" minlength="8" required></label><button class="main-act-btn">Change password</button></form>`;
+    if (currentUser.isOwner) {
+        const manageButton = document.createElement('button');
+        manageButton.className = 'main-act-btn';
+        manageButton.type = 'button';
+        manageButton.textContent = 'Manage night checklist';
+        manageButton.style.marginTop = '16px';
+        manageButton.onclick = manageNightChecklist;
+        body.append(manageButton);
+    }
+    body.querySelector('#profile-reminder').value=currentUser.reminderDays;
+    body.querySelector('#profile-form').onsubmit=async e=>{
+        e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
+        try{const patch={color:body.querySelector('#profile-color').value,reminderDays:Number(body.querySelector('#profile-reminder').value)};await updateDoc(doc(db,'users',currentUser.uid),patch);applyUserProfile({...currentUser,...patch});showToast('Preferences saved','success');}catch{showToast('Could not save preferences. Check published rules.','error');}finally{button.disabled=false;}
+    };
+    body.querySelector('#password-form').onsubmit=async e=>{
+        e.preventDefault();const password=body.querySelector('#new-password').value;
+        if(password!==body.querySelector('#repeat-password').value){showToast('Passwords do not match','error');return;}
+        const button=e.target.querySelector('button');button.disabled=true;
+        try{const user=auth.currentUser;await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,body.querySelector('#old-password').value));await updatePassword(user,password);e.target.reset();showToast('Password changed','success');}catch{showToast('Password change failed. Check your current password and connection.','error');}finally{button.disabled=false;}
+    };
+};
+// The night checklist is never embedded in this publicly hosted HTML.
+// Owner pastes the private Word contents here; Firestore stores the lines for authenticated staff.
+async function manageNightChecklist() {
+    if (!currentUser?.isOwner) return;
+    const version = sessionVersion;
+    const body = panel('Manage night checklist');
+    body.innerHTML = '<p>Paste the checklist from Word. Each non-empty line becomes a printable item. It is stored only in the protected Firestore collection, not in GitHub.</p>' +
+        '<label for="night-checklist-text">Checklist text</label>' +
+        '<textarea id="night-checklist-text" rows="14" style="width:100%;padding:10px;background:var(--surface-2);color:var(--text-main);border:1px solid var(--border-color);border-radius:9px"></textarea>' +
+        '<p id="night-checklist-status" role="status" style="margin:8px 0;color:var(--text-muted)">Loading private checklist…</p>' +
+        '<button type="button" class="primary-btn" id="night-checklist-save">Save checklist</button>';
+    const textarea = body.querySelector('#night-checklist-text');
+    const status = body.querySelector('#night-checklist-status');
+    const save = body.querySelector('#night-checklist-save');
+    save.onclick = async () => {
+        if (!currentUser?.isOwner || version !== sessionVersion) return;
+        const paragraphs = textarea.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        if (!paragraphs.length || paragraphs.length > 500 || textarea.value.length > 150000) {
+            status.textContent = 'Enter between 1 and 500 non-empty lines (maximum 150,000 characters).';
+            return;
+        }
+        if (paragraphs.some(s => /\bUBYPORT\b/i.test(s))) {
+            status.textContent = 'Remove the UBYPORT login/password line. Refer to your protected password vault instead.';
+            return;
+        }
+        save.disabled = true;
+        try {
+            await setDoc(doc(db, 'printTemplates', 'nightChecklist'), {
+                paragraphs, updatedAt: Date.now(), updatedByUid: currentUser.uid
+            });
+            status.textContent = 'Checklist saved in Firestore. The moon button now uses this version.';
+            showToast('Night checklist saved', 'success');
+        } catch {
+            status.textContent = 'Could not save. Check the Firestore rules and your owner account.';
+        } finally { save.disabled = false; }
+    };
+    try {
+        const snapshot = await getDoc(doc(db, 'printTemplates', 'nightChecklist'));
+        if (version !== sessionVersion || !currentUser?.isOwner || !body.isConnected) return;
+        const paragraphs = snapshot.exists() ? snapshot.data().paragraphs : null;
+        if (Array.isArray(paragraphs) && !textarea.value) textarea.value = paragraphs.join('\n');
+        status.textContent = Array.isArray(paragraphs) ? 'Existing checklist loaded. You can edit and save it.' : 'No checklist yet. Paste it from the Word document.';
+    } catch { if (version === sessionVersion && body.isConnected) status.textContent = 'Could not load checklist. Check the Firestore rules.'; }
+}
+// Refresh cross-day notifications while the workspace is open; no email or push is sent.
+setInterval(()=>{if(currentUser && !document.hidden) loadAllNotesForCache();},60000);
+
 </script>
 </body>
 </html>
