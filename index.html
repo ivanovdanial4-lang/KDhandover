@@ -2087,12 +2087,58 @@ async function showTaskList(archive=false) {
 document.getElementById('check-tasks').onclick=()=>showTaskList();
 document.getElementById('archive-btn').onclick=()=>showTaskList(true);
 document.getElementById('notif-check-btn').onclick=()=>showTaskList();
-function printable(title,html,existingWindow=null) {
-    const win=existingWindow || window.open('','_blank');
-    if(!win) {showToast('Allow pop-ups to open the print preview','error');return;}
-    win.opener=null;
-    win.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHTML(title)}</title><style>@page{size:A4;margin:15mm}body{font:11pt Arial,sans-serif;color:#111;line-height:1.45;max-width:180mm;margin:20px auto}h1{font-size:20pt}article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}.check{display:flex;gap:10px;margin:9px 0;break-inside:avoid}.box{width:12px;height:12px;border:1px solid #555;flex-shrink:0;margin-top:4px}button{padding:10px 20px}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Print / Save PDF</button><h1>${escapeHTML(title)}</h1>${html}</body></html>`);
-    win.document.close();
+// Print formatted HTML in a same-origin hidden frame, without a second print-preview page.
+function printHtmlDirect(title, markup) {
+    const frame = document.createElement('iframe');
+    frame.title = title;
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;left:-11000px;top:0;width:794px;height:1123px;border:0;pointer-events:none;';
+    let started = false;
+    frame.onload = () => {
+        if (started) return;
+        started = true;
+        const printWindow = frame.contentWindow;
+        printWindow.addEventListener('afterprint', () => setTimeout(() => frame.remove(), 250), {once:true});
+        setTimeout(() => {
+            try { printWindow.focus(); printWindow.print(); }
+            catch { frame.remove(); showToast('Could not open print dialog. Please try again.', 'error'); }
+        }, 200);
+    };
+    const documentHTML = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + escapeHTML(title) +
+        '</title><style>@page{size:A4;margin:15mm}html,body{margin:0;padding:0}body{font:11pt Arial,sans-serif;color:#111;line-height:1.45}' +
+        'h1{font-size:20pt}h2{font-size:15pt}article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}' +
+        'p{white-space:pre-wrap;overflow-wrap:anywhere}.check{display:flex;gap:10px;margin:9px 0;break-inside:avoid}' +
+        '.box{width:12px;height:12px;border:1px solid #555;flex-shrink:0;margin-top:4px}' +
+        '.department-block + .department-block{break-before:page}</style></head><body>' + markup + '</body></html>';
+    document.body.appendChild(frame);
+    frame.srcdoc = documentHTML;
+}
+function printable(title, html) {
+    printHtmlDirect(title, '<h1>' + escapeHTML(title) + '</h1>' + html);
+}
+// Display a private PDF only through an authenticated Firestore read (never as a public asset).
+function printPrivatePDF(base64) {
+    if (typeof base64 !== 'string' || !base64.length || base64.length > 950000) throw Error('Invalid stored PDF');
+    const binary = atob(base64);
+    if (!binary.startsWith('%PDF-')) throw Error('Stored checklist is not a PDF');
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], {type:'application/pdf'}));
+    const frame = document.createElement('iframe');
+    frame.title = 'Night checklist print';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;left:-11000px;top:0;width:794px;height:1123px;border:0;pointer-events:none;';
+    frame.onload = () => {
+        const printWindow = frame.contentWindow;
+        const cleanup = () => { frame.remove(); URL.revokeObjectURL(url); };
+        printWindow.addEventListener('afterprint', () => setTimeout(cleanup, 250), {once:true});
+        setTimeout(() => {
+            try { printWindow.focus(); printWindow.print(); }
+            catch { cleanup(); showToast('Direct PDF printing was blocked. Try again in Chrome.', 'error'); }
+        }, 850);
+    };
+    frame.src = url;
+    document.body.appendChild(frame);
 }
 // Directly print the original day-shift PDF without opening the browser's dark PDF viewer.
 let dayHandoverPrintFrame = null;
@@ -2124,19 +2170,28 @@ document.getElementById('blank-handover').onclick = event => {
     frame.src = 'assets/handover-blank.pdf';
     document.body.appendChild(frame);
 };
-document.getElementById('night-checklist').onclick=async()=>{
-    if(!currentUser) return;
-    const preview=window.open('','_blank');
-    if(!preview){showToast('Allow pop-ups to print the checklist','error');return;}
-    preview.opener=null; preview.document.body.textContent='Loading checklist…';
-    const version=sessionVersion;
+document.getElementById('night-checklist').onclick = async () => {
+    if (!currentUser) return;
+    const version = sessionVersion;
+    const btn = document.getElementById('night-checklist');
+    btn.disabled = true;
     try {
-        const snap=await getDoc(doc(db,'printTemplates','nightChecklist'));
-        if(version!==sessionVersion || !currentUser){preview.close();return;}
-        const paragraphs=snap.exists()?snap.data().paragraphs:null;
-        if(!Array.isArray(paragraphs)||!paragraphs.every(t=>typeof t==='string')) throw Error('Checklist unavailable');
-        printable('Night receptionist checklist',paragraphs.map((t,i)=>i<3?`<p>${escapeHTML(t)}</p>`:`<div class="check"><span class="box"></span><span>${escapeHTML(t)}</span></div>`).join(''),preview);
-    } catch {preview.document.body.textContent='The checklist is not available yet. Ask the hotel administrator to upload it.';}
+        const snap = await getDoc(doc(db, 'printTemplates', 'nightChecklist'));
+        if (version !== sessionVersion || !currentUser) return;
+        const data = snap.exists() ? snap.data() : {};
+        if (typeof data.pdfBase64 === 'string' && data.pdfBase64.length) {
+            printPrivatePDF(data.pdfBase64);
+            return;
+        }
+        if (Array.isArray(data.paragraphs) && data.paragraphs.every(t => typeof t === 'string')) {
+            printable('Night receptionist checklist', data.paragraphs.map((t,i) => i<3 ?
+                '<p>'+escapeHTML(t)+'</p>' : '<div class="check"><span class="box"></span><span>'+escapeHTML(t)+'</span></div>').join(''));
+            return;
+        }
+        showToast('Night checklist not uploaded yet. The hotel owner can upload its PDF in My settings.', 'error');
+    } catch (error) {
+        showToast('Cannot load night checklist: ' + (error.code || error.message || 'Check the Firestore rules'), 'error');
+    } finally { btn.disabled = false; }
 };
 function openPrintOptions() {
     const body = panel('Print existing tasks');
@@ -2145,21 +2200,16 @@ function openPrintOptions() {
     body.innerHTML = '<fieldset id="print-departments" style="border:1px solid var(--border-color);padding:10px;border-radius:9px"><legend>Departments (select multiple)</legend>' + choices +
         '</fieldset><label>Period <select id="print-scope"><option value="day">Selected day</option><option value="all">All days</option></select></label>' +
         '<label>Status <select id="print-status"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed tasks</option></select></label>' +
-        '<button class="primary-btn" id="print-go">Prepare print preview</button>';
+        '<button class="primary-btn" id="print-go">Print selected tasks</button>';
     body.querySelector('#print-go').onclick = async e => {
         const selected = new Set(Array.from(body.querySelectorAll('#print-departments input:checked'), input => input.value));
         if (!selected.size) { showToast('Select at least one department', 'error'); return; }
         const scope = body.querySelector('#print-scope').value, status = body.querySelector('#print-status').value;
         e.target.disabled = true;
-        // Open synchronously before the Firebase request, so pop-up blockers do not suppress the preview.
-        const preview = window.open('', '_blank');
-        if (!preview) { showToast('Allow pop-ups for print preview', 'error'); e.target.disabled = false; return; }
-        preview.opener = null;
-        preview.document.body.textContent = 'Loading tasks…';
         const version = sessionVersion;
         try {
             if (scope === 'all' && !await loadAllNotesForCache()) throw Error('Refresh failed');
-            if (version !== sessionVersion || !currentUser) { preview.close(); return; }
+            if (version !== sessionVersion || !currentUser) return;
             let notes = scope === 'all' ? allNotesCache : currentDayNotes.map(n => ({ ...n.data, _dayDate: activeDayDate }));
             notes = notes.filter(n => selected.has(n.department || 'Reception') && (status === 'all' || (status === 'done' ? !!n.done : !n.done)));
             const groups = departments.filter(d => selected.has(d)).map(department => {
@@ -2171,14 +2221,12 @@ function openPrintOptions() {
                     (n.done ? 'Done' : 'Open') + '</small></article>').join('') : '<p>No matching tasks.</p>';
                 return '<section class="department-block"><h2>' + escapeHTML(department) + '</h2>' + rows + '</section>';
             }).join('');
-            preview.document.head.innerHTML = '<meta charset="utf-8"><title>King David tasks</title>' +
-                '<style>@page{size:A4;margin:15mm}body{font:11pt Arial;line-height:1.5;color:#111}' +
-                'article{break-inside:avoid;border-bottom:1px solid #bbb;padding:12px 0}p{white-space:pre-wrap;overflow-wrap:anywhere}' +
-                '@media print{button{display:none}.department-block + .department-block{break-before:page}}</style>';
-            preview.document.body.innerHTML = '<button onclick="window.print()">Print / Save PDF</button><h1>King David — Department tasks</h1><p>' +
+            const markup = '<h1>King David — Department tasks</h1><p>' +
                 escapeHTML(scope === 'day' ? activeDayDate : 'All days') + ' · ' + escapeHTML(status) + ' · ' + notes.length +
                 ' tasks</p>' + groups;
-        } catch { preview.document.body.textContent = 'Could not load tasks. Close this window and retry.'; }
+            // Do not open the extra white page shown in the screenshot.
+            printHtmlDirect('King David tasks', markup);
+        } catch (error) { showToast('Could not load tasks: '+(error.code || error.message || 'Try again'), 'error'); }
         finally { e.target.disabled = false; }
     };
 }
@@ -2209,47 +2257,66 @@ document.getElementById('profile-btn').onclick=()=>{
 };
 // The night checklist is never embedded in this publicly hosted HTML.
 // Owner pastes the private Word contents here; Firestore stores the lines for authenticated staff.
+// Hotel procedures remain private: PDF bytes are stored in Firestore, never in GitHub Pages.
 async function manageNightChecklist() {
     if (!currentUser?.isOwner) return;
     const version = sessionVersion;
     const body = panel('Manage night checklist');
-    body.innerHTML = '<p>Paste the checklist from Word. Each non-empty line becomes a printable item. It is stored only in the protected Firestore collection, not in GitHub.</p>' +
-        '<label for="night-checklist-text">Checklist text</label>' +
-        '<textarea id="night-checklist-text" rows="14" style="width:100%;padding:10px;background:var(--surface-2);color:var(--text-main);border:1px solid var(--border-color);border-radius:9px"></textarea>' +
-        '<p id="night-checklist-status" role="status" style="margin:8px 0;color:var(--text-muted)">Loading private checklist…</p>' +
-        '<button type="button" class="primary-btn" id="night-checklist-save">Save checklist</button>';
-    const textarea = body.querySelector('#night-checklist-text');
+    body.innerHTML = '<p>Upload the original 4-page PDF. Only signed-in hotel staff can read it. The source PDF is not made public in GitHub.</p>' +
+        '<label for="night-checklist-pdf">Night receptionist checklist (PDF)</label>' +
+        '<input id="night-checklist-pdf" type="file" accept="application/pdf,.pdf" style="display:block;width:100%;margin-bottom:12px">' +
+        '<button type="button" class="primary-btn" id="night-checklist-upload">Upload and save PDF</button>' +
+        '<p id="night-checklist-status" role="status" style="margin:12px 0;color:var(--text-muted)">Checking saved PDF…</p>';
     const status = body.querySelector('#night-checklist-status');
-    const save = body.querySelector('#night-checklist-save');
+    const input = body.querySelector('#night-checklist-pdf');
+    const save = body.querySelector('#night-checklist-upload');
     save.onclick = async () => {
-        if (!currentUser?.isOwner || version !== sessionVersion) return;
-        const paragraphs = textarea.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-        if (!paragraphs.length || paragraphs.length > 500 || textarea.value.length > 150000) {
-            status.textContent = 'Enter between 1 and 500 non-empty lines (maximum 150,000 characters).';
-            return;
-        }
-        if (paragraphs.some(s => /\bUBYPORT\b/i.test(s))) {
-            status.textContent = 'Remove the UBYPORT login/password line. Refer to your protected password vault instead.';
+        if (version !== sessionVersion || !currentUser?.isOwner) return;
+        const file = input.files?.[0];
+        if (!file) { status.textContent = 'Select the converted PDF first.'; return; }
+        // Firestore documents have a 1 MiB limit. Base64 inflates the original by one third.
+        if (file.size < 100 || file.size > 650000) {
+            status.textContent = 'PDF must be smaller than 650 KB. Please compress the file first.';
             return;
         }
         save.disabled = true;
+        status.textContent = 'Uploading PDF to the private hotel database…';
         try {
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            if (String.fromCharCode(...bytes.subarray(0, 5)) !== '%PDF-') throw Error('Please select a valid PDF file.');
+            let base64 = '';
+            const chunk = 8192;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                base64 += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+            }
+            base64 = btoa(base64);
+            if (version !== sessionVersion || !currentUser?.isOwner) return;
             await setDoc(doc(db, 'printTemplates', 'nightChecklist'), {
-                paragraphs, updatedAt: Date.now(), updatedByUid: currentUser.uid
+                pdfBase64: base64,
+                pdfName: file.name.slice(0, 120),
+                pdfSize: bytes.length,
+                updatedAt: Date.now(),
+                updatedByUid: currentUser.uid
             });
-            status.textContent = 'Checklist saved in Firestore. The moon button now uses this version.';
-            showToast('Night checklist saved', 'success');
-        } catch {
-            status.textContent = 'Could not save. Check the Firestore rules and your owner account.';
+            // Verify persistence rather than claiming success after the write alone.
+            const check = await getDoc(doc(db, 'printTemplates', 'nightChecklist'));
+            if (!check.exists() || check.data().pdfBase64 !== base64) throw Error('Uploaded data could not be verified.');
+            status.textContent = 'Saved: ' + file.name + ' (' + Math.round(bytes.length / 1024) + ' KB). Moon button now prints this PDF.';
+            showToast('Night checklist PDF saved', 'success');
+        } catch (error) {
+            status.textContent = 'Could not save PDF: ' + (error.code || error.message || 'Check your Firestore permissions.');
         } finally { save.disabled = false; }
     };
     try {
         const snapshot = await getDoc(doc(db, 'printTemplates', 'nightChecklist'));
         if (version !== sessionVersion || !currentUser?.isOwner || !body.isConnected) return;
-        const paragraphs = snapshot.exists() ? snapshot.data().paragraphs : null;
-        if (Array.isArray(paragraphs) && !textarea.value) textarea.value = paragraphs.join('\n');
-        status.textContent = Array.isArray(paragraphs) ? 'Existing checklist loaded. You can edit and save it.' : 'No checklist yet. Paste it from the Word document.';
-    } catch { if (version === sessionVersion && body.isConnected) status.textContent = 'Could not load checklist. Check the Firestore rules.'; }
+        const data = snapshot.exists() ? snapshot.data() : {};
+        status.textContent = data.pdfBase64 ?
+            ('Current PDF: ' + (data.pdfName || 'Night checklist') + ' (' + Math.round((data.pdfSize || 0) / 1024) + ' KB). Upload a new PDF to replace it.') :
+            'No PDF saved yet. Choose the converted checklist and click Upload and save PDF.';
+    } catch (error) {
+        if (version === sessionVersion && body.isConnected) status.textContent = 'Unable to read checklist: ' + (error.code || error.message || 'Check your Firestore permissions.');
+    }
 }
 // Refresh cross-day notifications while the workspace is open; no email or push is sent.
 setInterval(()=>{if(currentUser && !document.hidden) loadAllNotesForCache();},60000);
