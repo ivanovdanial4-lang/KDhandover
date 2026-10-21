@@ -179,7 +179,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 .note-card::after { content:""; position:absolute; inset:0 0 auto; height:2px; background:linear-gradient(90deg,transparent,var(--accent-color),transparent); opacity:0; transition:opacity .22s ease; }
 .note-card:hover { border-color:rgba(196,154,85,.35); box-shadow:0 13px 30px rgba(31,35,41,.09); transform:translateY(-4px); }
 .note-card:hover::after { opacity:1; }
-.note-card.done { opacity:.66; }
+.note-card.done { opacity:.55; }
 .note-card.done .note-text { text-decoration:line-through; text-decoration-color:rgba(77,164,119,.46); }
 .note-card.urgent-card { border-left:3px solid var(--tag-urgent); }
 .notes-grid.list-view .note-card { display:grid; grid-template-columns:150px minmax(0,1fr) auto; grid-template-rows:auto auto; column-gap:20px; align-items:start; }
@@ -1704,7 +1704,7 @@ function renderCurrentNotes() {
         card.style.animationDelay = `${Math.min(index, 10) * 32}ms`;
         card.innerHTML = `
             <div class="note-time"><span>${escapeHTML(n.time || '—')}</span>${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}</div>
-            <span class="tag tag-${tag}">${tag}</span><span class="tag">${escapeHTML(n.department || 'Reception')}</span>${n.pinned ? '<span class="tag">📌 Pinned</span>' : ''}
+            <span class="tag tag-${n.done ? 'done' : tag}">${n.done ? 'Done' : tag}</span><span class="tag">${escapeHTML(n.department || 'Reception')}</span>${n.pinned ? '<span class="tag">📌 Pinned</span>' : ''}
             ${n.mentions?.length ? `<div class="note-time">For: ${n.mentions.map(uid => escapeHTML(teamUsers.get(uid)?.name || 'Former colleague')).join(', ')}</div>` : ''}
             ${n.room ? `<div class="note-room">${escapeHTML(n.room)}</div>` : ''}
             <div class="note-text${tag === 'urgent' ? ' important-style' : ''}">${safeRichHTML(n.htmlContent || escapeHTML(n.text || '').replace(/\n/g,'<br>'))}</div>
