@@ -1233,9 +1233,16 @@ new MutationObserver(() => { if (document.getElementById('note-modal')?.style.di
 setInterval(() => { if (document.querySelector('.department-quick-pick')?.getClientRects().length) syncDepartmentButtons(); }, 1200);
 
 // ===================== STATS =====================
-document.getElementById('stats-btn').onclick = () => {
-    buildStats();
+document.getElementById('stats-btn').onclick = async () => {
     document.getElementById('stats-modal').style.display = 'flex';
+    const body = document.getElementById('stats-body');
+    body.innerHTML = '<p style="padding:20px;color:var(--text-muted)">Loading statistics…</p>';
+    const loaded = await loadAllNotesForCache();
+    if (!loaded) {
+        body.innerHTML = '<p style="padding:20px;color:var(--text-muted)">Could not load notes. Please close and reopen statistics to retry.</p>';
+        return;
+    }
+    buildStats();
 };
 
 function buildStats() {
