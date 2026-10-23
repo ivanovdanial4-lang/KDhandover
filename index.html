@@ -1429,17 +1429,30 @@ dataSubscriptions.push(onSnapshot(query(collection(db, "days"), orderBy("created
 async function loadAllNotesForCache() {
     const version = sessionVersion;
     const request = ++cacheVersion;
-    if (!currentUser) return;
+    if (!currentUser) return false;
+    const entries = Array.from(daysMap.entries());
     const cache = [];
     try {
-        for (const [dayId, dayData] of daysMap) {
-            const snap = await getDocs(collection(db, `days/${dayId}/notes`));
-            if (version !== sessionVersion || request !== cacheVersion || !currentUser) return;
-            snap.forEach(n => cache.push({ ...n.data(), _id: n.id, _dayId: dayId, _dayDate: dayData.date }));
+        // Load multiple days concurrently; sequential requests can stall on large histories.
+        for (let i = 0; i < entries.length; i += 12) {
+            const batch = entries.slice(i, i + 12);
+            const snapshots = await Promise.all(batch.map(([dayId]) => getDocs(collection(db, 'days/' + dayId + '/notes'))));
+            if (version !== sessionVersion || request !== cacheVersion || !currentUser) return false;
+            snapshots.forEach((snap, index) => {
+                const [dayId, dayData] = batch[index];
+                snap.forEach(n => cache.push({ ...n.data(), _id: n.id, _dayId: dayId, _dayDate: dayData.date }));
+            });
         }
-        if (version === sessionVersion && request === cacheVersion && currentUser) { allNotesCache = cache; renderPinnedBoard(); checkReminders(); return true; }
+        if (version !== sessionVersion || request !== cacheVersion || !currentUser) return false;
+        allNotesCache = cache;
+        renderPinnedBoard();
+        checkReminders();
+        return true;
+    } catch (error) {
+        console.error('Statistics note loading failed:', error);
+        if (version === sessionVersion && currentUser) showToast('Could not refresh all tasks. Please retry.', 'error');
         return false;
-    } catch { if (version === sessionVersion && currentUser) showToast('Could not refresh all tasks. Please retry.', 'error'); return false; }
+    }
 }
 
 function renderSidebar() {
