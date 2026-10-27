@@ -190,7 +190,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 .note-time > span:first-child { letter-spacing:.04em; }
 .note-author { max-width:120px; overflow:hidden; padding:4px 8px; border-radius:20px; color:#fff; text-overflow:ellipsis; white-space:nowrap; font-size:9px; font-weight:800; }
 .tag { display:inline-flex; align-items:center; min-height:21px; padding:0 8px; margin-bottom:10px; border-radius:6px; color:#fff; text-transform:uppercase; letter-spacing:.08em; font-size:8px; font-weight:850; }
-.tag-urgent { background:var(--tag-urgent); } .tag-important { background:var(--tag-important); } .tag-info { background:var(--tag-info); } .tag-done { background:var(--tag-done); }
+.department-tag { background:var(--surface-2); color:var(--text-main); border:1px solid var(--border-color); }\n.tag-urgent { background:var(--tag-urgent); } .tag-important { background:var(--tag-important); } .tag-info { background:var(--tag-info); } .tag-done { background:var(--tag-done); }
 .note-room { display:flex; align-items:center; gap:5px; margin-bottom:8px; color:var(--accent-strong); font-size:13px; font-weight:850; }
 .note-room::before { content:""; width:5px; height:5px; border-radius:50%; background:var(--accent-color); }
 .note-text { min-height:47px; margin:10px 0 15px; color:var(--text-main); line-height:1.62; font-size:13px; word-break:break-word; overflow-wrap:anywhere; }
@@ -1809,7 +1809,7 @@ function renderCurrentNotes() {
         card.style.animationDelay = `${Math.min(index, 10) * 32}ms`;
         card.innerHTML = `
             <div class="note-time"><span>${escapeHTML(n.time || '—')}</span>${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}</div>
-            <span class="tag tag-${n.done ? 'done' : tag}">${n.done ? 'Done' : tag}</span><span class="tag">${escapeHTML(n.department || 'Reception')}</span>${n.pinned ? '<span class="tag">📌 Pinned</span>' : ''}${overdue ? '<span class="overdue-label">⚠ Overdue</span>' : ''}
+            <span class="tag tag-${n.done ? 'done' : tag}">${n.done ? 'Done' : tag}</span><span class="tag department-tag">${escapeHTML(n.department || 'Reception')}</span>${n.pinned ? '<span class="tag">📌 Pinned</span>' : ''}${overdue ? '<span class="overdue-label">⚠ Overdue</span>' : ''}
             ${n.mentions?.length ? `<div class="note-mentions"><strong>For:</strong> ${n.mentions.map(uid => `<span class="mention-pill${uid === currentUser?.uid ? ' mention-me' : ''}">${escapeHTML(teamUsers.get(uid)?.name || (uid === currentUser?.uid ? currentUser.name : 'Former colleague'))}</span>`).join(' ')}</div>` : ''}
             ${n.room ? `<div class="note-room">${escapeHTML(n.room)}</div>` : ''}
             <div class="note-text${tag === 'urgent' ? ' important-style' : ''}">${safeRichHTML(n.htmlContent || escapeHTML(n.text || '').replace(/\n/g,'<br>'))}</div>
