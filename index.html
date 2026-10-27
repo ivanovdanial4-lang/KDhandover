@@ -598,7 +598,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, getAuth, createUserWithEmailAndPassword, deleteUser, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { runTransaction, getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { runTransaction, writeBatch, getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAjwiE5ObnWRMnWHqsLimaM7PeyoOGZGaU",
@@ -1817,14 +1817,68 @@ function renderCurrentNotes() {
             <div class="card-actions">
                 <button class="action-link" data-action="done" aria-label="${n.done ? 'Reopen note' : 'Mark note done'}">${n.done ? 'Reopen' : 'Done'}</button>
                 <button class="action-link" data-action="edit">Edit</button>
+                <button class="action-link" data-action="reschedule">Reschedule</button>
                 <button class="action-link" data-action="delete">Delete</button><button class="action-link" data-action="history">History</button>
             </div>`;
         card.querySelector('[data-action="done"]').onclick = () => window.toggleDone(id, !!n.done);
         card.querySelector('[data-action="edit"]').onclick = () => window.editNote(id, n);
+        card.querySelector('[data-action="reschedule"]').onclick = () => rescheduleNote(activeDayId, id);
         card.querySelector('[data-action="delete"]').onclick = () => window.deleteNote(id);
         card.querySelector('[data-action="history"]').onclick = () => showHistory(activeDayId, id);
         grid.appendChild(card);
     });
+}
+
+
+// Move the note and its entire history atomically so stats and task lists see only one copy.
+async function rescheduleNote(sourceDayId, noteId) {
+    if (!currentUser || !sourceDayId) return;
+    const sourceDay = daysMap.get(sourceDayId);
+    if (!sourceDay) { showToast('Day not found', 'error'); return; }
+    const input = document.createElement('input');
+    input.type = 'date';
+    const parts = sourceDay.date.split('.');
+    input.value = parts.length === 3 ? parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0') : '';
+    const body = panel('Reschedule task');
+    body.innerHTML = '<p style="margin-bottom:12px">Choose the new handover date. Task history and attachments will be preserved.</p>';
+    input.style.cssText = 'width:100%;padding:12px;border:1px solid var(--border-color);border-radius:9px;background:var(--surface-2);color:var(--text-main);color-scheme:normal';
+    const button = document.createElement('button');
+    button.className = 'add-day-btn'; button.textContent = 'Move task'; button.style.marginTop = '12px';
+    body.append(input, button);
+    button.onclick = async () => {
+        if (!input.value) { showToast('Choose a date first', 'error'); return; }
+        const [year,month,day] = input.value.split('-').map(Number);
+        const date = String(day).padStart(2,'0')+'.'+String(month).padStart(2,'0')+'.'+year;
+        if (date === sourceDay.date) { document.getElementById('extras-dialog').close(); return; }
+        button.disabled = true; button.textContent = 'Moving…';
+        try {
+            const original = doc(db,`days/${sourceDayId}/notes`,noteId);
+            const noteSnap = await getDoc(original);
+            if (!noteSnap.exists()) throw Error('Task no longer exists');
+            const history = await getDocs(collection(original,'history'));
+            if (history.size > 450) throw Error('Too many history entries to move safely');
+            let destination = Array.from(daysMap.values()).find(d => d.date === date);
+            if (!destination) {
+                // Create the destination only when needed; never delete an existing day.
+                const created = await addDoc(collection(db,'days'),{date,createdAt:parseDateToTs(date),folderId:sourceDay.folderId||null});
+                destination = {id:created.id,date};
+            }
+            if (destination.id === sourceDayId) return;
+            const target = doc(db,`days/${destination.id}/notes`,noteId);
+            if ((await getDoc(target)).exists()) throw Error('Task ID already exists on destination day');
+            const batch = writeBatch(db);
+            batch.set(target,{...noteSnap.data(),updatedAt:Date.now(),updatedByUid:currentUser.uid,revision:Number(noteSnap.data().revision||0)+1});
+            history.forEach(h=>batch.set(doc(collection(target,'history'),h.id),h.data()));
+            batch.set(doc(collection(target,'history')),{action:'Rescheduled',at:Date.now(),byUid:currentUser.uid,byName:currentUser.name,fromDate:sourceDay.date,toDate:date,before:{text:noteSnap.data().text||'',department:noteSnap.data().department||'Reception',done:!!noteSnap.data().done}});
+            history.forEach(h=>batch.delete(h.ref));
+            batch.delete(original);
+            await batch.commit();
+            document.getElementById('extras-dialog').close();
+            showToast('Task moved to '+date,'success');
+            loadAllNotesForCache();
+        } catch(error) { showToast('Could not move task: '+error.message,'error'); }
+        finally { button.disabled=false; button.textContent='Move task'; }
+    };
 }
 
 function loadNotes(dayId) {
@@ -1893,6 +1947,7 @@ document.getElementById('new-note-trigger').onclick = () => {
     fillNoteExtras({});
     editorBaseline = editorState();
     document.getElementById('modal').style.display = 'flex';
+    restoreEditorDraft();
     setTimeout(() => document.getElementById('m-editor').focus(), 100);
 };
 
@@ -1937,6 +1992,7 @@ document.getElementById('m-save').onclick = async () => {
         await addDoc(collection(db, `days/${targetDayId}/notes`), { ...payload, revision: 1 });
         if (tag === 'urgent') addNotification(`🚨 New URGENT note — R: ${room||'—'}`, text.slice(0,60), 'urgent');
     }
+    clearEditorDraft();
     document.getElementById('modal').style.display='none';
     showToast(editingNoteId ? 'Note updated' : 'Note added', 'success');
     loadAllNotesForCache();
@@ -1955,6 +2011,7 @@ window.editNote = (id, data) => {
     fillNoteExtras(data);
     editorBaseline = editorState();
     document.getElementById('modal').style.display='flex';
+    restoreEditorDraft();
 };
 
 window.deleteNote = async id => {
@@ -2088,9 +2145,48 @@ function editorState() {
         return e.type==='checkbox' ? e.checked : e.isContentEditable ? e.innerHTML : e.value;
     }));
 }
+
+const draftPrefix = 'kd_draft_v1_';
+function draftKey() {
+    if (!currentUser || !activeDayId) return null;
+    return draftPrefix + currentUser.uid + '_' + activeDayId + '_' + (editingNoteId || 'new');
+}
+function persistEditorDraft() {
+    const key = draftKey();
+    if (!key || document.getElementById('modal').style.display !== 'flex') return;
+    if (editorState() === editorBaseline) return;
+    const state = {};
+    for (const id of ['m-editor','m-room','m-tag','m-department','m-reminder','m-pinned','m-mentions']) {
+        const el=document.getElementById(id);
+        state[id]=el.multiple ? Array.from(el.selectedOptions,o=>o.value) : el.type==='checkbox' ? el.checked : el.isContentEditable ? safeRichHTML(el.innerHTML) : el.value;
+    }
+    try { localStorage.setItem(key,JSON.stringify({savedAt:Date.now(),state})); }
+    catch { document.getElementById('draft-hint').textContent='Draft could not be stored on this device'; }
+}
+function clearEditorDraft() { const key=draftKey(); if(key) storage.removeItem(key); }
+function restoreEditorDraft() {
+    const key=draftKey(); if(!key) return;
+    let saved;
+    try { saved=JSON.parse(storage.getItem(key)||'null'); } catch { return; }
+    if (!saved?.state || !confirm('Restore your unsaved draft from this device?')) return;
+    for (const [id,value] of Object.entries(saved.state)) {
+        const el=document.getElementById(id); if(!el) continue;
+        if(id==='m-editor') el.innerHTML=safeRichHTML(value);
+        else if(id==='m-mentions' && Array.isArray(value)) Array.from(el.options).forEach(o=>o.selected=value.includes(o.value));
+        else if(el.type==='checkbox') el.checked=!!value;
+        else el.value=value;
+    }
+    renderColleaguePicker();
+    showToast('Draft restored','success');
+}
+document.getElementById('modal').addEventListener('input',persistEditorDraft);
+document.getElementById('modal').addEventListener('change',persistEditorDraft);
+window.addEventListener('pagehide',persistEditorDraft);
+
 function closeNoteEditor() {
     if(document.getElementById('m-save').disabled) return false;
     if(editorState()!==editorBaseline && !confirm('Discard unsaved changes? Choose Cancel to keep writing.')) return false;
+    clearEditorDraft();
     document.getElementById('modal').style.display='none';
     return true;
 }
@@ -2170,7 +2266,7 @@ async function showHistory(dayId,id) {
         if(snap.empty) body.textContent='No recorded changes yet. History starts with this update.';
         snap.forEach(d=>{
             const h=d.data(); const row=document.createElement('div'); row.className='extra-row';
-            row.innerHTML=`<strong>${escapeHTML(h.action)} · ${escapeHTML(h.byName)}</strong><p>${escapeHTML(new Date(h.at).toLocaleString())}</p><p>${escapeHTML(h.before?.text||stripHTML(h.before?.htmlContent||''))}</p><small>Previous: ${escapeHTML(h.before?.department||'Reception')} · ${escapeHTML(h.before?.tag||'info')} · ${h.before?.done?'Done':'Open'} · ${h.before?.pinned?'Pinned':'Not pinned'}</small>`;
+            row.innerHTML=`<strong>${escapeHTML(h.action)}${h.fromDate && h.toDate ? ' ('+escapeHTML(h.fromDate)+' → '+escapeHTML(h.toDate)+')' : ''} · ${escapeHTML(h.byName)}</strong><p>${escapeHTML(new Date(h.at).toLocaleString())}</p><p>${escapeHTML(h.before?.text||stripHTML(h.before?.htmlContent||''))}</p><small>Previous: ${escapeHTML(h.before?.department||'Reception')} · ${escapeHTML(h.before?.tag||'info')} · ${h.before?.done?'Done':'Open'} · ${h.before?.pinned?'Pinned':'Not pinned'}</small>`;
             body.append(row);
         });
     } catch { if(version===sessionVersion) body.textContent='Could not load history. Check connection and published rules.'; }
