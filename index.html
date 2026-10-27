@@ -339,6 +339,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
     <aside id="sidebar" aria-label="Notebooks">
         <div class="sidebar-heading"><span class="eyebrow">YOUR WORKSPACE</span><span class="workspace-dot"></span></div>
         <button class="today-nav" id="today-nav"><span data-icon="calendar"></span><span>Today’s handover</span><span data-icon="arrow-right"></span></button>
+        <button class="today-nav" id="workspace-add-task"><span data-icon="plus"></span><span>Add Task</span><span data-icon="calendar" style="margin-left:auto"></span></button>
         <button class="today-nav" id="check-tasks"><span data-icon="check"></span><span>Check Tasks</span></button>
         <button class="today-nav" id="tasks-for-me"><span data-icon="user"></span><span>Tasks for Me</span><span id="my-task-count" style="margin-left:auto;font-weight:800;color:var(--accent-color)"></span></button>
         <button class="today-nav" id="archive-btn"><span data-icon="layers"></span><span>Completed archive</span></button>
@@ -1638,9 +1639,26 @@ function renderCalendar() {
 }
 document.getElementById('cal-prev').onclick = () => { calMonth--; if (calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
 document.getElementById('cal-next').onclick = () => { calMonth++; if (calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
-document.getElementById('cal-cancel').onclick = () => document.getElementById('cal-modal').style.display='none';
+document.getElementById('cal-cancel').onclick = () => { pendingTaskDate = null; document.getElementById('cal-modal').style.display='none'; };
 document.getElementById('cal-confirm').onclick = async () => {
     if (!calSelected) { alert("Select a date first."); return; }
+    if (calTarget === 'unsorted' && pendingTaskDate !== null) {
+        const chosenDate = calSelected;
+        const existing = Array.from(daysMap.values()).find(day => day.date === chosenDate);
+        document.getElementById('cal-modal').style.display = 'none';
+        pendingTaskDate = null;
+        if (existing) {
+            window.selectDay(existing.id, existing.date);
+            document.getElementById('new-note-trigger').click();
+        } else {
+            try {
+                const created = await addDoc(collection(db,"days"), { date: chosenDate, createdAt: parseDateToTs(chosenDate), folderId: null });
+                window.selectDay(created.id, chosenDate);
+                document.getElementById('new-note-trigger').click();
+            } catch (error) { showToast('Could not create task day: ' + error.message, 'error'); }
+        }
+        return;
+    }
     if (existingDatesSet.has(calSelected)) { alert("This date already exists!"); return; }
     await addDoc(collection(db,"days"), { date: calSelected, createdAt: parseDateToTs(calSelected), folderId: calTarget==='unsorted'?null:calTarget });
     if (!expandedFolders.has(calTarget)) expandedFolders.add(calTarget);
@@ -1835,6 +1853,12 @@ document.getElementById('view-toggle').onclick = () => {
 window.addEventListener('online', () => { if (currentUser) setConnectionStatus('online', 'Online'); });
 window.addEventListener('offline', () => { if (currentUser) setConnectionStatus('offline', 'Offline'); });
 
+// Workspace Add Task: choose a day, then open the existing note editor.
+let pendingTaskDate = null;
+document.getElementById('workspace-add-task').onclick = () => {
+    pendingTaskDate = true;
+    openCalendar('unsorted');
+};
 document.getElementById('today-nav').onclick = () => {
     const today = new Date();
     const todayString = `${String(today.getDate()).padStart(2,'0')}.${String(today.getMonth()+1).padStart(2,'0')}.${today.getFullYear()}`;
