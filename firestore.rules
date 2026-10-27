@@ -45,7 +45,7 @@ service cloud.firestore {
         match /history/{eventId} {
           allow read: if access();
           allow create: if access() && request.resource.data.byUid == request.auth.uid
-            && request.resource.data.action in ['Edited', 'Completed', 'Reopened'];
+            && request.resource.data.action in ['Edited', 'Completed', 'Reopened', 'Rescheduled'];
           allow update, delete: if false;
         }
       }
