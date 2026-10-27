@@ -1846,8 +1846,10 @@ async function rescheduleNote(sourceDayId, noteId) {
     button.className = 'add-day-btn'; button.textContent = 'Move task'; button.style.marginTop = '12px';
     body.append(input, button);
     button.onclick = async () => {
-        if (!input.value) { showToast('Choose a date first', 'error'); return; }
+        if (!input.value || !/^\\d{4}-\\d{2}-\\d{2}$/.test(input.value)) { showToast('Choose a valid date first', 'error'); return; }
         const [year,month,day] = input.value.split('-').map(Number);
+        const validDate = new Date(year,month-1,day);
+        if (validDate.getFullYear() !== year || validDate.getMonth() !== month-1 || validDate.getDate() !== day) { showToast('Invalid date', 'error'); return; }
         const date = String(day).padStart(2,'0')+'.'+String(month).padStart(2,'0')+'.'+year;
         if (date === sourceDay.date) { document.getElementById('extras-dialog').close(); return; }
         button.disabled = true; button.textContent = 'Moving…';
@@ -1863,14 +1865,15 @@ async function rescheduleNote(sourceDayId, noteId) {
                 const created = await addDoc(collection(db,'days'),{date,createdAt:parseDateToTs(date),folderId:sourceDay.folderId||null});
                 destination = {id:created.id,date};
             }
-            if (destination.id === sourceDayId) return;
+            if (destination.id === sourceDayId) { document.getElementById('extras-dialog').close(); return; }
             const target = doc(db,`days/${destination.id}/notes`,noteId);
             if ((await getDoc(target)).exists()) throw Error('Task ID already exists on destination day');
             const batch = writeBatch(db);
             batch.set(target,{...noteSnap.data(),updatedAt:Date.now(),updatedByUid:currentUser.uid,revision:Number(noteSnap.data().revision||0)+1});
             history.forEach(h=>batch.set(doc(collection(target,'history'),h.id),h.data()));
             batch.set(doc(collection(target,'history')),{action:'Rescheduled',at:Date.now(),byUid:currentUser.uid,byName:currentUser.name,fromDate:sourceDay.date,toDate:date,before:{text:noteSnap.data().text||'',department:noteSnap.data().department||'Reception',done:!!noteSnap.data().done}});
-            history.forEach(h=>batch.delete(h.ref));
+            // Keep the old history as an immutable audit trail: Firestore rules deliberately forbid its deletion.
+            // The new note receives its own full copy of the history before the source note is removed.
             batch.delete(original);
             await batch.commit();
             document.getElementById('extras-dialog').close();
@@ -1997,6 +2000,7 @@ document.getElementById('m-save').onclick = async () => {
     showToast(editingNoteId ? 'Note updated' : 'Note added', 'success');
     loadAllNotesForCache();
     } catch (error) {
+        persistEditorDraft();
         alert(error.message?.includes('colleague') ? error.message : 'Could not save. Your draft is still open. Check your connection and access.');
     } finally { btn.textContent = 'Save note'; btn.disabled = false; }
 };
@@ -2154,7 +2158,7 @@ function draftKey() {
 function persistEditorDraft() {
     const key = draftKey();
     if (!key || document.getElementById('modal').style.display !== 'flex') return;
-    if (editorState() === editorBaseline) return;
+    if (editorState() === editorBaseline) { storage.removeItem(key); return; }
     const state = {};
     for (const id of ['m-editor','m-room','m-tag','m-department','m-reminder','m-pinned','m-mentions']) {
         const el=document.getElementById(id);
@@ -2168,7 +2172,8 @@ function restoreEditorDraft() {
     const key=draftKey(); if(!key) return;
     let saved;
     try { saved=JSON.parse(storage.getItem(key)||'null'); } catch { return; }
-    if (!saved?.state || !confirm('Restore your unsaved draft from this device?')) return;
+    if (!saved?.state) return;
+    if (!confirm('Restore your unsaved draft from this device?')) return;
     for (const [id,value] of Object.entries(saved.state)) {
         const el=document.getElementById(id); if(!el) continue;
         if(id==='m-editor') el.innerHTML=safeRichHTML(value);
@@ -2181,6 +2186,8 @@ function restoreEditorDraft() {
 }
 document.getElementById('modal').addEventListener('input',persistEditorDraft);
 document.getElementById('modal').addEventListener('change',persistEditorDraft);
+// Contenteditable formatting commands and programmatic template insertions may not emit input events.
+setInterval(() => { if (document.getElementById('modal').style.display === 'flex' && !document.getElementById('m-save').disabled) persistEditorDraft(); }, 2000);
 window.addEventListener('pagehide',persistEditorDraft);
 
 function closeNoteEditor() {
