@@ -1846,7 +1846,7 @@ async function rescheduleNote(sourceDayId, noteId) {
     button.className = 'add-day-btn'; button.textContent = 'Move task'; button.style.marginTop = '12px';
     body.append(input, button);
     button.onclick = async () => {
-        if (!input.value || !/^\\d{4}-\\d{2}-\\d{2}$/.test(input.value)) { showToast('Choose a valid date first', 'error'); return; }
+        if (!input.value || !/^\d{4}-\d{2}-\d{2}$/.test(input.value)) { showToast('Choose a valid date first', 'error'); return; }
         const [year,month,day] = input.value.split('-').map(Number);
         const validDate = new Date(year,month-1,day);
         if (validDate.getFullYear() !== year || validDate.getMonth() !== month-1 || validDate.getDate() !== day) { showToast('Invalid date', 'error'); return; }
@@ -1870,7 +1870,7 @@ async function rescheduleNote(sourceDayId, noteId) {
             if ((await getDoc(target)).exists()) throw Error('Task ID already exists on destination day');
             const batch = writeBatch(db);
             batch.set(target,{...noteSnap.data(),updatedAt:Date.now(),updatedByUid:currentUser.uid,revision:Number(noteSnap.data().revision||0)+1});
-            history.forEach(h=>batch.set(doc(collection(target,'history'),h.id),h.data()));
+            history.forEach(h=>batch.set(doc(collection(target,'history'),h.id),{...h.data(),migratedFromDayId:sourceDayId}));
             batch.set(doc(collection(target,'history')),{action:'Rescheduled',at:Date.now(),byUid:currentUser.uid,byName:currentUser.name,fromDate:sourceDay.date,toDate:date,before:{text:noteSnap.data().text||'',department:noteSnap.data().department||'Reception',done:!!noteSnap.data().done}});
             // Keep the old history as an immutable audit trail: Firestore rules deliberately forbid its deletion.
             // The new note receives its own full copy of the history before the source note is removed.
