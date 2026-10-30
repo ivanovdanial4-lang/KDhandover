@@ -1660,7 +1660,20 @@ document.getElementById('cal-confirm').onclick = async () => {
             document.getElementById('new-note-trigger').click();
         } else {
             try {
-                const created = await addDoc(collection(db,"days"), { date: chosenDate, createdAt: parseDateToTs(chosenDate), folderId: null });
+                // Workspace tasks belong in the folder for their selected month.
+                const [dayPart, monthPart, yearPart] = chosenDate.split('.').map(Number);
+                const monthName = new Date(yearPart, monthPart - 1, 1).toLocaleString('en-US', { month: 'long' });
+                const targetName = monthName + ' ' + yearPart;
+                let monthFolder = Array.from(foldersMap.values()).find(f => f.name.trim().toLowerCase() === targetName.toLowerCase());
+                let targetFolderId;
+                if (monthFolder) {
+                    targetFolderId = monthFolder.id;
+                } else {
+                    const newFolder = await addDoc(collection(db, "folders"), { name: targetName, createdAt: Date.now() });
+                    targetFolderId = newFolder.id;
+                }
+                expandedFolders.add(targetFolderId);
+                const created = await addDoc(collection(db,"days"), { date: chosenDate, createdAt: parseDateToTs(chosenDate), folderId: targetFolderId });
                 window.selectDay(created.id, chosenDate);
                 document.getElementById('new-note-trigger').click();
             } catch (error) { showToast('Could not create task day: ' + error.message, 'error'); }
