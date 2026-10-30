@@ -319,6 +319,15 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
 @media(max-width:700px) { .header-right { overflow-x:auto; flex:1; } .header-right > * { flex-shrink:0; } .header-left { flex:0 0 auto; } }
 @media print { .extras-dialog,#pinned-board { display:none!important; } }
 .brand-mark{border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0!important;width:45px!important;height:45px!important;flex-shrink:0!important}.auth-brand .brand-mark{width:62px!important;height:62px!important}.ouroboros-logo{width:100%;height:100%;object-fit:contain;display:block;transform:scale(1.12)}
+
+/* Optional soft neon theme */
+[data-theme="neon"] { --bg-color:#0d101a; --surface:#171c2b; --surface-2:#1b2233; --sidebar-bg:#111624; --header-bg:#0a0e19; --header-bg-2:#151d30; --header-text:#f3f5ff; --text-main:#eaf0ff; --text-muted:#a7b3d1; --text-soft:#8392b6; --border-color:#354466; --border-strong:#50638c; --accent-color:#a78bfa; --accent-strong:#c4b5fd; --accent-soft:#292343; --shadow-sm:0 4px 16px rgba(0,0,0,.3); --shadow-md:0 18px 42px rgba(0,0,0,.45); }
+[data-theme="neon"] .note-card { border-color:rgba(153,139,248,.35); box-shadow:0 0 14px rgba(133,107,245,.10),0 7px 22px rgba(0,0,0,.22); }
+[data-theme="neon"] .note-card:hover { border-color:#a78bfa; box-shadow:0 0 22px rgba(167,139,250,.25),0 10px 28px rgba(0,0,0,.3); }
+[data-theme="neon"] .note-author, [data-theme="neon"] .mention-pill, [data-theme="neon"] .sidebar-user-name { text-shadow:0 0 7px currentColor; }
+[data-theme="neon"] .note-card .tag { box-shadow:0 0 9px rgba(167,139,250,.14); }
+.note-card[draggable="true"] { cursor:grab; }
+.note-card.note-dragging { opacity:.55; cursor:grabbing; outline:2px dashed var(--accent-color); }
 </style>
 </head>
 <body>
@@ -339,7 +348,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
         <button class="tool-btn icon-only" id="backup-btn" aria-label="Download backup" title="Download backup"><span data-icon="download"></span></button>
         <button class="tool-btn icon-only" id="stats-btn" aria-label="Statistics" title="Statistics"><span data-icon="chart"></span></button>
         <button class="tool-btn icon-only" id="team-btn" aria-label="Manage team" title="Manage team" style="display:none"><span data-icon="users"></span></button>
-        <select id="theme-selector" aria-label="Colour theme"><option value="light">Light</option><option value="cream">Cream</option><option value="dark">Dark</option></select>
+        <select id="theme-selector" aria-label="Colour theme"><option value="light">Light</option><option value="cream">Cream</option><option value="dark">Dark</option><option value="neon">Neon Dark</option></select>
     </div>
 </header>
 <button id="sidebar-backdrop" aria-label="Close notebooks" tabindex="-1"></button>
@@ -374,7 +383,7 @@ main { flex:1; min-width:0; overflow-y:auto; padding:42px clamp(22px,5vw,76px) 2
         </div>
         <div class="notes-toolbar" id="notes-toolbar" hidden>
             <div class="filter-tabs" role="group" aria-label="Filter notes"><button data-filter="all" class="active" aria-pressed="true">All notes <span id="count-all">0</span></button><button data-filter="open" aria-pressed="false">Open</button><button data-filter="urgent" aria-pressed="false">Urgent</button><button data-filter="done" aria-pressed="false">Done</button></div>
-            <div class="toolbar-tools"><div class="input-with-icon"><span data-icon="search"></span><input type="search" id="search" class="search-bar" aria-label="Search this day" placeholder="Search this day…"></div><select id="note-sort" aria-label="Sort notes"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="priority">Priority first</option></select><button class="icon-button" id="view-toggle" title="Switch to list view" aria-label="Switch to list view" aria-pressed="false"><span data-icon="list"></span></button></div>
+            <div class="toolbar-tools"><div class="input-with-icon"><span data-icon="search"></span><input type="search" id="search" class="search-bar" aria-label="Search this day" placeholder="Search this day…"></div><select id="note-sort" aria-label="Sort notes"><option value="manual">Custom order</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="priority">Priority first</option></select><button class="icon-button" id="view-toggle" title="Switch to list view" aria-label="Switch to list view" aria-pressed="false"><span data-icon="list"></span></button></div>
         </div>
         <div class="notes-meta" id="notes-meta" role="status"></div>
         <div id="pinned-board"></div><div class="notes-grid" id="notes-grid"></div>
@@ -1696,7 +1705,7 @@ function resetNoteView() {
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     document.getElementById('search').value = '';
-    document.getElementById('note-sort').value = 'newest';
+    document.getElementById('note-sort').value = 'manual';
 }
 
 window.selectDay = (id, date) => {
@@ -1798,6 +1807,7 @@ function renderCurrentNotes() {
     const sort = document.getElementById('note-sort').value;
     entries.sort((a,b) => {
         if (!!a.data.pinned !== !!b.data.pinned) return a.data.pinned ? -1 : 1;
+        if (sort === 'manual') return (Number.isFinite(Number(a.data.manualOrder)) ? Number(a.data.manualOrder) : -(Number(a.data.createdAt)||0)) - (Number.isFinite(Number(b.data.manualOrder)) ? Number(b.data.manualOrder) : -(Number(b.data.createdAt)||0));
         if (sort === 'priority') return notePriority(a.data.tag) - notePriority(b.data.tag) || (Number(b.data.createdAt)||0) - (Number(a.data.createdAt)||0);
         const delta = (Number(a.data.createdAt)||0) - (Number(b.data.createdAt)||0);
         return sort === 'oldest' ? delta : -delta;
@@ -1819,6 +1829,8 @@ function renderCurrentNotes() {
         const overdue = isOverdueTask(n, activeDayDate);
         card.className = `note-card${n.done ? ' done' : ''}${tag === 'urgent' ? ' urgent-card' : ''}${overdue ? ' overdue-card' : ''}`;
         card.dataset.noteId = id;
+        card.draggable = true;
+        card.title = 'Drag to reorder cards in this day';
         card.style.animationDelay = `${Math.min(index, 10) * 32}ms`;
         card.innerHTML = `
             <div class="note-time"><span>${escapeHTML(n.time || '—')}</span>${n.author ? `<span class="note-author" style="background:${authorColor}">${escapeHTML(n.author)}</span>` : ''}</div>
@@ -1842,6 +1854,49 @@ function renderCurrentNotes() {
     });
 }
 
+// Drag cards within a single day; persist order on note documents for all team members.
+let draggedNoteId = null;
+const noteGrid = document.getElementById('notes-grid');
+noteGrid.addEventListener('dragstart', e => {
+    const card = e.target.closest('.note-card');
+    if (!card || e.target.closest('button')) return;
+    draggedNoteId = card.dataset.noteId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedNoteId);
+    card.classList.add('note-dragging');
+});
+noteGrid.addEventListener('dragover', e => {
+    if (!draggedNoteId) return;
+    const target = e.target.closest('.note-card');
+    if (!target || target.dataset.noteId === draggedNoteId) return;
+    e.preventDefault();
+    const dragged = noteGrid.querySelector('.note-card.note-dragging');
+    if (!dragged) return;
+    const rect = target.getBoundingClientRect();
+    const before = viewMode === 'list' ? e.clientY < rect.top + rect.height/2 : e.clientX < rect.left + rect.width/2;
+    noteGrid.insertBefore(dragged, before ? target : target.nextSibling);
+});
+noteGrid.addEventListener('drop', async e => {
+    if (!draggedNoteId) return;
+    e.preventDefault();
+    const dayId = activeDayId;
+    const ids = Array.from(noteGrid.querySelectorAll('.note-card')).map(el => el.dataset.noteId);
+    draggedNoteId = null;
+    noteGrid.querySelectorAll('.note-dragging').forEach(el => el.classList.remove('note-dragging'));
+    document.getElementById('note-sort').value = 'manual';
+    try {
+        await Promise.all(ids.map((id, index) => updateDoc(doc(db, 'days', dayId, 'notes', id), {manualOrder:index})));
+        showToast('Card order saved', 'info');
+    } catch (error) {
+        console.error('Card reorder failed', error);
+        showToast('Could not save card order. Check Firebase permissions.', 'error');
+        renderCurrentNotes();
+    }
+});
+noteGrid.addEventListener('dragend', () => {
+    draggedNoteId = null;
+    noteGrid.querySelectorAll('.note-dragging').forEach(el => el.classList.remove('note-dragging'));
+});
 
 // Move the note and its entire history atomically so stats and task lists see only one copy.
 async function rescheduleNote(sourceDayId, noteId) {
@@ -2047,7 +2102,7 @@ window.toggleDone = async (id, s) => {
 
 document.getElementById('theme-selector').onchange = async e => { const theme=e.target.value; document.body.setAttribute('data-theme', theme); if(currentUser) try { await updateDoc(doc(db,'users',currentUser.uid), {theme}); } catch { showToast('Could not save theme', 'error'); } };
 const savedTheme = storage.getItem('kd_theme');
-if (savedTheme && ['light','cream','dark'].includes(savedTheme)) { document.getElementById('theme-selector').value = savedTheme; document.body.setAttribute('data-theme', savedTheme); }
+if (savedTheme && ['light','cream','dark','neon'].includes(savedTheme)) { document.getElementById('theme-selector').value = savedTheme; document.body.setAttribute('data-theme', savedTheme); }
 
 // ===================== RICH TEXT =====================
 window.execFmt = (cmd, val) => {
